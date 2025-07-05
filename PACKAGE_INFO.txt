@@ -1,0 +1,35 @@
+=== RIHLA COMPLETE SYSTEM PACKAGE STATISTICS ===
+
+Generated: Sat Jul  5 13:46:50 EDT 2025
+
+FILE COUNTS:
+C# Files: 65
+JavaScript/JSX Files: 8725
+TypeScript Files: 2924
+CSS Files: 13
+JSON Files: 699
+Markdown Files: 535
+Total Files: 20192
+
+DIRECTORY STRUCTURE:
+.
+./src
+./src/Mobile
+./src/Mobile/rihla-mobile
+./src/Mobile/rihla-mobile/src
+./src/Mobile/rihla-mobile/src/screens
+./src/Mobile/rihla-mobile/src/components
+./src/Mobile/rihla-mobile/src/contexts
+./src/Mobile/rihla-mobile/src/services
+./src/Mobile/rihla-mobile/src/utils
+./src/Core
+./src/Core/SchoolTransportationSystem.Core
+./src/Core/SchoolTransportationSystem.Core/obj
+./src/Core/SchoolTransportationSystem.Core/obj/Debug
+./src/Core/SchoolTransportationSystem.Core/obj/Debug/net8.0
+./src/Core/SchoolTransportationSystem.Core/obj/Debug/net8.0/refint
+./src/Core/SchoolTransportationSystem.Core/obj/Debug/net8.0/ref
+./src/Core/SchoolTransportationSystem.Core/Enums
+./src/Core/SchoolTransportationSystem.Core/ValueObjects
+./src/Core/SchoolTransportationSystem.Core/Entities
+PACKAGE SIZE: 344M
