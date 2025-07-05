@@ -1,5 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Rihla.Infrastructure.Data;
+using Rihla.Application.Interfaces;
+using Rihla.Application.Services;
+using Rihla.Core.Entities;
+using Rihla.Core.Enums;
+using Rihla.Core.ValueObjects;
+using SchoolTransportationSystem.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +29,22 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=rihla.db"));
 
+builder.Services.AddScoped<IRouteService, RouteService>();
+builder.Services.AddScoped<IDriverService, DriverService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DatabaseSeeder.SeedAsync(context);
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

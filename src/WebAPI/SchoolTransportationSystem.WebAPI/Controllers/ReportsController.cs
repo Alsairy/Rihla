@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
-namespace SchoolTransportationSystem.WebAPI.Controllers
+namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

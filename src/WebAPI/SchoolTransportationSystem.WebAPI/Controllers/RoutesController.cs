@@ -1,205 +1,124 @@
 using Microsoft.AspNetCore.Mvc;
-using SchoolTransportationSystem.Application.DTOs;
-using SchoolTransportationSystem.Application.Services;
+using Rihla.Application.DTOs;
+using Rihla.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
-namespace SchoolTransportationSystem.WebAPI.Controllers
+namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class RoutesController : ControllerBase
     {
-        private readonly RouteService _routeService;
+        private readonly IRouteService _routeService;
 
-        public RoutesController(RouteService routeService)
+        public RoutesController(IRouteService routeService)
         {
             _routeService = routeService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RouteDto>>> GetRoutes()
+        public async Task<ActionResult<IEnumerable<RouteDto>>> GetRoutes([FromQuery] RouteSearchDto searchDto)
         {
-            try
-            {
-                var routes = await _routeService.GetAllRoutesAsync();
-                return Ok(routes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error retrieving routes", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.GetAllAsync(searchDto ?? new RouteSearchDto(), tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error retrieving routes", error = result.Error });
+                
+            return Ok(result.Value.Items);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<RouteDto>> GetRoute(int id)
         {
-            try
-            {
-                var route = await _routeService.GetRouteByIdAsync(id);
-                if (route == null)
-                {
-                    return NotFound(new { message = $"Route with ID {id} not found" });
-                }
-                return Ok(route);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error retrieving route", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.GetByIdAsync(id, tenantId);
+            
+            if (!result.IsSuccess)
+                return NotFound(new { message = $"Route with ID {id} not found" });
+                
+            return Ok(result.Value);
         }
 
         [HttpPost]
         public async Task<ActionResult<RouteDto>> CreateRoute(CreateRouteDto createRouteDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-                var route = await _routeService.CreateRouteAsync(createRouteDto);
-                return CreatedAtAction(nameof(GetRoute), new { id = route.Id }, route);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error creating route", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.CreateAsync(createRouteDto, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error creating route", error = result.Error });
+                
+            return CreatedAtAction(nameof(GetRoute), new { id = result.Value.Id }, result.Value);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<RouteDto>> UpdateRoute(int id, UpdateRouteDto updateRouteDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-                var route = await _routeService.UpdateRouteAsync(id, updateRouteDto);
-                if (route == null)
-                {
-                    return NotFound(new { message = $"Route with ID {id} not found" });
-                }
-                return Ok(route);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error updating route", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.UpdateAsync(id, updateRouteDto, tenantId);
+            
+            if (!result.IsSuccess)
+                return NotFound(new { message = $"Route with ID {id} not found" });
+                
+            return Ok(result.Value);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRoute(int id)
         {
-            try
-            {
-                var success = await _routeService.DeleteRouteAsync(id);
-                if (!success)
-                {
-                    return NotFound(new { message = $"Route with ID {id} not found" });
-                }
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error deleting route", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.DeleteAsync(id, tenantId);
+            
+            if (!result.IsSuccess)
+                return NotFound(new { message = $"Route with ID {id} not found" });
+                
+            return NoContent();
         }
 
-        [HttpGet("statistics")]
-        public async Task<ActionResult<object>> GetRouteStatistics()
+        [HttpGet("active")]
+        public async Task<ActionResult<IEnumerable<RouteDto>>> GetActiveRoutes()
         {
-            try
-            {
-                var stats = await _routeService.GetRouteStatisticsAsync();
-                return Ok(stats);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error retrieving route statistics", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.GetActiveRoutesAsync(tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error retrieving active routes", error = result.Error });
+                
+            return Ok(result.Value);
         }
 
-        [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<RouteDto>>> SearchRoutes([FromQuery] string searchTerm)
+        [HttpGet("by-number/{routeNumber}")]
+        public async Task<ActionResult<RouteDto>> GetRouteByNumber(string routeNumber)
         {
-            try
-            {
-                var routes = await _routeService.SearchRoutesAsync(searchTerm);
-                return Ok(routes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error searching routes", error = ex.Message });
-            }
-        }
-
-        [HttpPost("{id}/assign-vehicle")]
-        public async Task<ActionResult> AssignVehicle(int id, [FromBody] int vehicleId)
-        {
-            try
-            {
-                var success = await _routeService.AssignVehicleToRouteAsync(id, vehicleId);
-                if (!success)
-                {
-                    return NotFound(new { message = $"Route with ID {id} not found" });
-                }
-                return Ok(new { message = "Vehicle assigned successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error assigning vehicle", error = ex.Message });
-            }
-        }
-
-        [HttpPost("{id}/assign-driver")]
-        public async Task<ActionResult> AssignDriver(int id, [FromBody] int driverId)
-        {
-            try
-            {
-                var success = await _routeService.AssignDriverToRouteAsync(id, driverId);
-                if (!success)
-                {
-                    return NotFound(new { message = $"Route with ID {id} not found" });
-                }
-                return Ok(new { message = "Driver assigned successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error assigning driver", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.GetByRouteNumberAsync(routeNumber, tenantId);
+            
+            if (!result.IsSuccess)
+                return NotFound(new { message = $"Route with number {routeNumber} not found" });
+                
+            return Ok(result.Value);
         }
 
         [HttpGet("{id}/students")]
-        public async Task<ActionResult<IEnumerable<object>>> GetRouteStudents(int id)
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetRouteStudents(int id)
         {
-            try
-            {
-                var students = await _routeService.GetRouteStudentsAsync(id);
-                return Ok(students);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error retrieving route students", error = ex.Message });
-            }
+            var tenantId = "1"; // TODO: Get from user context
+            var result = await _routeService.GetStudentsOnRouteAsync(id, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error retrieving route students", error = result.Error });
+                
+            return Ok(result.Value);
         }
 
-        [HttpPost("{id}/optimize")]
-        public async Task<ActionResult<object>> OptimizeRoute(int id)
-        {
-            try
-            {
-                var optimizedRoute = await _routeService.OptimizeRouteAsync(id);
-                return Ok(optimizedRoute);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error optimizing route", error = ex.Message });
-            }
-        }
     }
 }
 
