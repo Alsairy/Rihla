@@ -11,16 +11,18 @@ namespace Rihla.WebAPI.Controllers
     public class RoutesController : ControllerBase
     {
         private readonly IRouteService _routeService;
+        private readonly IUserContext _userContext;
 
-        public RoutesController(IRouteService routeService)
+        public RoutesController(IRouteService routeService, IUserContext userContext)
         {
             _routeService = routeService;
+            _userContext = userContext;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RouteDto>>> GetRoutes([FromQuery] RouteSearchDto searchDto)
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.GetAllAsync(searchDto ?? new RouteSearchDto(), tenantId);
             
             if (!result.IsSuccess)
@@ -32,7 +34,7 @@ namespace Rihla.WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<RouteDto>> GetRoute(int id)
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.GetByIdAsync(id, tenantId);
             
             if (!result.IsSuccess)
@@ -47,7 +49,7 @@ namespace Rihla.WebAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.CreateAsync(createRouteDto, tenantId);
             
             if (!result.IsSuccess)
@@ -62,7 +64,7 @@ namespace Rihla.WebAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.UpdateAsync(id, updateRouteDto, tenantId);
             
             if (!result.IsSuccess)
@@ -74,7 +76,7 @@ namespace Rihla.WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRoute(int id)
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.DeleteAsync(id, tenantId);
             
             if (!result.IsSuccess)
@@ -86,7 +88,7 @@ namespace Rihla.WebAPI.Controllers
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<RouteDto>>> GetActiveRoutes()
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.GetActiveRoutesAsync(tenantId);
             
             if (!result.IsSuccess)
@@ -98,7 +100,7 @@ namespace Rihla.WebAPI.Controllers
         [HttpGet("by-number/{routeNumber}")]
         public async Task<ActionResult<RouteDto>> GetRouteByNumber(string routeNumber)
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.GetByRouteNumberAsync(routeNumber, tenantId);
             
             if (!result.IsSuccess)
@@ -110,7 +112,7 @@ namespace Rihla.WebAPI.Controllers
         [HttpGet("{id}/students")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetRouteStudents(int id)
         {
-            var tenantId = "1"; // TODO: Get from user context
+            var tenantId = _userContext.GetTenantId();
             var result = await _routeService.GetStudentsOnRouteAsync(id, tenantId);
             
             if (!result.IsSuccess)

@@ -38,6 +38,8 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserContext, Rihla.WebAPI.Services.UserContext>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

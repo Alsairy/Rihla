@@ -13,11 +13,13 @@ namespace Rihla.Application.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AttendanceService> _logger;
+        private readonly IUserContext _userContext;
 
-        public AttendanceService(ApplicationDbContext context, ILogger<AttendanceService> logger)
+        public AttendanceService(ApplicationDbContext context, ILogger<AttendanceService> logger, IUserContext userContext)
         {
             _context = context;
             _logger = logger;
+            _userContext = userContext;
         }
 
         public async Task<Result<AttendanceDto>> GetByIdAsync(int id, string tenantId)
@@ -142,7 +144,7 @@ namespace Rihla.Application.Services
                     BoardingTime = createDto.BoardingTime,
                     AlightingTime = createDto.AlightingTime,
                     Notes = createDto.Notes,
-                    RecordedBy = "System", // TODO: Get from user context
+                    RecordedBy = _userContext.GetUsername() ?? "System",
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -280,7 +282,7 @@ namespace Rihla.Application.Services
                         Date = boardingTime.Date,
                         Status = AttendanceStatus.Present,
                         BoardingTime = boardingTime,
-                        RecordedBy = "System", // TODO: Get from user context
+                        RecordedBy = _userContext.GetUsername() ?? "System",
                         CreatedAt = DateTime.UtcNow
                     };
 
