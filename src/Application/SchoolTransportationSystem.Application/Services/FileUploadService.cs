@@ -13,7 +13,7 @@ namespace Rihla.Application.Services
         public FileUploadService(IConfiguration configuration)
         {
             _uploadPath = configuration["FileUpload:Path"] ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            _maxFileSize = configuration.GetValue<long>("FileUpload:MaxFileSize", 5 * 1024 * 1024); // 5MB default
+            _maxFileSize = long.TryParse(configuration["FileUpload:MaxFileSize"], out var maxSize) ? maxSize : 5 * 1024 * 1024; // 5MB default
             
             if (!Directory.Exists(_uploadPath))
             {

@@ -65,6 +65,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

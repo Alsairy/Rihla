@@ -20,8 +20,8 @@ namespace Rihla.Application.Services
             _smtpClient = new SmtpClient
             {
                 Host = _configuration["Email:SmtpHost"] ?? "smtp.gmail.com",
-                Port = _configuration.GetValue<int>("Email:SmtpPort", 587),
-                EnableSsl = _configuration.GetValue<bool>("Email:EnableSsl", true),
+                Port = int.TryParse(_configuration["Email:SmtpPort"], out var port) ? port : 587,
+                EnableSsl = bool.TryParse(_configuration["Email:EnableSsl"], out var enableSsl) ? enableSsl : true,
                 Credentials = new NetworkCredential(
                     _configuration["Email:Username"],
                     _configuration["Email:Password"]
