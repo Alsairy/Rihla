@@ -1,70 +1,102 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Rihla.Application.Interfaces;
+using Rihla.Application.DTOs;
 
 namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MaintenanceController : ControllerBase
     {
+        private readonly IMaintenanceService _maintenanceService;
+
+        public MaintenanceController(IMaintenanceService maintenanceService)
+        {
+            _maintenanceService = maintenanceService;
+        }
         [HttpGet]
-        public async Task<ActionResult> GetMaintenanceRecords()
+        public async Task<ActionResult<IEnumerable<MaintenanceRecordDto>>> GetMaintenanceRecords([FromQuery] MaintenanceSearchDto searchDto)
         {
             try
             {
-                // Return empty list for now - service implementation pending
-                var maintenance = new List<object>();
-                return Ok(maintenance);
+                var tenantId = "1";
+                var result = await _maintenanceService.GetAllAsync(searchDto ?? new MaintenanceSearchDto(), tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving maintenance records", error = result.Error });
+
+                return Ok(result.Value);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error retrieving maintenance records", error = ex.Message });
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetMaintenanceRecord(int id)
+        public async Task<ActionResult<MaintenanceRecordDto>> GetMaintenanceRecord(int id)
         {
             try
             {
-                // Return not found for now - service implementation pending
-                return NotFound($"Maintenance record with ID {id} not found");
+                var tenantId = "1";
+                var result = await _maintenanceService.GetByIdAsync(id, tenantId);
+                
+                if (!result.IsSuccess)
+                    return NotFound(new { message = $"Maintenance record with ID {id} not found" });
+
+                return Ok(result.Value);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error retrieving maintenance record", error = ex.Message });
             }
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateMaintenanceRecord([FromBody] object createMaintenanceData)
+        public async Task<ActionResult<MaintenanceRecordDto>> CreateMaintenanceRecord([FromBody] CreateMaintenanceRecordDto createMaintenanceDto)
         {
             try
             {
-                // Return created response for now - service implementation pending
-                var maintenanceData = new
-                {
-                    Id = 1,
-                    Message = "Maintenance record created successfully - API implementation pending"
-                };
-                return Ok(maintenanceData);
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                createMaintenanceDto.TenantId = tenantId;
+                var result = await _maintenanceService.CreateAsync(createMaintenanceDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error creating maintenance record", error = result.Error });
+
+                return CreatedAtAction(nameof(GetMaintenanceRecord), new { id = result.Value.Id }, result.Value);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error creating maintenance record", error = ex.Message });
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMaintenanceRecord(int id, [FromBody] object updateMaintenanceData)
+        public async Task<IActionResult> UpdateMaintenanceRecord(int id, [FromBody] UpdateMaintenanceRecordDto updateMaintenanceDto)
         {
             try
             {
-                // Return no content for now - service implementation pending
-                return Ok(new { Message = "Maintenance record updated successfully - API implementation pending" });
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                updateMaintenanceDto.Id = id;
+                var result = await _maintenanceService.UpdateAsync(id, updateMaintenanceDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return NotFound(new { message = $"Maintenance record with ID {id} not found" });
+
+                return Ok(new { message = "Maintenance record updated successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error updating maintenance record", error = ex.Message });
             }
         }
 
@@ -73,12 +105,17 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Return no content for now - service implementation pending
-                return Ok(new { Message = "Maintenance record deleted successfully - API implementation pending" });
+                var tenantId = "1";
+                var result = await _maintenanceService.DeleteAsync(id, tenantId);
+                
+                if (!result.IsSuccess)
+                    return NotFound(new { message = $"Maintenance record with ID {id} not found" });
+
+                return Ok(new { message = "Maintenance record deleted successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error deleting maintenance record", error = ex.Message });
             }
         }
 
@@ -99,7 +136,7 @@ namespace Rihla.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { message = "Error retrieving maintenance statistics", error = ex.Message });
             }
         }
     }
