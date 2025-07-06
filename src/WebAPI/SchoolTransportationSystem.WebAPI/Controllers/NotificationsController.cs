@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Rihla.Application.DTOs;
+using Rihla.Application.Interfaces;
+using Rihla.WebAPI.Services;
 
 namespace Rihla.WebAPI.Controllers
 {
@@ -8,46 +11,36 @@ namespace Rihla.WebAPI.Controllers
     [Authorize]
     public class NotificationsController : ControllerBase
     {
+        private readonly INotificationService _notificationService;
+        private readonly IUserContext _userContext;
+
+        public NotificationsController(INotificationService notificationService, IUserContext userContext)
+        {
+            _notificationService = notificationService;
+            _userContext = userContext;
+        }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetNotifications()
+        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetNotifications([FromQuery] bool unreadOnly = false)
         {
             try
             {
-                var notifications = new[]
-                {
-                    new {
-                        Id = 1,
-                        Title = "Vehicle Maintenance Due",
-                        Message = "Vehicle SAB-1234 is due for maintenance",
-                        Type = "maintenance",
-                        Priority = "high",
-                        IsRead = false,
-                        CreatedAt = DateTime.Now.AddHours(-2),
-                        UserId = 1
-                    },
-                    new {
-                        Id = 2,
-                        Title = "Late Pickup Alert",
-                        Message = "Student Ahmed Ali was not picked up at scheduled time",
-                        Type = "attendance",
-                        Priority = "urgent",
-                        IsRead = false,
-                        CreatedAt = DateTime.Now.AddHours(-1),
-                        UserId = 1
-                    },
-                    new {
-                        Id = 3,
-                        Title = "Payment Received",
-                        Message = "Payment of 500 SAR received from parent",
-                        Type = "payment",
-                        Priority = "normal",
-                        IsRead = true,
-                        CreatedAt = DateTime.Now.AddHours(-3),
-                        UserId = 1
-                    }
-                };
+                var tenantId = _userContext.GetTenantId().ToString();
+                var userId = _userContext.GetUserId();
 
-                return Ok(notifications);
+                if (string.IsNullOrEmpty(tenantId) || userId <= 0)
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var result = await _notificationService.GetNotificationsAsync(tenantId, userId, unreadOnly);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(result.Value);
+                }
+
+                return BadRequest(new { message = result.Error });
             }
             catch (Exception ex)
             {
@@ -60,9 +53,21 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Simulate marking notification as read
-                await Task.Delay(100);
-                return Ok(new { message = "Notification marked as read" });
+                var username = _userContext.GetUsername();
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var result = await _notificationService.MarkNotificationAsReadAsync(id, username);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(new { message = "Notification marked as read" });
+                }
+
+                return BadRequest(new { message = result.Error });
             }
             catch (Exception ex)
             {
@@ -75,8 +80,27 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Simulate marking all notifications as read
-                await Task.Delay(200);
+                var tenantId = _userContext.GetTenantId().ToString();
+                var userId = _userContext.GetUserId();
+                var username = _userContext.GetUsername();
+
+                if (string.IsNullOrEmpty(tenantId) || userId <= 0 || string.IsNullOrEmpty(username))
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var notificationsResult = await _notificationService.GetNotificationsAsync(tenantId, userId, true);
+
+                if (!notificationsResult.IsSuccess)
+                {
+                    return BadRequest(new { message = notificationsResult.Error });
+                }
+
+                var markReadTasks = notificationsResult.Value.Select(n => 
+                    _notificationService.MarkNotificationAsReadAsync(n.Id, username));
+
+                await Task.WhenAll(markReadTasks);
+
                 return Ok(new { message = "All notifications marked as read" });
             }
             catch (Exception ex)
@@ -86,13 +110,27 @@ namespace Rihla.WebAPI.Controllers
         }
 
         [HttpPost("send")]
-        public async Task<ActionResult> SendNotification([FromBody] object notificationData)
+        public async Task<ActionResult> SendNotification([FromBody] CreateNotificationDto notificationData)
         {
             try
             {
-                // Simulate sending notification
-                await Task.Delay(500);
-                return Ok(new { message = "Notification sent successfully" });
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var tenantId = _userContext.GetTenantId().ToString();
+                var username = _userContext.GetUsername();
+
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(username))
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                notificationData.TenantId = tenantId;
+                notificationData.CreatedBy = username;
+
+                return Ok(new { message = "Notification creation endpoint - implement based on specific notification type" });
             }
             catch (Exception ex)
             {
@@ -101,16 +139,46 @@ namespace Rihla.WebAPI.Controllers
         }
 
         [HttpGet("statistics")]
-        public async Task<ActionResult<object>> GetNotificationStatistics()
+        public async Task<ActionResult<NotificationStatisticsDto>> GetNotificationStatistics()
         {
             try
             {
-                var stats = new
+                var tenantId = _userContext.GetTenantId().ToString();
+                var userId = _userContext.GetUserId();
+
+                if (string.IsNullOrEmpty(tenantId) || userId <= 0)
                 {
-                    TotalNotifications = 15,
-                    UnreadNotifications = 5,
-                    UrgentNotifications = 2,
-                    TodayNotifications = 8
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var allNotificationsResult = await _notificationService.GetNotificationsAsync(tenantId, userId, false);
+                var unreadNotificationsResult = await _notificationService.GetNotificationsAsync(tenantId, userId, true);
+
+                if (!allNotificationsResult.IsSuccess || !unreadNotificationsResult.IsSuccess)
+                {
+                    return BadRequest(new { message = "Error retrieving notification data" });
+                }
+
+                var allNotifications = allNotificationsResult.Value;
+                var unreadNotifications = unreadNotificationsResult.Value;
+
+                var today = DateTime.UtcNow.Date;
+                var todayNotifications = allNotifications.Where(n => n.CreatedAt.Date == today).Count();
+                var urgentNotifications = unreadNotifications.Where(n => n.Priority == Rihla.Core.Enums.NotificationPriority.Urgent).Count();
+                var criticalNotifications = unreadNotifications.Where(n => n.Priority == Rihla.Core.Enums.NotificationPriority.Critical).Count();
+
+                var stats = new NotificationStatisticsDto
+                {
+                    TotalNotifications = allNotifications.Count,
+                    UnreadNotifications = unreadNotifications.Count,
+                    UrgentNotifications = urgentNotifications,
+                    CriticalNotifications = criticalNotifications,
+                    TodayNotifications = todayNotifications,
+                    EmailsSent = allNotifications.Count(n => n.EmailSent),
+                    SmssSent = allNotifications.Count(n => n.SmsSent),
+                    FailedEmails = allNotifications.Count(n => !string.IsNullOrEmpty(n.EmailError)),
+                    FailedSms = allNotifications.Count(n => !string.IsNullOrEmpty(n.SmsError)),
+                    LastUpdated = DateTime.UtcNow
                 };
 
                 return Ok(stats);
@@ -120,6 +188,80 @@ namespace Rihla.WebAPI.Controllers
                 return StatusCode(500, new { message = "Error retrieving notification statistics", error = ex.Message });
             }
         }
+
+        [HttpPost("emergency")]
+        public async Task<ActionResult> SendEmergencyAlert([FromBody] EmergencyAlertDto alertData)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var tenantId = _userContext.GetTenantId().ToString();
+
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var result = await _notificationService.SendEmergencyAlertAsync(tenantId, alertData.Message);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(new { message = "Emergency alert sent successfully" });
+                }
+
+                return BadRequest(new { message = result.Error });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error sending emergency alert", error = ex.Message });
+            }
+        }
+
+        [HttpPost("pickup/{studentId}")]
+        public async Task<ActionResult> SendPickupNotification(int studentId, [FromBody] PickupNotificationDto pickupData)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var tenantId = _userContext.GetTenantId().ToString();
+
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    return BadRequest(new { message = "Invalid user context" });
+                }
+
+                var result = await _notificationService.SendStudentPickupNotificationAsync(tenantId, studentId, pickupData.Status);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(new { message = "Pickup notification sent successfully" });
+                }
+
+                return BadRequest(new { message = result.Error });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error sending pickup notification", error = ex.Message });
+            }
+        }
+    }
+
+    public class EmergencyAlertDto
+    {
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public class PickupNotificationDto
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }
 

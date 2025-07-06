@@ -21,6 +21,7 @@ namespace Rihla.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,7 @@ namespace Rihla.Infrastructure.Data
             ConfigurePayment(modelBuilder);
             ConfigureMaintenanceRecord(modelBuilder);
             ConfigureUser(modelBuilder);
+            ConfigureNotification(modelBuilder);
 
             // Configure relationships
             ConfigureRelationships(modelBuilder);
@@ -277,6 +279,28 @@ namespace Rihla.Infrastructure.Data
             });
         }
 
+        private void ConfigureNotification(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Message).HasMaxLength(1000).IsRequired();
+                entity.Property(e => e.Priority).IsRequired();
+                entity.Property(e => e.Channel).IsRequired();
+                entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+                entity.Property(e => e.EmailError).HasMaxLength(500);
+                entity.Property(e => e.SmsError).HasMaxLength(500);
+                entity.Property(e => e.Metadata).HasMaxLength(1000);
+
+                entity.HasIndex(e => new { e.UserId, e.IsRead });
+                entity.HasIndex(e => new { e.TenantId, e.Type });
+                entity.HasIndex(e => new { e.TenantId, e.Priority });
+                entity.HasIndex(e => e.CreatedAt);
+            });
+        }
+
         private void ConfigureRelationships(ModelBuilder modelBuilder)
         {
             // Student -> Route (Many-to-One)
@@ -361,6 +385,13 @@ namespace Rihla.Infrastructure.Data
                 .HasOne(mr => mr.Vehicle)
                 .WithMany(v => v.MaintenanceRecords)
                 .HasForeignKey(mr => mr.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Notification -> User (Many-to-One)
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
