@@ -13,10 +13,14 @@ namespace Rihla.WebAPI.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string GetTenantId()
+        public int GetTenantId()
         {
             var tenantIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id");
-            return tenantIdClaim?.Value ?? "1"; // Default to "1" if not found
+            if (tenantIdClaim != null && int.TryParse(tenantIdClaim.Value, out int tenantId))
+            {
+                return tenantId;
+            }
+            return 1; // Default to 1 if not found or invalid
         }
 
         public int GetUserId()

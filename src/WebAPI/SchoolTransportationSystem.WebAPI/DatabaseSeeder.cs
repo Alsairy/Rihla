@@ -3,6 +3,8 @@ using Rihla.Infrastructure.Data;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
 using Rihla.Core.ValueObjects;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SchoolTransportationSystem.WebAPI
 {
@@ -14,10 +16,60 @@ namespace SchoolTransportationSystem.WebAPI
             {
                 await context.Database.EnsureCreatedAsync();
                 
-                if (context.Students.Any() || context.Drivers.Any() || context.Vehicles.Any() || context.Routes.Any())
+                if (context.Students.Any() || context.Drivers.Any() || context.Vehicles.Any() || context.Routes.Any() || context.Users.Any())
                 {
                     return; // Database already seeded
                 }
+
+                var (adminHash, adminSalt) = HashPassword("password123");
+                var (parentHash, parentSalt) = HashPassword("password123");
+                var (driverHash, driverSalt) = HashPassword("password123");
+
+                var users = new List<User>
+                {
+                    new User
+                    {
+                        TenantId = "1",
+                        Username = "admin",
+                        Email = "admin@rihla.com",
+                        PasswordHash = adminHash,
+                        Salt = adminSalt,
+                        Role = "Admin",
+                        FirstName = "System",
+                        LastName = "Administrator",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        TenantId = "1",
+                        Username = "parent1",
+                        Email = "parent@rihla.com",
+                        PasswordHash = parentHash,
+                        Salt = parentSalt,
+                        Role = "Parent",
+                        FirstName = "Mohammed",
+                        LastName = "Al-Ahmad",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        TenantId = "1",
+                        Username = "driver1",
+                        Email = "driver@rihla.com",
+                        PasswordHash = driverHash,
+                        Salt = driverSalt,
+                        Role = "Driver",
+                        FirstName = "Ahmed",
+                        LastName = "Al-Rashid",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                context.Users.AddRange(users);
+                await context.SaveChangesAsync();
 
                 var drivers = new List<Driver>
                 {
@@ -106,17 +158,31 @@ namespace SchoolTransportationSystem.WebAPI
                     new Rihla.Core.Entities.Route
                     {
                         TenantId = 1,
+                        RouteNumber = "RT001",
                         Name = "Morning Route - Riyadh North",
                         Description = "Primary morning route covering northern Riyadh districts",
                         Status = RouteStatus.Active,
+                        StartTime = new TimeSpan(7, 0, 0),
+                        EndTime = new TimeSpan(8, 30, 0),
+                        Distance = 25.5m,
+                        EstimatedDuration = 90,
+                        StartLocation = "Al-Nakheel District",
+                        EndLocation = "Al-Noor Elementary School",
                         CreatedAt = DateTime.UtcNow
                     },
                     new Rihla.Core.Entities.Route
                     {
                         TenantId = 1,
+                        RouteNumber = "RT002",
                         Name = "Morning Route - Riyadh South", 
                         Description = "Secondary morning route covering southern Riyadh districts",
                         Status = RouteStatus.Active,
+                        StartTime = new TimeSpan(7, 15, 0),
+                        EndTime = new TimeSpan(8, 45, 0),
+                        Distance = 18.2m,
+                        EstimatedDuration = 90,
+                        StartLocation = "Al-Rawda District",
+                        EndLocation = "Al-Noor Elementary School",
                         CreatedAt = DateTime.UtcNow
                     }
                 };
@@ -240,7 +306,7 @@ namespace SchoolTransportationSystem.WebAPI
                 await context.SaveChangesAsync();
 
                 Console.WriteLine("Database seeded successfully!");
-                Console.WriteLine($"Added: {drivers.Count} drivers, {vehicles.Count} vehicles, {routes.Count} routes, {students.Count} students");
+                Console.WriteLine($"Added: {users.Count} users, {drivers.Count} drivers, {vehicles.Count} vehicles, {routes.Count} routes, {students.Count} students");
                 Console.WriteLine($"Added: {trips.Count} trips, {payments.Count} payments, {maintenanceRecords.Count} maintenance records");
             }
             catch (Exception ex)
@@ -248,6 +314,19 @@ namespace SchoolTransportationSystem.WebAPI
                 Console.WriteLine($"Error seeding database: {ex.Message}");
                 throw;
             }
+        }
+
+        private static (string hash, string salt) HashPassword(string password)
+        {
+            using var rng = RandomNumberGenerator.Create();
+            var saltBytes = new byte[32];
+            rng.GetBytes(saltBytes);
+            var salt = Convert.ToBase64String(saltBytes);
+
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, 10000, HashAlgorithmName.SHA256);
+            var hash = Convert.ToBase64String(pbkdf2.GetBytes(32));
+
+            return (hash, salt);
         }
     }
 }
