@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Rihla.Application.Interfaces;
 
@@ -22,67 +21,67 @@ namespace Rihla.Application.Services
             }
         }
 
-        public async Task<string> UploadDriverDocumentAsync(int driverId, IFormFile file, string documentType)
+        public async Task<string> UploadDriverDocumentAsync(int driverId, Stream fileStream, string fileName, string documentType)
         {
-            if (!IsValidDocumentFile(file))
+            if (!IsValidDocumentFile(fileName, fileStream.Length))
                 throw new ArgumentException("Invalid file type or size");
 
-            var fileName = $"driver_{driverId}_{documentType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(file.FileName)}";
+            var newFileName = $"driver_{driverId}_{documentType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(fileName)}";
             var driverPath = Path.Combine(_uploadPath, "drivers", driverId.ToString());
             
             if (!Directory.Exists(driverPath))
                 Directory.CreateDirectory(driverPath);
 
-            var filePath = Path.Combine(driverPath, fileName);
+            var filePath = Path.Combine(driverPath, newFileName);
             
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await fileStream.CopyToAsync(stream);
             }
 
-            return Path.Combine("drivers", driverId.ToString(), fileName);
+            return Path.Combine("drivers", driverId.ToString(), newFileName);
         }
 
-        public async Task<string> UploadVehicleDocumentAsync(int vehicleId, IFormFile file, string documentType)
+        public async Task<string> UploadVehicleDocumentAsync(int vehicleId, Stream fileStream, string fileName, string documentType)
         {
-            if (!IsValidDocumentFile(file))
+            if (!IsValidDocumentFile(fileName, fileStream.Length))
                 throw new ArgumentException("Invalid file type or size");
 
-            var fileName = $"vehicle_{vehicleId}_{documentType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(file.FileName)}";
+            var newFileName = $"vehicle_{vehicleId}_{documentType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(fileName)}";
             var vehiclePath = Path.Combine(_uploadPath, "vehicles", vehicleId.ToString());
             
             if (!Directory.Exists(vehiclePath))
                 Directory.CreateDirectory(vehiclePath);
 
-            var filePath = Path.Combine(vehiclePath, fileName);
+            var filePath = Path.Combine(vehiclePath, newFileName);
             
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await fileStream.CopyToAsync(stream);
             }
 
-            return Path.Combine("vehicles", vehicleId.ToString(), fileName);
+            return Path.Combine("vehicles", vehicleId.ToString(), newFileName);
         }
 
-        public async Task<string> UploadStudentPhotoAsync(int studentId, IFormFile file)
+        public async Task<string> UploadStudentPhotoAsync(int studentId, Stream fileStream, string fileName)
         {
-            if (!IsValidImageFile(file))
+            if (!IsValidImageFile(fileName, fileStream.Length))
                 throw new ArgumentException("Invalid image file type or size");
 
-            var fileName = $"student_{studentId}_photo_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(file.FileName)}";
+            var newFileName = $"student_{studentId}_photo_{DateTime.UtcNow:yyyyMMdd_HHmmss}{Path.GetExtension(fileName)}";
             var studentPath = Path.Combine(_uploadPath, "students", studentId.ToString());
             
             if (!Directory.Exists(studentPath))
                 Directory.CreateDirectory(studentPath);
 
-            var filePath = Path.Combine(studentPath, fileName);
+            var filePath = Path.Combine(studentPath, newFileName);
             
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await fileStream.CopyToAsync(stream);
             }
 
-            return Path.Combine("students", studentId.ToString(), fileName);
+            return Path.Combine("students", studentId.ToString(), newFileName);
         }
 
         public async Task<bool> DeleteFileAsync(string filePath)
@@ -118,21 +117,21 @@ namespace Rihla.Application.Services
             return $"/api/files/{filePath.Replace('\\', '/')}";
         }
 
-        public bool IsValidImageFile(IFormFile file)
+        public bool IsValidImageFile(string fileName, long fileSize)
         {
-            if (file == null || file.Length == 0 || file.Length > _maxFileSize)
+            if (string.IsNullOrEmpty(fileName) || fileSize == 0 || fileSize > _maxFileSize)
                 return false;
 
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
             return _allowedImageExtensions.Contains(extension);
         }
 
-        public bool IsValidDocumentFile(IFormFile file)
+        public bool IsValidDocumentFile(string fileName, long fileSize)
         {
-            if (file == null || file.Length == 0 || file.Length > _maxFileSize)
+            if (string.IsNullOrEmpty(fileName) || fileSize == 0 || fileSize > _maxFileSize)
                 return false;
 
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
             return _allowedDocumentExtensions.Contains(extension);
         }
     }

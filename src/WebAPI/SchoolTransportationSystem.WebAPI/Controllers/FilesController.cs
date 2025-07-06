@@ -24,7 +24,8 @@ namespace Rihla.WebAPI.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest("No file provided");
 
-                var filePath = await _fileUploadService.UploadDriverDocumentAsync(driverId, file, documentType);
+                using var stream = file.OpenReadStream();
+                var filePath = await _fileUploadService.UploadDriverDocumentAsync(driverId, stream, file.FileName, documentType);
                 var fileUrl = await _fileUploadService.GetFileUrlAsync(filePath);
 
                 return Ok(new { FilePath = filePath, FileUrl = fileUrl });
@@ -47,7 +48,8 @@ namespace Rihla.WebAPI.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest("No file provided");
 
-                var filePath = await _fileUploadService.UploadVehicleDocumentAsync(vehicleId, file, documentType);
+                using var stream = file.OpenReadStream();
+                var filePath = await _fileUploadService.UploadVehicleDocumentAsync(vehicleId, stream, file.FileName, documentType);
                 var fileUrl = await _fileUploadService.GetFileUrlAsync(filePath);
 
                 return Ok(new { FilePath = filePath, FileUrl = fileUrl });
@@ -70,7 +72,8 @@ namespace Rihla.WebAPI.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest("No file provided");
 
-                var filePath = await _fileUploadService.UploadStudentPhotoAsync(studentId, file);
+                using var stream = file.OpenReadStream();
+                var filePath = await _fileUploadService.UploadStudentPhotoAsync(studentId, stream, file.FileName);
                 var fileUrl = await _fileUploadService.GetFileUrlAsync(filePath);
 
                 return Ok(new { FilePath = filePath, FileUrl = fileUrl });
