@@ -9,25 +9,34 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import apiClient from '../services/apiClient';
 
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [dashboardData, setDashboardData] = useState({
-    totalStudents: 1250,
-    activeDrivers: 45,
-    totalVehicles: 32,
-    activeRoutes: 18,
-    todaysTrips: 64,
-    attendanceRate: 94.5,
-  });
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const onRefresh = React.useCallback(() => {
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/api/dashboard/statistics');
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
+    await fetchDashboardData();
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
   }, []);
 
   const StatCard = ({ title, value, change, icon, color = '#2563eb' }) => (
@@ -85,48 +94,56 @@ export default function DashboardScreen() {
 
       {/* Stats Grid */}
       <View style={styles.statsContainer}>
-        <StatCard
-          title="Total Students"
-          value="1,250"
-          change="+5.2%"
-          icon="people"
-          color="#2563eb"
-        />
-        <StatCard
-          title="Active Drivers"
-          value="45"
-          change="+2.1%"
-          icon="person"
-          color="#10b981"
-        />
-        <StatCard
-          title="Total Vehicles"
-          value="32"
-          change="0%"
-          icon="bus"
-          color="#f59e0b"
-        />
-        <StatCard
-          title="Active Routes"
-          value="18"
-          change="-1.2%"
-          icon="map"
-          color="#ef4444"
-        />
-        <StatCard
-          title="Today's Trips"
-          value="64"
-          change="+8.3%"
-          icon="location"
-          color="#8b5cf6"
-        />
-        <StatCard
-          title="Attendance Rate"
-          value="94.5%"
-          change="+1.5%"
-          icon="checkmark-circle"
-          color="#06b6d4"
-        />
+        {loading ? (
+          <Text style={styles.loadingText}>Loading dashboard data...</Text>
+        ) : dashboardData ? (
+          <>
+            <StatCard
+              title="Total Students"
+              value={dashboardData.totalStudents?.toString() || "0"}
+              change={dashboardData.studentGrowth || "+0%"}
+              icon="people"
+              color="#2563eb"
+            />
+            <StatCard
+              title="Active Drivers"
+              value={dashboardData.activeDrivers?.toString() || "0"}
+              change={dashboardData.driverGrowth || "+0%"}
+              icon="person"
+              color="#10b981"
+            />
+            <StatCard
+              title="Total Vehicles"
+              value={dashboardData.totalVehicles?.toString() || "0"}
+              change={dashboardData.vehicleGrowth || "0%"}
+              icon="bus"
+              color="#f59e0b"
+            />
+            <StatCard
+              title="Active Routes"
+              value={dashboardData.activeRoutes?.toString() || "0"}
+              change={dashboardData.routeGrowth || "0%"}
+              icon="map"
+              color="#ef4444"
+            />
+            <StatCard
+              title="Today's Trips"
+              value={dashboardData.todaysTrips?.toString() || "0"}
+              change={dashboardData.tripGrowth || "+0%"}
+              icon="location"
+              color="#8b5cf6"
+            />
+            <StatCard
+              title="Attendance Rate"
+              value={`${dashboardData.attendanceRate || 0}%`}
+              change={dashboardData.attendanceGrowth || "+0%"}
+              icon="checkmark-circle"
+              color="#06b6d4"
+            />
+          </>
+        ) : (
+          <Text style={styles.errorText}>Failed to load dashboard data</Text>
+        )}
       </View>
 
       {/* Quick Actions */}
@@ -332,6 +349,18 @@ const styles = StyleSheet.create({
   alertTime: {
     fontSize: 12,
     color: '#94a3b8',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+    padding: 20,
   },
 });
 
