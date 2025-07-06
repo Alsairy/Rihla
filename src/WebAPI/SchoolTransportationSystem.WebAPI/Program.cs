@@ -37,6 +37,7 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

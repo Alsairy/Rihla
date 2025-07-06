@@ -3,6 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Rihla.Application.Interfaces;
+using Rihla.Application.DTOs;
+using System.Security.Cryptography;
 
 namespace Rihla.WebAPI.Controllers
 {
@@ -12,11 +15,13 @@ namespace Rihla.WebAPI.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
+        private readonly IUserService _userService;
 
-        public AuthController(IConfiguration configuration, ILogger<AuthController> logger)
+        public AuthController(IConfiguration configuration, ILogger<AuthController> logger, IUserService userService)
         {
             _configuration = configuration;
             _logger = logger;
+            _userService = userService;
         }
 
         [HttpPost("login")]
@@ -29,34 +34,41 @@ namespace Rihla.WebAPI.Controllers
                     return BadRequest(ModelState);
                 }
 
-                // Mock authentication - replace with real authentication logic
-                var user = AuthenticateUser(loginDto.Email, loginDto.Password);
+                var tenantId = "1"; // Default tenant for now
+                var authResult = await _userService.AuthenticateAsync(loginDto.Email, loginDto.Password, tenantId);
                 
-                if (user == null)
+                if (!authResult.IsSuccess)
                 {
                     return Unauthorized(new { message = "Invalid email or password" });
                 }
 
+                var user = authResult.Value;
                 var token = GenerateJwtToken(user);
+                var refreshToken = GenerateRefreshToken();
 
-                var response = new
+                await _userService.UpdateRefreshTokenAsync(user.Id, refreshToken, DateTime.UtcNow.AddDays(7), tenantId);
+
+                var response = new LoginResponseDto
                 {
-                    success = true,
-                    data = new
+                    User = new UserDto
                     {
-                        user = new
-                        {
-                            user.Id,
-                            user.Email,
-                            user.Name,
-                            user.Role
-                        },
-                        token = token
+                        Id = user.Id,
+                        Username = user.Username,
+                        Email = user.Email,
+                        Role = user.Role,
+                        TenantId = user.TenantId,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        IsActive = user.IsActive,
+                        CreatedAt = user.CreatedAt,
+                        LastLoginAt = user.LastLoginAt
                     },
-                    message = "Login successful"
+                    Token = token,
+                    RefreshToken = refreshToken,
+                    TokenExpiry = DateTime.UtcNow.AddHours(24)
                 };
 
-                return Ok(response);
+                return Ok(new { success = true, data = response, message = "Login successful" });
             }
             catch (Exception ex)
             {
@@ -70,7 +82,13 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // In a real implementation, you might want to blacklist the token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    var tenantId = "1"; // Default tenant for now
+                    await _userService.RevokeRefreshTokenAsync(userId, tenantId);
+                }
+
                 return Ok(new { success = true, message = "Logout successful" });
             }
             catch (Exception ex)
@@ -85,23 +103,28 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Mock token refresh - implement real refresh logic
-                var user = new UserInfo
+                var tenantId = "1"; // Default tenant for now
+                var validationResult = await _userService.ValidateRefreshTokenAsync(refreshDto.RefreshToken, tenantId);
+                
+                if (!validationResult.IsSuccess)
                 {
-                    Id = 1,
-                    Email = "admin@rihla.sa",
-                    Name = "Admin User",
-                    Role = "admin"
-                };
+                    return Unauthorized(new { message = "Invalid or expired refresh token" });
+                }
 
+                var user = validationResult.Value;
                 var newToken = GenerateJwtToken(user);
+                var newRefreshToken = GenerateRefreshToken();
+
+                await _userService.UpdateRefreshTokenAsync(user.Id, newRefreshToken, DateTime.UtcNow.AddDays(7), tenantId);
 
                 return Ok(new
                 {
                     success = true,
                     data = new
                     {
-                        token = newToken
+                        token = newToken,
+                        refreshToken = newRefreshToken,
+                        tokenExpiry = DateTime.UtcNow.AddHours(24)
                     }
                 });
             }
@@ -112,23 +135,7 @@ namespace Rihla.WebAPI.Controllers
             }
         }
 
-        private UserInfo? AuthenticateUser(string email, string password)
-        {
-            // Mock users - replace with database lookup
-            var mockUsers = new List<UserInfo>
-            {
-                new UserInfo { Id = 1, Email = "admin@rihla.sa", Name = "Admin User", Role = "admin", Password = "admin123" },
-                new UserInfo { Id = 2, Email = "manager@rihla.sa", Name = "Manager User", Role = "manager", Password = "manager123" },
-                new UserInfo { Id = 3, Email = "driver@rihla.sa", Name = "Driver User", Role = "driver", Password = "driver123" },
-                new UserInfo { Id = 4, Email = "parent@rihla.sa", Name = "Parent User", Role = "parent", Password = "parent123" }
-            };
-
-            return mockUsers.FirstOrDefault(u => 
-                u.Email.Equals(email, StringComparison.OrdinalIgnoreCase) && 
-                u.Password == password);
-        }
-
-        private string GenerateJwtToken(UserInfo user)
+        private string GenerateJwtToken(Rihla.Core.Entities.User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"] ?? "your-super-secret-key-that-is-at-least-32-characters-long";
@@ -142,9 +149,10 @@ namespace Rihla.WebAPI.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()),
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim("tenant_id", "1") // Default tenant
+                new Claim("tenant_id", user.TenantId),
+                new Claim("username", user.Username)
             };
 
             var token = new JwtSecurityToken(
@@ -157,6 +165,14 @@ namespace Rihla.WebAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
     }
 
     public class LoginDto
@@ -168,15 +184,6 @@ namespace Rihla.WebAPI.Controllers
     public class RefreshTokenDto
     {
         public string RefreshToken { get; set; } = string.Empty;
-    }
-
-    public class UserInfo
-    {
-        public int Id { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty; // Only for mock authentication
     }
 }
 

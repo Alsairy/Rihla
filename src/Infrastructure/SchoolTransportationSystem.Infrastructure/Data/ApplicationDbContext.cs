@@ -20,6 +20,7 @@ namespace Rihla.Infrastructure.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,7 @@ namespace Rihla.Infrastructure.Data
             ConfigureAttendance(modelBuilder);
             ConfigurePayment(modelBuilder);
             ConfigureMaintenanceRecord(modelBuilder);
+            ConfigureUser(modelBuilder);
 
             // Configure relationships
             ConfigureRelationships(modelBuilder);
@@ -250,6 +252,28 @@ namespace Rihla.Infrastructure.Data
                 entity.Property(e => e.InvoiceNumber).HasMaxLength(50);
                 entity.Property(e => e.PartsReplaced).HasMaxLength(1000);
                 entity.Property(e => e.Notes).HasMaxLength(1000);
+            });
+        }
+
+        private void ConfigureUser(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.Salt).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.TenantId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.RefreshToken).HasMaxLength(500);
+
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.Email }).IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.Username }).IsUnique();
             });
         }
 
