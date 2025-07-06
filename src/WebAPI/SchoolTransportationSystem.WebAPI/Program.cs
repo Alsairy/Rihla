@@ -78,8 +78,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseRouting();
+app.UseAuthorization();
 app.MapControllers();
 
 // Test endpoints
