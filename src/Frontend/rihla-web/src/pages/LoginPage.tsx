@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -28,6 +28,8 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -54,8 +56,16 @@ const LoginPage: React.FC = () => {
     setError('');
     setLoading(true);
 
+    const emailValue = email || emailRef.current?.value || '';
+    const passwordValue = password || passwordRef.current?.value || '';
+
+    console.log('Login attempt with:', { email: emailValue, password: passwordValue ? '***' : 'empty' });
+    console.log('Email length:', emailValue.length, 'Password length:', passwordValue.length);
+    console.log('State values - Email:', email.length, 'Password:', password.length);
+    console.log('Ref values - Email:', emailRef.current?.value?.length || 0, 'Password:', passwordRef.current?.value?.length || 0);
+
     try {
-      await login({ email, password });
+      await login({ email: emailValue, password: passwordValue });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -161,8 +171,16 @@ const LoginPage: React.FC = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                inputRef={emailRef}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  console.log('Email onChange:', e.target.value);
+                  setEmail(e.target.value);
+                }}
+                onInput={(e) => {
+                  console.log('Email onInput:', (e.target as HTMLInputElement).value);
+                  setEmail((e.target as HTMLInputElement).value);
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -190,8 +208,16 @@ const LoginPage: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 autoComplete="current-password"
+                inputRef={passwordRef}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  console.log('Password onChange:', e.target.value ? '***' : 'empty');
+                  setPassword(e.target.value);
+                }}
+                onInput={(e) => {
+                  console.log('Password onInput:', (e.target as HTMLInputElement).value ? '***' : 'empty');
+                  setPassword((e.target as HTMLInputElement).value);
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
