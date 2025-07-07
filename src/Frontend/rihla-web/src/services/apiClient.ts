@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5078';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 class ApiClient {
   private client: AxiosInstance;

@@ -23,13 +23,14 @@ class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.post<{success: boolean, data: LoginResponse, message: string}>('/api/auth/login', credentials);
     
-    if (response.data && response.data.token) {
+    if (response.success && response.data && response.data.token) {
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      return response.data;
     }
     
-    return response.data;
+    throw new Error(response.message || 'Login failed');
   }
 
   async register(userData: RegisterRequest): Promise<LoginResponse> {

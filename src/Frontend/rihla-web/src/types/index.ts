@@ -18,6 +18,8 @@ export interface Student {
   routeId?: number;
   routeName?: string;
   isActive: boolean;
+  grade: string;
+  school: string;
 }
 
 export interface Driver {
