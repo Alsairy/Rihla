@@ -180,7 +180,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Development", policy =>
     {
-        policy.WithOrigins("https://code-review-app-8uuyzbq4.devinapps.com", "http://localhost:5173", "http://localhost:8081", "http://localhost:3000", "https://code-review-audit-tunnel-avtdc1ra.devinapps.com")
+        policy.WithOrigins("https://code-review-app-8uuyzbq4.devinapps.com", "http://localhost:5173", "http://localhost:8081", "http://localhost:3000", "https://code-review-audit-tunnel-avtdc1ra.devinapps.com", "https://code-review-app-tunnel-1brka0c7.devinapps.com", "https://code-review-app-tunnel-s90s9jto.devinapps.com", "https://code-review-app-tunnel-ye3vmhv2.devinapps.com", "https://code-review-app-tunnel-fl4m1cdf.devinapps.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

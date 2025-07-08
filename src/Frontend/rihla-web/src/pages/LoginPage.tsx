@@ -161,7 +161,7 @@ const LoginPage: React.FC = () => {
               </Alert>
             )}
             
-            <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <TextField
                 margin="normal"
                 required
@@ -279,7 +279,7 @@ const LoginPage: React.FC = () => {
                   'Sign In to Dashboard'
                 )}
               </Button>
-            </Box>
+            </form>
             
             <Typography
               variant="body2"
