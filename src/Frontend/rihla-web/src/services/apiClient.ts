@@ -20,7 +20,7 @@ class ApiClient {
   async get<T>(url: string): Promise<T> {
     console.log(`Mock API GET: ${url}`);
     
-    if (url.includes('/dashboard/statistics') || url === '/api/dashboard/statistics') {
+    if (url.includes('/dashboard/statistics') || url === '/api/dashboard/statistics' || url.includes('/dashboard/stats') || url === '/api/dashboard/stats') {
       return mockDataService.getDashboardStatistics() as Promise<T>;
     }
     
