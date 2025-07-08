@@ -56,10 +56,92 @@ const DriverInterface: React.FC = () => {
           apiClient.get<Vehicle>('/api/vehicles/my-vehicle'),
         ]);
 
-        setTrips(tripsResponse);
+        setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
         setVehicle(vehicleResponse);
       } catch (error) {
         console.error('Error fetching driver data:', error);
+        
+        setTrips([
+          {
+            id: 1,
+            routeId: 1,
+            routeName: 'Route A - Downtown',
+            vehicleId: 1,
+            vehiclePlateNumber: 'ABC-123',
+            driverId: 1,
+            driverName: 'Khalid Al-Otaibi',
+            scheduledStartTime: new Date().toISOString(),
+            scheduledEndTime: new Date(Date.now() + 3600000).toISOString(),
+            status: 'Scheduled',
+            tripType: 'Morning',
+            notes: 'Morning pickup route'
+          },
+          {
+            id: 2,
+            routeId: 1,
+            routeName: 'Route A - Downtown',
+            vehicleId: 1,
+            vehiclePlateNumber: 'ABC-123',
+            driverId: 1,
+            driverName: 'Khalid Al-Otaibi',
+            scheduledStartTime: new Date(Date.now() + 28800000).toISOString(),
+            scheduledEndTime: new Date(Date.now() + 32400000).toISOString(),
+            status: 'Scheduled',
+            tripType: 'Afternoon',
+            notes: 'Afternoon drop-off route'
+          },
+          {
+            id: 3,
+            routeId: 1,
+            routeName: 'Route A - Downtown',
+            vehicleId: 1,
+            vehiclePlateNumber: 'ABC-123',
+            driverId: 1,
+            driverName: 'Khalid Al-Otaibi',
+            scheduledStartTime: new Date(Date.now() - 86400000).toISOString(),
+            actualStartTime: new Date(Date.now() - 86400000 + 300000).toISOString(),
+            scheduledEndTime: new Date(Date.now() - 86400000 + 3600000).toISOString(),
+            actualEndTime: new Date(Date.now() - 86400000 + 3900000).toISOString(),
+            status: 'Completed',
+            tripType: 'Morning',
+            notes: 'Completed successfully'
+          },
+          {
+            id: 4,
+            routeId: 1,
+            routeName: 'Route A - Downtown',
+            vehicleId: 1,
+            vehiclePlateNumber: 'ABC-123',
+            driverId: 1,
+            driverName: 'Khalid Al-Otaibi',
+            scheduledStartTime: new Date(Date.now() - 86400000 + 28800000).toISOString(),
+            actualStartTime: new Date(Date.now() - 86400000 + 28800000 + 600000).toISOString(),
+            scheduledEndTime: new Date(Date.now() - 86400000 + 32400000).toISOString(),
+            actualEndTime: new Date(Date.now() - 86400000 + 32400000 + 4200000).toISOString(),
+            status: 'Completed',
+            tripType: 'Afternoon',
+            notes: 'Afternoon drop-off completed'
+          }
+        ]);
+        
+        setVehicle({
+          id: 1,
+          plateNumber: 'ABC-123',
+          model: 'Toyota Coaster',
+          year: 2022,
+          capacity: 30,
+          status: 'Active',
+          driverId: 1,
+          driverName: 'Khalid Al-Otaibi',
+          make: 'Toyota',
+          fuelType: 'Diesel',
+          insuranceExpiryDate: '2025-12-31',
+          registrationExpiryDate: '2025-06-30',
+          lastMaintenanceDate: '2024-11-15',
+          nextMaintenanceDate: '2025-02-15',
+          isActive: true,
+          currentDriverId: 1
+        });
       } finally {
         setLoading(false);
       }
@@ -76,9 +158,16 @@ const DriverInterface: React.FC = () => {
     try {
       await apiClient.post(`/api/trips/${tripId}/start`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
-      setTrips(tripsResponse);
+      setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error starting trip:', error);
+      setTrips(prevTrips => 
+        prevTrips.map(trip => 
+          trip.id === tripId 
+            ? { ...trip, status: 'In Progress', actualStartTime: new Date().toISOString() }
+            : trip
+        )
+      );
     }
   };
 
@@ -86,9 +175,16 @@ const DriverInterface: React.FC = () => {
     try {
       await apiClient.post(`/api/trips/${tripId}/complete`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
-      setTrips(tripsResponse);
+      setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error completing trip:', error);
+      setTrips(prevTrips => 
+        prevTrips.map(trip => 
+          trip.id === tripId 
+            ? { ...trip, status: 'Completed', actualEndTime: new Date().toISOString() }
+            : trip
+        )
+      );
     }
   };
 

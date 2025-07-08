@@ -20,6 +20,11 @@ export interface Student {
   isActive: boolean;
   grade: string;
   school: string;
+  dateOfBirth?: string;
+  studentNumber?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
 }
 
 export interface Driver {
@@ -31,6 +36,13 @@ export interface Driver {
   licenseNumber: string;
   licenseExpiryDate: string;
   isActive: boolean;
+  dateOfBirth?: string;
+  address?: string;
+  emergencyContact?: string;
+  vehicleId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
 }
 
 export interface Vehicle {
@@ -42,6 +54,17 @@ export interface Vehicle {
   status: string;
   driverId?: number;
   driverName?: string;
+  make?: string;
+  fuelType?: string;
+  insuranceExpiryDate?: string;
+  registrationExpiryDate?: string;
+  lastMaintenanceDate?: string;
+  nextMaintenanceDate?: string;
+  isActive?: boolean;
+  currentDriverId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
 }
 
 export interface Route {
@@ -55,21 +78,90 @@ export interface Route {
   isActive: boolean;
   vehicleId?: number;
   driverId?: number;
+  distance?: number;
+  assignedVehicleId?: number;
+  assignedDriverId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
 }
 
 export interface Trip {
   id: number;
   routeId: number;
-  routeName: string;
+  routeName?: string;
   vehicleId: number;
-  vehiclePlateNumber: string;
+  vehiclePlateNumber?: string;
   driverId: number;
-  driverName: string;
+  driverName?: string;
   scheduledStartTime: string;
   actualStartTime?: string;
   scheduledEndTime: string;
   actualEndTime?: string;
   status: string;
+  tripType?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
+}
+
+export interface Attendance {
+  id: number;
+  studentId: number;
+  tripId: number;
+  date: string;
+  status: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
+}
+
+export interface Payment {
+  id: number;
+  studentId: number;
+  amount: number;
+  dueDate: string;
+  paidDate?: string;
+  status: string;
+  paymentMethod?: string;
+  transactionId?: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
+}
+
+export interface MaintenanceRecord {
+  id: number;
+  vehicleId: number;
+  maintenanceType: string;
+  description: string;
+  scheduledDate: string;
+  completedDate?: string;
+  cost: number;
+  status: string;
+  serviceProvider?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  priority: string;
+  isRead: boolean;
+  userId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  tenantId?: number;
 }
 
 export interface DashboardStats {
@@ -80,6 +172,9 @@ export interface DashboardStats {
   activeTrips: number;
   completedTrips: number;
   pendingMaintenance: number;
+  pendingPayments?: number;
+  maintenanceAlerts?: number;
+  attendanceRate?: number;
 }
 
 export interface ApiResponse<T> {

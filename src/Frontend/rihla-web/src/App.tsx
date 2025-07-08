@@ -9,6 +9,7 @@ import ParentPortal from './pages/ParentPortal';
 import DriverInterface from './pages/DriverInterface';
 import MapPage from './pages/MapPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const theme = createTheme({
   palette: {
@@ -23,65 +24,85 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requiredRole="Admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/*"
-              element={
-                <ProtectedRoute requiredRole="Parent">
-                  <ParentPortal />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/driver/*"
-              element={
-                <ProtectedRoute requiredRole="Driver">
-                  <DriverInterface />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/map"
-              element={
-                <ProtectedRoute requiredRole="Admin">
-                  <MapPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/parent/map"
-              element={
-                <ProtectedRoute requiredRole="Parent">
-                  <MapPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/driver/map"
-              element={
-                <ProtectedRoute requiredRole="Driver">
-                  <MapPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <ErrorBoundary>
+            <Router>
+              <Routes>
+                <Route path="/login" element={
+                  <ErrorBoundary>
+                    <LoginPage />
+                  </ErrorBoundary>
+                } />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Admin">
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/parent/*"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Parent">
+                        <ParentPortal />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/driver/*"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Driver">
+                        <DriverInterface />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/map"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Admin">
+                        <MapPage />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/parent/map"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Parent">
+                        <MapPage />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/driver/map"
+                  element={
+                    <ErrorBoundary>
+                      <ProtectedRoute requiredRole="Driver">
+                        <MapPage />
+                      </ProtectedRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route path="/" element={<Navigate to="/login" replace />} />
+              </Routes>
+            </Router>
+          </ErrorBoundary>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
