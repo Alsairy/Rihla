@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ParentPortal from './pages/ParentPortal';
 import DriverInterface from './pages/DriverInterface';
+import MapPage from './pages/MapPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 const theme = createTheme({
@@ -49,6 +50,30 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="Driver">
                   <DriverInterface />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/map"
+              element={
+                <ProtectedRoute requiredRole="Admin">
+                  <MapPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parent/map"
+              element={
+                <ProtectedRoute requiredRole="Parent">
+                  <MapPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/driver/map"
+              element={
+                <ProtectedRoute requiredRole="Driver">
+                  <MapPage />
                 </ProtectedRoute>
               }
             />

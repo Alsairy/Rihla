@@ -35,6 +35,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';
 import { Student, Trip } from '../types';
+import NotificationCenter from '../components/NotificationCenter';
 
 const ParentPortal: React.FC = () => {
   const { user, logout } = useAuth();
@@ -118,9 +119,7 @@ const ParentPortal: React.FC = () => {
             Rihla Parent Portal
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton color="inherit">
-              <NotificationsIcon />
-            </IconButton>
+            <NotificationCenter />
             <IconButton color="inherit">
               <SettingsIcon />
             </IconButton>

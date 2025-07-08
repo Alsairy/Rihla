@@ -39,6 +39,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';
 import { Trip, Vehicle } from '../types';
+import NotificationCenter from '../components/NotificationCenter';
 
 const DriverInterface: React.FC = () => {
   const { user, logout } = useAuth();
@@ -161,13 +162,7 @@ const DriverInterface: React.FC = () => {
             Rihla Driver Interface
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Tooltip title="Notifications">
-              <IconButton color="inherit">
-                <Badge badgeContent={notifications} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
+            <NotificationCenter />
             <Tooltip title="Settings">
               <IconButton color="inherit">
                 <SettingsIcon />

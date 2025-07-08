@@ -34,6 +34,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';
 import { DashboardStats, Student, Driver, Vehicle } from '../types';
+import NotificationCenter from '../components/NotificationCenter';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -108,9 +109,7 @@ const AdminDashboard: React.FC = () => {
             Rihla Admin Dashboard
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton color="inherit">
-              <NotificationsIcon />
-            </IconButton>
+            <NotificationCenter />
             <IconButton color="inherit">
               <SettingsIcon />
             </IconButton>
