@@ -49,15 +49,15 @@ const AdminDashboard: React.FC = () => {
       try {
         const [statsResponse, studentsResponse, driversResponse, vehiclesResponse] = await Promise.all([
           apiClient.get<DashboardStats>('/api/dashboard/statistics'),
-          apiClient.get<Student[]>('/api/students?page=1&pageSize=10'),
-          apiClient.get<Driver[]>('/api/drivers?page=1&pageSize=10'),
-          apiClient.get<Vehicle[]>('/api/vehicles?page=1&pageSize=10'),
+          apiClient.get<{ data: Student[], total: number }>('/api/students?page=1&pageSize=10'),
+          apiClient.get<{ data: Driver[], total: number }>('/api/drivers?page=1&pageSize=10'),
+          apiClient.get<{ data: Vehicle[], total: number }>('/api/vehicles?page=1&pageSize=10'),
         ]);
 
         setStats(statsResponse);
-        setStudents(Array.isArray(studentsResponse) ? studentsResponse : []);
-        setDrivers(Array.isArray(driversResponse) ? driversResponse : []);
-        setVehicles(Array.isArray(vehiclesResponse) ? vehiclesResponse : []);
+        setStudents(Array.isArray(studentsResponse?.data) ? studentsResponse.data : []);
+        setDrivers(Array.isArray(driversResponse?.data) ? driversResponse.data : []);
+        setVehicles(Array.isArray(vehiclesResponse?.data) ? vehiclesResponse.data : []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         

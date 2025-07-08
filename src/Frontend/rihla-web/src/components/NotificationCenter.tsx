@@ -82,9 +82,10 @@ const NotificationCenter: React.FC = () => {
 
   const loadNotifications = async () => {
     try {
-      const response = await apiClient.get<Notification[]>('/api/notifications');
-      setNotifications(response);
-      setUnreadCount(response.filter((n: Notification) => !n.isRead).length);
+      const response = await apiClient.get<{ data: Notification[], total: number }>('/api/notifications');
+      const notifications = Array.isArray(response?.data) ? response.data : [];
+      setNotifications(notifications);
+      setUnreadCount(notifications.filter((n: Notification) => !n.isRead).length);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }
