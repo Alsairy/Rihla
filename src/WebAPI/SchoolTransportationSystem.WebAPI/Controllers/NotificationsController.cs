@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Rihla.Application.DTOs;
-using Rihla.Application.Interfaces;
-using Rihla.WebAPI.Services;
+using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Application.Interfaces;
+using SchoolTransportationSystem.WebAPI.Services;
 
-namespace Rihla.WebAPI.Controllers
+namespace SchoolTransportationSystem.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -164,8 +164,8 @@ namespace Rihla.WebAPI.Controllers
 
                 var today = DateTime.UtcNow.Date;
                 var todayNotifications = allNotifications.Where(n => n.CreatedAt.Date == today).Count();
-                var urgentNotifications = unreadNotifications.Where(n => n.Priority == Rihla.Core.Enums.NotificationPriority.Urgent).Count();
-                var criticalNotifications = unreadNotifications.Where(n => n.Priority == Rihla.Core.Enums.NotificationPriority.Critical).Count();
+                var urgentNotifications = unreadNotifications.Where(n => n.Priority == SchoolTransportationSystem.Core.Enums.NotificationPriority.Urgent).Count();
+                var criticalNotifications = unreadNotifications.Where(n => n.Priority == SchoolTransportationSystem.Core.Enums.NotificationPriority.Critical).Count();
 
                 var stats = new NotificationStatisticsDto
                 {

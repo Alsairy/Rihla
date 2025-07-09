@@ -1,4 +1,4 @@
-namespace Rihla.Core.ValueObjects
+namespace SchoolTransportationSystem.Core.ValueObjects
 {
     public class FullName
     {

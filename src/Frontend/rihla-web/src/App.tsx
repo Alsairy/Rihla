@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
@@ -31,11 +36,14 @@ function App() {
           <ErrorBoundary>
             <Router>
               <Routes>
-                <Route path="/login" element={
-                  <ErrorBoundary>
-                    <LoginPage />
-                  </ErrorBoundary>
-                } />
+                <Route
+                  path="/login"
+                  element={
+                    <ErrorBoundary>
+                      <LoginPage />
+                    </ErrorBoundary>
+                  }
+                />
                 <Route
                   path="/admin/*"
                   element={

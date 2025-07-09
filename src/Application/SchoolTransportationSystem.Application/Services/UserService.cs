@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using Rihla.Application.DTOs;
-using Rihla.Application.Interfaces;
-using Rihla.Core.Common;
-using Rihla.Core.Entities;
-using Rihla.Infrastructure.Data;
+using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Application.Interfaces;
+using SchoolTransportationSystem.Core.Common;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Infrastructure.Data;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Rihla.Application.Services
+namespace SchoolTransportationSystem.Application.Services
 {
     public class UserService : IUserService
     {

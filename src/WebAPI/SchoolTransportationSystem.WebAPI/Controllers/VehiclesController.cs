@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Rihla.Infrastructure.Data;
-using Rihla.Core.Entities;
-using Rihla.Core.Enums;
+using SchoolTransportationSystem.Infrastructure.Data;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.Enums;
 
-namespace Rihla.WebAPI.Controllers
+namespace SchoolTransportationSystem.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

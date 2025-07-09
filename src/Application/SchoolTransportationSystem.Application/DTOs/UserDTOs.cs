@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Rihla.Application.DTOs
+namespace SchoolTransportationSystem.Application.DTOs
 {
     public class UserDto
     {

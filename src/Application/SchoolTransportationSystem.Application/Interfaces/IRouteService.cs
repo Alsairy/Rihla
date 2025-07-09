@@ -1,7 +1,7 @@
-using Rihla.Application.DTOs;
-using Rihla.Core.Common;
+using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Core.Common;
 
-namespace Rihla.Application.Interfaces
+namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface IRouteService
     {

@@ -7,15 +7,16 @@ const LanguageSwitcher: React.FC = () => {
 
   const languages = [
     { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'ar', name: 'Arabic', nativeName: 'العربية' }
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
   ];
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  const currentLanguage =
+    languages.find((lang) => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
     setIsOpen(false);
-    
+
     localStorage.setItem('i18nextLng', languageCode);
   };
 
@@ -26,10 +27,19 @@ const LanguageSwitcher: React.FC = () => {
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200"
         aria-label={t('settings.language')}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
         <span>{currentLanguage.nativeName}</span>
         <svg
@@ -38,7 +48,12 @@ const LanguageSwitcher: React.FC = () => {
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -49,7 +64,7 @@ const LanguageSwitcher: React.FC = () => {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Dropdown */}
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
@@ -65,7 +80,9 @@ const LanguageSwitcher: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <span>{language.name}</span>
-                    <span className="text-xs text-gray-500">{language.nativeName}</span>
+                    <span className="text-xs text-gray-500">
+                      {language.nativeName}
+                    </span>
                   </div>
                 </button>
               ))}

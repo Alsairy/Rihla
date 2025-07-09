@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Rihla.Core.Entities;
-using Rihla.Core.ValueObjects;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.ValueObjects;
 
-namespace Rihla.Infrastructure.Data
+namespace SchoolTransportationSystem.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {

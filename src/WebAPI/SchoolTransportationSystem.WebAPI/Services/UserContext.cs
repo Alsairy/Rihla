@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
-using Rihla.Application.Interfaces;
+using SchoolTransportationSystem.Application.Interfaces;
 using System.Security.Claims;
 
-namespace Rihla.WebAPI.Services
+namespace SchoolTransportationSystem.WebAPI.Services
 {
     public class UserContext : IUserContext
     {

@@ -1,7 +1,7 @@
-using Rihla.Core.Enums;
-using Rihla.Core.ValueObjects;
+using SchoolTransportationSystem.Core.Enums;
+using SchoolTransportationSystem.Core.ValueObjects;
 
-namespace Rihla.Core.Entities
+namespace SchoolTransportationSystem.Core.Entities
 {
     public class Student : TenantEntity
     {

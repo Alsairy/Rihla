@@ -1,6 +1,6 @@
-using Rihla.Core.Enums;
+using SchoolTransportationSystem.Core.Enums;
 
-namespace Rihla.Core.Entities
+namespace SchoolTransportationSystem.Core.Entities
 {
     public class Notification : TenantEntity
     {

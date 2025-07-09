@@ -21,27 +21,34 @@ export interface RegisterRequest {
 
 class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await apiClient.post<{success: boolean, data: LoginResponse, message: string}>('/api/auth/login', credentials);
-    
+    const response = await apiClient.post<{
+      success: boolean;
+      data: LoginResponse;
+      message: string;
+    }>('/api/auth/login', credentials);
+
     if (response.success && response.data && response.data.token) {
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       return response.data;
     }
-    
+
     throw new Error(response.message || 'Login failed');
   }
 
   async register(userData: RegisterRequest): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/api/auth/register', userData);
-    
+    const response = await apiClient.post<LoginResponse>(
+      '/api/auth/register',
+      userData
+    );
+
     if (response.token) {
       localStorage.setItem('authToken', response.token);
       localStorage.setItem('refreshToken', response.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.user));
     }
-    
+
     return response;
   }
 
@@ -63,7 +70,10 @@ class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await apiClient.post<{success: boolean, data: { token: string, refreshToken: string, tokenExpiry: string }}>('/api/auth/refresh', {
+    const response = await apiClient.post<{
+      success: boolean;
+      data: { token: string; refreshToken: string; tokenExpiry: string };
+    }>('/api/auth/refresh', {
       refreshToken,
     });
 
@@ -72,7 +82,7 @@ class AuthService {
       localStorage.setItem('refreshToken', response.data.refreshToken);
       return response.data.token;
     }
-    
+
     throw new Error('Invalid refresh token response');
   }
 

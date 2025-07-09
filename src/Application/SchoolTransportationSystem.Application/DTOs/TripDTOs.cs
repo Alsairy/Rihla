@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Rihla.Core.Enums;
+using SchoolTransportationSystem.Core.Enums;
 
-namespace Rihla.Application.DTOs
+namespace SchoolTransportationSystem.Application.DTOs
 {
     // Trip DTOs
     public class TripDto

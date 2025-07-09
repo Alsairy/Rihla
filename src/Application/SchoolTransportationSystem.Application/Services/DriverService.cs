@@ -1,14 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Rihla.Application.DTOs;
-using Rihla.Application.Interfaces;
-using Rihla.Core.Common;
-using Rihla.Core.Entities;
-using Rihla.Core.Enums;
-using Rihla.Core.ValueObjects;
-using Rihla.Infrastructure.Data;
+using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Application.Interfaces;
+using SchoolTransportationSystem.Core.Common;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.Enums;
+using SchoolTransportationSystem.Core.ValueObjects;
+using SchoolTransportationSystem.Infrastructure.Data;
 
-namespace Rihla.Application.Services
+namespace SchoolTransportationSystem.Application.Services
 {
     public class DriverService : IDriverService
     {

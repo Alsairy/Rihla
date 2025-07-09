@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Rihla.Application.Interfaces;
+using SchoolTransportationSystem.Application.Interfaces;
 
-namespace Rihla.Application.Services
+namespace SchoolTransportationSystem.Application.Services
 {
     public class SmsService : ISmsService
     {

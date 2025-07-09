@@ -300,3 +300,5 @@ app.MapGet("/test-db", async (ApplicationDbContext context) =>
 });
 
 app.Run();
+
+public partial class Program { }

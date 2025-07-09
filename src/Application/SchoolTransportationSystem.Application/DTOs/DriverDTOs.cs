@@ -1,6 +1,6 @@
-using Rihla.Core.Enums;
+using SchoolTransportationSystem.Core.Enums;
 
-namespace Rihla.Application.DTOs
+namespace SchoolTransportationSystem.Application.DTOs
 {
     public class DriverDto
     {

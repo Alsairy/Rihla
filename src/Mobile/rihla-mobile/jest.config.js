@@ -1,14 +1,18 @@
 module.exports = {
-  preset: 'jest-expo',
+  preset: 'react-native',
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
   ],
-  setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
   testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/'],
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.{js,jsx}',
     '!src/**/*.test.{js,jsx}',
     '!**/node_modules/**'
-  ]
+  ],
+  testEnvironment: 'jsdom',
+  moduleNameMapping: {
+    '^@/(.*)$': '<rootDir>/src/$1'
+  }
 };

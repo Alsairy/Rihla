@@ -11,7 +11,7 @@ export const useLocalization = () => {
     };
 
     i18n.on('languageChanged', handleLanguageChange);
-    
+
     return () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
@@ -25,12 +25,12 @@ export const useLocalization = () => {
     if (i18n.language === 'ar') {
       return new Intl.NumberFormat('ar-SA', {
         style: 'currency',
-        currency: currency
+        currency: currency,
       }).format(amount);
     } else {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: currency
+        currency: currency,
       }).format(amount);
     }
   };
@@ -39,7 +39,7 @@ export const useLocalization = () => {
     const defaultOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     };
 
     const formatOptions = { ...defaultOptions, ...options };
@@ -67,7 +67,7 @@ export const useLocalization = () => {
     changeLanguage,
     formatCurrency,
     formatDate,
-    formatNumber
+    formatNumber,
   };
 };
 

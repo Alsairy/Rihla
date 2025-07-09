@@ -27,7 +27,9 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <Box display="flex" flexDirection="column" alignItems="center" p={4}>
-          <Typography variant="h5" gutterBottom>Something went wrong</Typography>
+          <Typography variant="h5" gutterBottom>
+            Something went wrong
+          </Typography>
           <Button onClick={() => window.location.reload()}>Reload Page</Button>
         </Box>
       );

@@ -1,4 +1,4 @@
-namespace Rihla.Application.Interfaces
+namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface IFileUploadService
     {
