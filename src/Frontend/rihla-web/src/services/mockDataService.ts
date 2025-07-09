@@ -424,5 +424,6 @@ class MockDataService {
   }
 }
 
-export const mockDataService = new MockDataService();
-export default mockDataService;
+
+export const mockDataService = null;
+export default null;
