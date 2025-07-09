@@ -16,6 +16,7 @@ namespace SchoolTransportationSystem.Core.Entities
         public string? ParentName { get; set; }
         public string? ParentPhone { get; set; }
         public string? ParentEmail { get; set; }
+        public int? ParentId { get; set; }
         public string? EmergencyContact { get; set; }
         public string? EmergencyPhone { get; set; }
         public StudentStatus Status { get; set; } = StudentStatus.Active;

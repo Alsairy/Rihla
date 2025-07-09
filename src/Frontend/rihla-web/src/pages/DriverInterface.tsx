@@ -82,17 +82,6 @@ const DriverInterface: React.FC = () => {
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error starting trip:', error);
-      setTrips(prevTrips =>
-        prevTrips.map(trip =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                status: 'In Progress',
-                actualStartTime: new Date().toISOString(),
-              }
-            : trip
-        )
-      );
     }
   };
 
@@ -103,17 +92,6 @@ const DriverInterface: React.FC = () => {
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error completing trip:', error);
-      setTrips(prevTrips =>
-        prevTrips.map(trip =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                status: 'Completed',
-                actualEndTime: new Date().toISOString(),
-              }
-            : trip
-        )
-      );
     }
   };
 

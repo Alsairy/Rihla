@@ -15,6 +15,7 @@ using SchoolTransportationSystem.Core.Enums;
 using SchoolTransportationSystem.Core.ValueObjects;
 using SchoolTransportationSystem.WebAPI.Hubs;
 using SchoolTransportationSystem.WebAPI.Services;
+using SchoolTransportationSystem.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -296,6 +297,19 @@ app.MapGet("/test-db", async (ApplicationDbContext context) =>
     catch (Exception ex)
     {
         return $"Database error: {ex.Message}";
+    }
+});
+
+app.MapPost("/seed-db", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        await DatabaseSeeder.SeedAsync(context);
+        return "Database seeded successfully!";
+    }
+    catch (Exception ex)
+    {
+        return $"Seeding error: {ex.Message}";
     }
 });
 

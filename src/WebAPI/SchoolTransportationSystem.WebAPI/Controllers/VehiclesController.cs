@@ -230,6 +230,46 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("my-vehicle")]
+        public async Task<ActionResult<object>> GetMyVehicle()
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                var vehicle = await _context.Vehicles
+                    .Where(v => !v.IsDeleted && v.AssignedDriverId.ToString() == userId)
+                    .Select(v => new
+                    {
+                        v.Id,
+                        v.VehicleNumber,
+                        v.LicensePlate,
+                        v.Make,
+                        v.Model,
+                        v.Year,
+                        v.Capacity,
+                        v.Status,
+                        v.Mileage
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (vehicle == null)
+                {
+                    return NotFound(new { message = "No vehicle assigned to this driver" });
+                }
+
+                return Ok(vehicle);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching driver vehicle");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 
     public class CreateVehicleDto

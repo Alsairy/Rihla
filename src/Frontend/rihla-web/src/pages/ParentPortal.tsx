@@ -56,99 +56,9 @@ const ParentPortal: React.FC = () => {
       } catch (error) {
         console.error('Error fetching parent data:', error);
 
-        setStudents([
-          {
-            id: 1,
-            firstName: 'Layla',
-            lastName: 'Al-Mansouri',
-            email: 'layla.mansouri@example.com',
-            phoneNumber: '+966501234567',
-            address: 'Riyadh, Saudi Arabia',
-            parentName: 'Ahmed Al-Mansouri',
-            parentPhone: '+966501234568',
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            isActive: true,
-            grade: '8th Grade',
-            school: 'Al-Noor International School',
-          },
-          {
-            id: 2,
-            firstName: 'Omar',
-            lastName: 'Al-Mansouri',
-            email: 'omar.mansouri@example.com',
-            phoneNumber: '+966501234569',
-            address: 'Riyadh, Saudi Arabia',
-            parentName: 'Ahmed Al-Mansouri',
-            parentPhone: '+966501234568',
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            isActive: true,
-            grade: '5th Grade',
-            school: 'Al-Noor International School',
-          },
-        ]);
+        setStudents([]);
 
-        setTrips([
-          {
-            id: 1,
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            vehicleId: 1,
-            vehiclePlateNumber: 'ABC-123',
-            driverId: 1,
-            driverName: 'Khalid Al-Otaibi',
-            scheduledStartTime: new Date().toISOString(),
-            scheduledEndTime: new Date(Date.now() + 3600000).toISOString(),
-            status: 'In Progress',
-            tripType: 'Morning',
-            notes: 'Regular morning pickup',
-          },
-          {
-            id: 2,
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            vehicleId: 1,
-            vehiclePlateNumber: 'ABC-123',
-            driverId: 1,
-            driverName: 'Khalid Al-Otaibi',
-            scheduledStartTime: new Date(Date.now() - 86400000).toISOString(),
-            actualStartTime: new Date(
-              Date.now() - 86400000 + 300000
-            ).toISOString(),
-            scheduledEndTime: new Date(
-              Date.now() - 86400000 + 3600000
-            ).toISOString(),
-            actualEndTime: new Date(
-              Date.now() - 86400000 + 3900000
-            ).toISOString(),
-            status: 'Completed',
-            tripType: 'Morning',
-            notes: 'Completed successfully',
-          },
-          {
-            id: 3,
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            vehicleId: 1,
-            vehiclePlateNumber: 'ABC-123',
-            driverId: 1,
-            driverName: 'Khalid Al-Otaibi',
-            scheduledStartTime: new Date(Date.now() - 172800000).toISOString(),
-            actualStartTime: new Date(
-              Date.now() - 172800000 + 600000
-            ).toISOString(),
-            scheduledEndTime: new Date(
-              Date.now() - 172800000 + 3600000
-            ).toISOString(),
-            actualEndTime: new Date(
-              Date.now() - 172800000 + 4200000
-            ).toISOString(),
-            status: 'Completed',
-            tripType: 'Afternoon',
-            notes: 'Afternoon drop-off completed',
-          },
-        ]);
+        setTrips([]);
       } finally {
         setLoading(false);
       }
@@ -161,15 +71,21 @@ const ParentPortal: React.FC = () => {
     await logout();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusColor = (status: string | number) => {
+    const statusStr = typeof status === 'string' ? status.toLowerCase() : String(status).toLowerCase();
+    switch (statusStr) {
       case 'completed':
+      case '3':
         return 'success';
       case 'in_progress':
+      case 'inprogress':
+      case '2':
         return 'primary';
       case 'scheduled':
+      case '1':
         return 'default';
       case 'cancelled':
+      case '4':
         return 'error';
       default:
         return 'default';

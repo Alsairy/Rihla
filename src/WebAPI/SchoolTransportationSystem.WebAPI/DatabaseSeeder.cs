@@ -272,6 +272,9 @@ namespace SchoolTransportationSystem.WebAPI
                     var status = (VehicleStatus)random.Next(1, 5);
                     var type = capacity <= 14 ? VehicleType.MiniBus : capacity <= 25 ? VehicleType.Van : VehicleType.Bus;
                     
+                    var assignedDriverId = random.Next(100) < 80 && drivers.Count > 0 ? 
+                                         drivers[random.Next(drivers.Count)].Id : (int?)null;
+                    
                     vehicles.Add(new Vehicle
                     {
                         TenantId = 1,
@@ -289,6 +292,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FuelType = fuelType,
                         PurchaseDate = DateTime.UtcNow.AddDays(-random.Next(365, 2555)), // Purchased within last 7 years
                         PurchasePrice = 80000 + random.Next(0, 200000), // 80k-280k SAR
+                        AssignedDriverId = assignedDriverId,
                         CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
@@ -364,6 +368,8 @@ namespace SchoolTransportationSystem.WebAPI
                         Email = studentUser.Email,
                         ParentName = $"{parentUser.FirstName} {parentUser.LastName}",
                         ParentPhone = $"+96655{2000000 + (i % parentUsers.Count):D7}",
+                        ParentEmail = parentUser.Email,
+                        ParentId = parentUser.Id,
                         Status = random.Next(100) < 95 ? StudentStatus.Active : (StudentStatus)random.Next(2, 5), // 95% active
                         RouteId = route.Id,
                         CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
