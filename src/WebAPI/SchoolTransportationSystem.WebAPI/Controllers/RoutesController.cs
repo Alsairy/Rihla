@@ -7,7 +7,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class RoutesController : ControllerBase
     {
         private readonly IRouteService _routeService;

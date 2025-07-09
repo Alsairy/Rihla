@@ -5,18 +5,18 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class MaintenanceService : IMaintenanceService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<MaintenanceService> _logger;
 
-        public MaintenanceService(ApplicationDbContext context, ILogger<MaintenanceService> logger)
+        public MaintenanceService(IUnitOfWork unitOfWork, ILogger<MaintenanceService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -24,10 +24,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var maintenanceRecord = await _context.MaintenanceRecords
-                    .Include(m => m.Vehicle)
-                    .Where(m => m.Id == id && m.TenantId == int.Parse(tenantId) && !m.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var maintenanceRecord = await _unitOfWork.MaintenanceRecords
+                    .QueryWithIncludes(tenantId, m => m.Vehicle)
+                    .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (maintenanceRecord == null)
                 {
@@ -48,9 +47,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.MaintenanceRecords
-                    .Include(m => m.Vehicle)
-                    .Where(m => m.TenantId == int.Parse(tenantId) && !m.IsDeleted);
+                var query = _unitOfWork.MaintenanceRecords
+                    .QueryWithIncludes(tenantId, m => m.Vehicle);
 
                 if (searchDto.VehicleId.HasValue)
                     query = query.Where(m => m.VehicleId == searchDto.VehicleId.Value);
@@ -116,9 +114,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == createDto.VehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(createDto.VehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -143,8 +140,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.MaintenanceRecords.Add(maintenanceRecord);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.MaintenanceRecords.AddAsync(maintenanceRecord);
+                await _unitOfWork.SaveChangesAsync();
 
                 var maintenanceDto = MapToDto(maintenanceRecord);
                 return Result<MaintenanceRecordDto>.Success(maintenanceDto);
@@ -160,9 +157,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var maintenanceRecord = await _context.MaintenanceRecords
-                    .Where(m => m.Id == id && m.TenantId == int.Parse(tenantId) && !m.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var maintenanceRecord = await _unitOfWork.MaintenanceRecords
+                    .GetByIdAsync(id, tenantId);
 
                 if (maintenanceRecord == null)
                 {
@@ -182,7 +178,7 @@ namespace Rihla.Application.Services
                 maintenanceRecord.IsCompleted = updateDto.Status == MaintenanceStatus.Completed;
                 maintenanceRecord.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var maintenanceDto = MapToDto(maintenanceRecord);
                 return Result<MaintenanceRecordDto>.Success(maintenanceDto);
@@ -198,9 +194,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var maintenanceRecord = await _context.MaintenanceRecords
-                    .Where(m => m.Id == id && m.TenantId == int.Parse(tenantId) && !m.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var maintenanceRecord = await _unitOfWork.MaintenanceRecords
+                    .GetByIdAsync(id, tenantId);
 
                 if (maintenanceRecord == null)
                 {
@@ -210,7 +205,7 @@ namespace Rihla.Application.Services
                 maintenanceRecord.IsDeleted = true;
                 maintenanceRecord.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -224,9 +219,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var maintenanceRecords = await _context.MaintenanceRecords
-                    .Include(m => m.Vehicle)
-                    .Where(m => m.VehicleId == vehicleId && m.TenantId == int.Parse(tenantId) && !m.IsDeleted)
+                var maintenanceRecords = await _unitOfWork.MaintenanceRecords
+                    .QueryWithIncludes(tenantId, m => m.Vehicle)
+                    .Where(m => m.VehicleId == vehicleId)
                     .Where(m => m.ScheduledDate.Date >= startDate.Date && m.ScheduledDate.Date <= endDate.Date)
                     .OrderByDescending(m => m.ScheduledDate)
                     .ToListAsync();
@@ -246,9 +241,8 @@ namespace Rihla.Application.Services
             try
             {
                 var today = DateTime.Today;
-                var maintenanceRecords = await _context.MaintenanceRecords
-                    .Include(m => m.Vehicle)
-                    .Where(m => m.TenantId == int.Parse(tenantId) && !m.IsDeleted)
+                var maintenanceRecords = await _unitOfWork.MaintenanceRecords
+                    .QueryWithIncludes(tenantId, m => m.Vehicle)
                     .Where(m => !m.IsCompleted && m.ScheduledDate < today)
                     .OrderBy(m => m.ScheduledDate)
                     .ToListAsync();
@@ -267,9 +261,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -289,8 +282,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.MaintenanceRecords.Add(maintenanceRecord);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.MaintenanceRecords.AddAsync(maintenanceRecord);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }

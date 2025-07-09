@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Rihla.Core.Entities
 {
-    public class User
+    public class User : BaseEntity
     {
-        public int Id { get; set; }
-        
         [Required]
         [MaxLength(100)]
         public string Username { get; set; } = string.Empty;
@@ -36,8 +34,6 @@ namespace Rihla.Core.Entities
         public string LastName { get; set; } = string.Empty;
         
         public bool IsActive { get; set; } = true;
-        
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime? LastLoginAt { get; set; }
         

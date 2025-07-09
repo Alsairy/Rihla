@@ -7,7 +7,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "DispatcherOrAbove")]
     public class TripsController : ControllerBase
     {
         private readonly ITripService _tripService;

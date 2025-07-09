@@ -112,9 +112,12 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "Rihla",
-        ValidAudience = "RihlaUsers",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] ?? "your-super-secret-key-that-is-at-least-32-characters-long"))
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "Rihla",
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "RihlaUsers",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            builder.Configuration["Jwt:SecretKey"] ?? 
+            Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? 
+            throw new InvalidOperationException("JWT Secret Key must be configured in appsettings.json or JWT_SECRET_KEY environment variable")))
     };
 });
 
@@ -180,7 +183,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Development", policy =>
     {
-        policy.WithOrigins("https://code-review-app-8uuyzbq4.devinapps.com", "http://localhost:5173", "http://localhost:8081", "http://localhost:3000", "https://code-review-audit-tunnel-avtdc1ra.devinapps.com", "https://code-review-app-tunnel-1brka0c7.devinapps.com", "https://code-review-app-tunnel-s90s9jto.devinapps.com", "https://code-review-app-tunnel-ye3vmhv2.devinapps.com", "https://code-review-app-tunnel-fl4m1cdf.devinapps.com")
+        policy.WithOrigins("https://code-review-app-8uuyzbq4.devinapps.com", "http://localhost:5173", "http://localhost:8081", "http://localhost:3000", "http://localhost:3001", "https://code-review-audit-tunnel-avtdc1ra.devinapps.com", "https://code-review-app-tunnel-1brka0c7.devinapps.com", "https://code-review-app-tunnel-s90s9jto.devinapps.com", "https://code-review-app-tunnel-ye3vmhv2.devinapps.com", "https://code-review-app-tunnel-fl4m1cdf.devinapps.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -316,3 +319,5 @@ app.MapGet("/test-db", async (ApplicationDbContext context) =>
 });
 
 app.Run();
+
+public partial class Program { }

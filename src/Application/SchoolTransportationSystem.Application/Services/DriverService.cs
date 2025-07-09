@@ -6,18 +6,18 @@ using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
 using Rihla.Core.ValueObjects;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class DriverService : IDriverService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DriverService> _logger;
 
-        public DriverService(ApplicationDbContext context, ILogger<DriverService> logger)
+        public DriverService(IUnitOfWork unitOfWork, ILogger<DriverService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -25,9 +25,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == id && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(id, tenantId);
 
                 if (driver == null)
                 {
@@ -48,9 +47,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Drivers
-                    .Where(d => d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .AsQueryable();
+                var query = _unitOfWork.Drivers
+                    .Query(tenantId);
 
                 if (!string.IsNullOrEmpty(searchDto.SearchTerm))
                 {
@@ -90,9 +88,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var existingDriver = await _context.Drivers
-                    .Where(d => d.LicenseNumber == createDto.LicenseNumber && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingDriver = await _unitOfWork.Drivers
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(d => d.LicenseNumber == createDto.LicenseNumber);
 
                 if (existingDriver != null)
                 {
@@ -121,8 +119,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Drivers.Add(driver);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Drivers.AddAsync(driver);
+                await _unitOfWork.SaveChangesAsync();
 
                 var driverDto = MapToDto(driver);
                 return Result<DriverDto>.Success(driverDto);
@@ -138,18 +136,17 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == id && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(id, tenantId);
 
                 if (driver == null)
                 {
                     return Result<DriverDto>.Failure("Driver not found");
                 }
 
-                var existingDriver = await _context.Drivers
-                    .Where(d => d.LicenseNumber == updateDto.LicenseNumber && d.Id != id && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingDriver = await _unitOfWork.Drivers
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(d => d.LicenseNumber == updateDto.LicenseNumber && d.Id != id);
 
                 if (existingDriver != null)
                 {
@@ -172,10 +169,15 @@ namespace Rihla.Application.Services
                 driver.Notes = updateDto.Notes;
                 driver.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var driverDto = MapToDto(driver);
                 return Result<DriverDto>.Success(driverDto);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogWarning(ex, "Concurrency conflict when updating driver with ID {DriverId}", id);
+                return Result<DriverDto>.Failure("The driver was modified by another user. Please refresh and try again.");
             }
             catch (Exception ex)
             {
@@ -188,9 +190,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == id && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(id, tenantId);
 
                 if (driver == null)
                 {
@@ -200,7 +201,7 @@ namespace Rihla.Application.Services
                 driver.IsDeleted = true;
                 driver.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -214,9 +215,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var driver = await _context.Drivers
-                    .Where(d => d.LicenseNumber == licenseNumber && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(d => d.LicenseNumber == licenseNumber);
 
                 if (driver == null)
                 {
@@ -237,9 +238,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var drivers = await _context.Drivers
-                    .Where(d => d.TenantId == int.Parse(tenantId) && !d.IsDeleted && d.Status == DriverStatus.Active)
-                    .Where(d => d.LicenseExpiry > date)
+                var drivers = await _unitOfWork.Drivers
+                    .Query(tenantId)
+                    .Where(d => d.Status == DriverStatus.Active && d.LicenseExpiry > date)
                     .ToListAsync();
 
                 var driverDtos = drivers.Select(MapToDto).ToList();
@@ -261,8 +262,9 @@ namespace Rihla.Application.Services
                     return Result<List<DriverDto>>.Failure("Invalid driver status");
                 }
 
-                var drivers = await _context.Drivers
-                    .Where(d => d.TenantId == int.Parse(tenantId) && !d.IsDeleted && d.Status == driverStatus)
+                var drivers = await _unitOfWork.Drivers
+                    .Query(tenantId)
+                    .Where(d => d.Status == driverStatus)
                     .ToListAsync();
 
                 var driverDtos = drivers.Select(MapToDto).ToList();

@@ -6,42 +6,43 @@ import arTranslations from './translations/ar.json';
 
 const resources = {
   en: {
-    translation: enTranslations
+    translation: enTranslations,
   },
   ar: {
-    translation: arTranslations
-  }
+    translation: arTranslations,
+  },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en', // default language
-    fallbackLng: 'en',
-    debug: false, // Set to false for production, can be enabled manually for development
+i18n.use(initReactI18next).init({
+  resources,
+  lng: 'en', // default language
+  fallbackLng: 'en',
+  debug: false, // Set to false for production, can be enabled manually for development
 
-    interpolation: {
-      escapeValue: false, // React already does escaping
-    },
+  interpolation: {
+    escapeValue: false, // React already does escaping
+  },
 
-    react: {
-      useSuspense: false,
-    },
+  react: {
+    useSuspense: false,
+  },
 
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
-    },
-  });
+  detection: {
+    order: ['localStorage', 'navigator', 'htmlTag'],
+    caches: ['localStorage'],
+    lookupLocalStorage: 'i18nextLng',
+  },
+});
 
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', lng => {
   const isRTL = lng === 'ar';
   document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
-  
-  document.documentElement.style.setProperty('--text-direction', isRTL ? 'rtl' : 'ltr');
+
+  document.documentElement.style.setProperty(
+    '--text-direction',
+    isRTL ? 'rtl' : 'ltr'
+  );
 });
 
 export default i18n;

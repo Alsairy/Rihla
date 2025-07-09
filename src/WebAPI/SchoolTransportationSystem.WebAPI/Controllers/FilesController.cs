@@ -6,7 +6,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class FilesController : ControllerBase
     {
         private readonly IFileUploadService _fileUploadService;

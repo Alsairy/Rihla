@@ -5,18 +5,18 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class RouteService : IRouteService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<RouteService> _logger;
 
-        public RouteService(ApplicationDbContext context, ILogger<RouteService> logger)
+        public RouteService(IUnitOfWork unitOfWork, ILogger<RouteService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -24,10 +24,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Include(r => r.AssignedVehicle)
-                    .Include(r => r.AssignedDriver)
-                    .Include(r => r.RouteStops)
+                var route = await _unitOfWork.Routes
+                    .QueryWithIncludes(tenantId, r => r.AssignedVehicle, r => r.AssignedDriver, r => r.RouteStops)
                     .Include(r => r.Students)
                     .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
                     .FirstOrDefaultAsync();
@@ -51,10 +49,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Routes
-                    .Include(r => r.AssignedVehicle)
-                    .Include(r => r.AssignedDriver)
-                    .Where(r => r.TenantId == int.Parse(tenantId) && !r.IsDeleted);
+                var query = _unitOfWork.Routes
+                    .QueryWithIncludes(tenantId, r => r.AssignedVehicle, r => r.AssignedDriver);
 
                 if (!string.IsNullOrEmpty(searchDto.RouteNumber))
                 {
@@ -115,9 +111,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var existingRoute = await _context.Routes
-                    .Where(r => r.RouteNumber == createDto.RouteNumber && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingRoute = await _unitOfWork.Routes
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(r => r.RouteNumber == createDto.RouteNumber);
 
                 if (existingRoute != null)
                 {
@@ -142,8 +138,8 @@ namespace Rihla.Application.Services
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _context.Routes.Add(route);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Routes.AddAsync(route);
+                await _unitOfWork.SaveChangesAsync();
 
                 var routeDto = MapToDto(route);
                 return Result<RouteDto>.Success(routeDto);
@@ -159,18 +155,17 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(id, tenantId);
 
                 if (route == null)
                 {
                     return Result<RouteDto>.Failure("Route not found");
                 }
 
-                var existingRoute = await _context.Routes
-                    .Where(r => r.RouteNumber == updateDto.RouteNumber && r.Id != id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingRoute = await _unitOfWork.Routes
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(r => r.RouteNumber == updateDto.RouteNumber && r.Id != id);
 
                 if (existingRoute != null)
                 {
@@ -188,7 +183,7 @@ namespace Rihla.Application.Services
                 route.Notes = updateDto.Notes;
                 route.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var routeDto = MapToDto(route);
                 return Result<RouteDto>.Success(routeDto);
@@ -204,9 +199,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(id, tenantId);
 
                 if (route == null)
                 {
@@ -216,7 +210,7 @@ namespace Rihla.Application.Services
                 route.IsDeleted = true;
                 route.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -230,11 +224,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Include(r => r.AssignedVehicle)
-                    .Include(r => r.AssignedDriver)
-                    .Where(r => r.RouteNumber == routeNumber && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .QueryWithIncludes(tenantId, r => r.AssignedVehicle, r => r.AssignedDriver)
+                    .FirstOrDefaultAsync(r => r.RouteNumber == routeNumber);
 
                 if (route == null)
                 {
@@ -255,10 +247,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var routes = await _context.Routes
-                    .Include(r => r.AssignedVehicle)
-                    .Include(r => r.AssignedDriver)
-                    .Where(r => r.TenantId == int.Parse(tenantId) && !r.IsDeleted && r.Status == RouteStatus.Active)
+                var routes = await _unitOfWork.Routes
+                    .QueryWithIncludes(tenantId, r => r.AssignedVehicle, r => r.AssignedDriver)
+                    .Where(r => r.Status == RouteStatus.Active)
                     .ToListAsync();
 
                 var routeDtos = routes.Select(MapToDto).ToList();
@@ -275,17 +266,17 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(routeId, tenantId);
 
                 if (route == null)
                 {
                     return Result<List<StudentDto>>.Failure("Route not found");
                 }
 
-                var students = await _context.Students
-                    .Where(s => s.RouteId == routeId && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .Query(tenantId)
+                    .Where(s => s.RouteId == routeId)
                     .ToListAsync();
 
                 var studentDtos = students.Select(s => new StudentDto

@@ -7,7 +7,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "AdminOnly")]
     public class PaymentsController : ControllerBase
     {
         private readonly IPaymentService _paymentService;

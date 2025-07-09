@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import OfflineIndicator from './src/components/OfflineIndicator';
+import syncService from './src/services/syncService';
+import notificationService from './src/services/notificationService';
+import localizationService from './src/localization';
+import { ThemeProvider } from './src/contexts/ThemeContext';
 
 // Import screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -134,11 +139,42 @@ function AppNavigator() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        const localizationInitialized = await localizationService.initialize();
+        if (localizationInitialized) {
+          console.log('Localization service initialized successfully');
+        }
+
+        const notificationInitialized = await notificationService.initialize();
+        if (notificationInitialized) {
+          console.log('Notification service initialized successfully');
+        }
+
+      } catch (error) {
+        console.error('Failed to initialize services:', error);
+      }
+    };
+
+    initializeServices();
+
+    return () => {
+      syncService.cleanup();
+      notificationService.cleanup();
+    };
+  }, []);
+
   return (
-    <AuthProvider>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <StatusBar style="light" />
+        <View style={{ flex: 1 }}>
+          <OfflineIndicator />
+          <AppNavigator />
+        </View>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

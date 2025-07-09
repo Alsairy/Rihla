@@ -5,7 +5,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class ReportsController : ControllerBase
     {
         [HttpGet]

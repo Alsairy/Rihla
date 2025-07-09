@@ -1,7 +1,8 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure base URL - use your actual backend URL
-const BASE_URL = 'http://localhost:5078/api';
+const BASE_URL = 'http://localhost:5079/api';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -13,8 +14,19 @@ export const apiClient = axios.create({
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
+    
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('Added Authorization header to request');
+      }
+    } catch (error) {
+      console.error('Error retrieving token from AsyncStorage:', error);
+    }
+    
     return config;
   },
   (error) => {

@@ -5,18 +5,18 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class TripService : ITripService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TripService> _logger;
 
-        public TripService(ApplicationDbContext context, ILogger<TripService> logger)
+        public TripService(IUnitOfWork unitOfWork, ILogger<TripService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -24,13 +24,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trip = await _context.Trips
-                    .Include(t => t.Route)
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver)
-                    .Include(t => t.Attendances)
-                    .Where(t => t.Id == id && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .QueryWithIncludes(tenantId, t => t.Route, t => t.Vehicle, t => t.Driver, t => t.Attendances)
+                    .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (trip == null)
                 {
@@ -51,11 +47,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Trips
-                    .Include(t => t.Route)
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver)
-                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted);
+                var query = _unitOfWork.Trips
+                    .QueryWithIncludes(tenantId, t => t.Route, t => t.Vehicle, t => t.Driver);
 
                 if (searchDto.RouteId.HasValue)
                     query = query.Where(t => t.RouteId == searchDto.RouteId.Value);
@@ -106,27 +99,24 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var route = await _context.Routes
-                    .Where(r => r.Id == createDto.RouteId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(createDto.RouteId, tenantId);
 
                 if (route == null)
                 {
                     return Result<TripDto>.Failure("Route not found");
                 }
 
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == createDto.VehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(createDto.VehicleId, tenantId);
 
                 if (vehicle == null)
                 {
                     return Result<TripDto>.Failure("Vehicle not found");
                 }
 
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == createDto.DriverId && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(createDto.DriverId, tenantId);
 
                 if (driver == null)
                 {
@@ -146,8 +136,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Trips.Add(trip);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Trips.AddAsync(trip);
+                await _unitOfWork.SaveChangesAsync();
 
                 var tripDto = MapToDto(trip);
                 return Result<TripDto>.Success(tripDto);
@@ -163,36 +153,32 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trip = await _context.Trips
-                    .Where(t => t.Id == id && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .GetByIdAsync(id, tenantId);
 
                 if (trip == null)
                 {
                     return Result<TripDto>.Failure("Trip not found");
                 }
 
-                var route = await _context.Routes
-                    .Where(r => r.Id == updateDto.RouteId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(updateDto.RouteId, tenantId);
 
                 if (route == null)
                 {
                     return Result<TripDto>.Failure("Route not found");
                 }
 
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == updateDto.VehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(updateDto.VehicleId, tenantId);
 
                 if (vehicle == null)
                 {
                     return Result<TripDto>.Failure("Vehicle not found");
                 }
 
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == updateDto.DriverId && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(updateDto.DriverId, tenantId);
 
                 if (driver == null)
                 {
@@ -210,7 +196,7 @@ namespace Rihla.Application.Services
                 trip.Notes = updateDto.Notes;
                 trip.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var tripDto = MapToDto(trip);
                 return Result<TripDto>.Success(tripDto);
@@ -226,9 +212,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trip = await _context.Trips
-                    .Where(t => t.Id == id && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .GetByIdAsync(id, tenantId);
 
                 if (trip == null)
                 {
@@ -238,7 +223,7 @@ namespace Rihla.Application.Services
                 trip.IsDeleted = true;
                 trip.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -252,11 +237,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trips = await _context.Trips
-                    .Include(t => t.Route)
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver)
-                    .Where(t => t.RouteId == routeId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                var trips = await _unitOfWork.Trips
+                    .QueryWithIncludes(tenantId, t => t.Route, t => t.Vehicle, t => t.Driver)
+                    .Where(t => t.RouteId == routeId)
                     .Where(t => t.ScheduledStartTime.Date == date.Date)
                     .OrderBy(t => t.ScheduledStartTime)
                     .ToListAsync();
@@ -275,11 +258,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trips = await _context.Trips
-                    .Include(t => t.Route)
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver)
-                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                var trips = await _unitOfWork.Trips
+                    .QueryWithIncludes(tenantId, t => t.Route, t => t.Vehicle, t => t.Driver)
                     .Where(t => t.ScheduledStartTime.Date == date.Date)
                     .Where(t => t.Status == TripStatus.InProgress || t.Status == TripStatus.Scheduled)
                     .OrderBy(t => t.ScheduledStartTime)
@@ -299,9 +279,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trip = await _context.Trips
-                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .GetByIdAsync(tripId, tenantId);
 
                 if (trip == null)
                 {
@@ -317,7 +296,7 @@ namespace Rihla.Application.Services
                 trip.Status = TripStatus.InProgress;
                 trip.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -331,9 +310,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var trip = await _context.Trips
-                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .GetByIdAsync(tripId, tenantId);
 
                 if (trip == null)
                 {
@@ -349,7 +327,7 @@ namespace Rihla.Application.Services
                 trip.Status = TripStatus.Completed;
                 trip.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)

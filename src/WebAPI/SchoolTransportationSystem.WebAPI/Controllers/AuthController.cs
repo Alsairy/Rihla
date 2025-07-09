@@ -137,7 +137,7 @@ namespace Rihla.WebAPI.Controllers
 
         private string GenerateJwtToken(Rihla.Core.Entities.User user)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var jwtSettings = _configuration.GetSection("Jwt");
             var secretKey = jwtSettings["SecretKey"] ?? "your-super-secret-key-that-is-at-least-32-characters-long";
             var issuer = jwtSettings["Issuer"] ?? "Rihla";
             var audience = jwtSettings["Audience"] ?? "RihlaUsers";

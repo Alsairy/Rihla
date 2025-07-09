@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Rihla.Core.Entities
 {
     public abstract class BaseEntity
@@ -10,6 +12,9 @@ namespace Rihla.Core.Entities
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
         public string? DeletedBy { get; set; }
+        
+        // [Timestamp]
+        public byte[] RowVersion { get; set; } = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
         public void MarkAsDeleted(string deletedBy)
         {

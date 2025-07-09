@@ -40,7 +40,7 @@ export default function StudentsScreen() {
         lastName: student.lastName,
         school: student.school,
         grade: student.grade,
-        status: student.status,
+        status: String(student.status || 'Active'),
         parentPhone: student.parentPhone,
       }));
       
@@ -126,7 +126,8 @@ export default function StudentsScreen() {
   );
 
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    const statusStr = String(status || 'active').toLowerCase();
+    switch (statusStr) {
       case 'active':
         return '#10b981';
       case 'inactive':
@@ -172,7 +173,7 @@ export default function StudentsScreen() {
           <Text style={styles.statLabel}>Showing</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{students.filter(s => s.status === 'Active').length}</Text>
+          <Text style={styles.statValue}>{students.filter(s => String(s.status || '').toLowerCase() === 'active').length}</Text>
           <Text style={styles.statLabel}>Active</Text>
         </View>
       </View>

@@ -3,7 +3,7 @@ using Rihla.Application.DTOs;
 using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,18 +11,18 @@ namespace Rihla.Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(ApplicationDbContext context)
+        public UserService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<User>> AuthenticateAsync(string email, string password, string tenantId)
         {
             try
             {
-                var user = await _context.Users
+                var user = await _unitOfWork.Users
                     .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId && u.IsActive);
 
                 if (user == null)
@@ -36,7 +36,8 @@ namespace Rihla.Application.Services
                 }
 
                 user.LastLoginAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<User>.Success(user);
             }
@@ -50,8 +51,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(id, tenantId);
 
                 if (user == null)
                 {
@@ -70,7 +70,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
+                var user = await _unitOfWork.Users
                     .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId);
 
                 if (user == null)
@@ -90,7 +90,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var existingUser = await _context.Users
+                var existingUser = await _unitOfWork.Users
                     .FirstOrDefaultAsync(u => (u.Email == createDto.Email || u.Username == createDto.Username) && u.TenantId == tenantId);
 
                 if (existingUser != null)
@@ -110,12 +110,11 @@ namespace Rihla.Application.Services
                     TenantId = tenantId,
                     FirstName = createDto.FirstName,
                     LastName = createDto.LastName,
-                    IsActive = createDto.IsActive,
-                    CreatedAt = DateTime.UtcNow
+                    IsActive = createDto.IsActive
                 };
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.AddAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<User>.Success(user);
             }
@@ -129,8 +128,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(id, tenantId);
 
                 if (user == null)
                 {
@@ -154,7 +152,8 @@ namespace Rihla.Application.Services
                 
                 user.IsActive = updateDto.IsActive;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<User>.Success(user);
             }
@@ -168,16 +167,15 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(id, tenantId);
 
                 if (user == null)
                 {
                     return Result<bool>.Failure("User not found");
                 }
 
-                user.IsActive = false;
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.DeleteAsync(user, "System");
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }
@@ -191,8 +189,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId, tenantId);
 
                 if (user == null)
                 {
@@ -208,7 +205,8 @@ namespace Rihla.Application.Services
                 user.PasswordHash = passwordHash;
                 user.Salt = salt;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }
@@ -222,8 +220,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId, tenantId);
 
                 if (user == null)
                 {
@@ -233,7 +230,8 @@ namespace Rihla.Application.Services
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenExpiryTime = expiryTime;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }
@@ -247,7 +245,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
+                var user = await _unitOfWork.Users
                     .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken && u.TenantId == tenantId && u.IsActive);
 
                 if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
@@ -267,8 +265,7 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId, tenantId);
 
                 if (user == null)
                 {
@@ -278,7 +275,8 @@ namespace Rihla.Application.Services
                 user.RefreshToken = null;
                 user.RefreshTokenExpiryTime = null;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }

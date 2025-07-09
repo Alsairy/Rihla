@@ -1,0 +1,115 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  frontend-lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/Frontend/rihla-web
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./src/Frontend/rihla-web/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Check Prettier formatting
+      run: npm run format:check
+    
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: Build application
+      run: npm run build
+
+  backend-lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/WebAPI/SchoolTransportationSystem.WebAPI
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build with StyleCop analysis
+      run: dotnet build --no-restore --configuration Release --verbosity normal
+    
+    - name: Run unit tests
+      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./src/WebAPI/SchoolTransportationSystem.WebAPI/TestResults
+        fail_ci_if_error: false
+
+  mobile-lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/Mobile/rihla-mobile
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./src/Mobile/rihla-mobile/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test -- --watchAll=false
+    
+    - name: Check Expo configuration
+      run: npx expo-doctor
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run security audit (Frontend)
+      working-directory: ./src/Frontend/rihla-web
+      run: npm audit --audit-level moderate
+      continue-on-error: true
+    
+    - name: Run security audit (Mobile)
+      working-directory: ./src/Mobile/rihla-mobile
+      run: npm audit --audit-level moderate
+      continue-on-error: true
+    
+    - name: .NET security scan
+      working-directory: ./src/WebAPI/SchoolTransportationSystem.WebAPI
+      run: |
+        dotnet list package --vulnerable --include-transitive
+        dotnet list package --deprecated
+      continue-on-error: true

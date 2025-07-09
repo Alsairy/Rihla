@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common Messages -->
+  <data name="Success" xml:space="preserve">
+    <value>نجح</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>خطأ</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>غير موجود</value>
+  </data>
+  <data name="InvalidRequest" xml:space="preserve">
+    <value>طلب غير صحيح</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>وصول غير مصرح به</value>
+  </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>خطأ داخلي في الخادم</value>
+  </data>
+  
+  <!-- Authentication -->
+  <data name="LoginSuccessful" xml:space="preserve">
+    <value>تم تسجيل الدخول بنجاح</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>بيانات اعتماد غير صحيحة</value>
+  </data>
+  <data name="LogoutSuccessful" xml:space="preserve">
+    <value>تم تسجيل الخروج بنجاح</value>
+  </data>
+  
+  <!-- Student Management -->
+  <data name="StudentCreated" xml:space="preserve">
+    <value>تم إنشاء الطالب بنجاح</value>
+  </data>
+  <data name="StudentUpdated" xml:space="preserve">
+    <value>تم تحديث الطالب بنجاح</value>
+  </data>
+  <data name="StudentDeleted" xml:space="preserve">
+    <value>تم حذف الطالب بنجاح</value>
+  </data>
+  <data name="StudentNotFound" xml:space="preserve">
+    <value>الطالب غير موجود</value>
+  </data>
+  
+  <!-- Driver Management -->
+  <data name="DriverCreated" xml:space="preserve">
+    <value>تم إنشاء السائق بنجاح</value>
+  </data>
+  <data name="DriverUpdated" xml:space="preserve">
+    <value>تم تحديث السائق بنجاح</value>
+  </data>
+  <data name="DriverDeleted" xml:space="preserve">
+    <value>تم حذف السائق بنجاح</value>
+  </data>
+  <data name="DriverNotFound" xml:space="preserve">
+    <value>السائق غير موجود</value>
+  </data>
+  
+  <!-- Vehicle Management -->
+  <data name="VehicleCreated" xml:space="preserve">
+    <value>تم إنشاء المركبة بنجاح</value>
+  </data>
+  <data name="VehicleUpdated" xml:space="preserve">
+    <value>تم تحديث المركبة بنجاح</value>
+  </data>
+  <data name="VehicleDeleted" xml:space="preserve">
+    <value>تم حذف المركبة بنجاح</value>
+  </data>
+  <data name="VehicleNotFound" xml:space="preserve">
+    <value>المركبة غير موجودة</value>
+  </data>
+  
+  <!-- Route Management -->
+  <data name="RouteCreated" xml:space="preserve">
+    <value>تم إنشاء المسار بنجاح</value>
+  </data>
+  <data name="RouteUpdated" xml:space="preserve">
+    <value>تم تحديث المسار بنجاح</value>
+  </data>
+  <data name="RouteDeleted" xml:space="preserve">
+    <value>تم حذف المسار بنجاح</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>المسار غير موجود</value>
+  </data>
+  
+  <!-- Trip Management -->
+  <data name="TripCreated" xml:space="preserve">
+    <value>تم إنشاء الرحلة بنجاح</value>
+  </data>
+  <data name="TripUpdated" xml:space="preserve">
+    <value>تم تحديث الرحلة بنجاح</value>
+  </data>
+  <data name="TripDeleted" xml:space="preserve">
+    <value>تم حذف الرحلة بنجاح</value>
+  </data>
+  <data name="TripNotFound" xml:space="preserve">
+    <value>الرحلة غير موجودة</value>
+  </data>
+  
+  <!-- Attendance Management -->
+  <data name="AttendanceRecorded" xml:space="preserve">
+    <value>تم تسجيل الحضور بنجاح</value>
+  </data>
+  <data name="AttendanceUpdated" xml:space="preserve">
+    <value>تم تحديث الحضور بنجاح</value>
+  </data>
+  <data name="AttendanceNotFound" xml:space="preserve">
+    <value>سجل الحضور غير موجود</value>
+  </data>
+  
+  <!-- Payment Management -->
+  <data name="PaymentProcessed" xml:space="preserve">
+    <value>تم معالجة الدفع بنجاح</value>
+  </data>
+  <data name="PaymentFailed" xml:space="preserve">
+    <value>فشل في معالجة الدفع</value>
+  </data>
+  <data name="PaymentNotFound" xml:space="preserve">
+    <value>الدفع غير موجود</value>
+  </data>
+  
+  <!-- Maintenance Management -->
+  <data name="MaintenanceScheduled" xml:space="preserve">
+    <value>تم جدولة الصيانة بنجاح</value>
+  </data>
+  <data name="MaintenanceCompleted" xml:space="preserve">
+    <value>تم إكمال الصيانة بنجاح</value>
+  </data>
+  <data name="MaintenanceNotFound" xml:space="preserve">
+    <value>سجل الصيانة غير موجود</value>
+  </data>
+  
+  <!-- Notifications -->
+  <data name="NotificationSent" xml:space="preserve">
+    <value>تم إرسال الإشعار بنجاح</value>
+  </data>
+  <data name="NotificationMarkedAsRead" xml:space="preserve">
+    <value>تم وضع علامة مقروء على الإشعار</value>
+  </data>
+  <data name="EmergencyAlertSent" xml:space="preserve">
+    <value>تم إرسال تنبيه الطوارئ بنجاح</value>
+  </data>
+  <data name="PickupNotificationSent" xml:space="preserve">
+    <value>تم إرسال إشعار الاستلام بنجاح</value>
+  </data>
+  
+  <!-- Validation Messages -->
+  <data name="RequiredField" xml:space="preserve">
+    <value>هذا الحقل مطلوب</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>تنسيق البريد الإلكتروني غير صحيح</value>
+  </data>
+  <data name="InvalidPhoneNumber" xml:space="preserve">
+    <value>تنسيق رقم الهاتف غير صحيح</value>
+  </data>
+  <data name="InvalidDate" xml:space="preserve">
+    <value>تنسيق التاريخ غير صحيح</value>
+  </data>
+</root>

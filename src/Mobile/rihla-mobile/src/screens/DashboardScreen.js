@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import apiClient from '../services/apiClient';
+import { apiClient } from '../services/apiClient';
 
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
@@ -20,7 +20,7 @@ export default function DashboardScreen() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/dashboard/statistics');
+      const response = await apiClient.get('/dashboard/statistics');
       setDashboardData(response.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

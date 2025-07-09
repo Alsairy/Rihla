@@ -27,6 +27,9 @@ namespace Rihla.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure concurrency control for all entities
+            // ConfigureConcurrencyControl(modelBuilder);
+
             // Configure value objects
             ConfigureValueObjects(modelBuilder);
             
@@ -299,6 +302,21 @@ namespace Rihla.Infrastructure.Data
                 entity.HasIndex(e => new { e.TenantId, e.Priority });
                 entity.HasIndex(e => e.CreatedAt);
             });
+        }
+
+        private void ConfigureConcurrencyControl(ModelBuilder modelBuilder)
+        {
+            // Configure optimistic concurrency for all entities that inherit from BaseEntity
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+                }
+            }
         }
 
         private void ConfigureRelationships(ModelBuilder modelBuilder)

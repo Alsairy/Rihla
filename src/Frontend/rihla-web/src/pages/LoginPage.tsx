@@ -59,15 +59,35 @@ const LoginPage: React.FC = () => {
     const emailValue = email || emailRef.current?.value || '';
     const passwordValue = password || passwordRef.current?.value || '';
 
-    console.log('Login attempt with:', { email: emailValue, password: passwordValue ? '***' : 'empty' });
-    console.log('Email length:', emailValue.length, 'Password length:', passwordValue.length);
-    console.log('State values - Email:', email.length, 'Password:', password.length);
-    console.log('Ref values - Email:', emailRef.current?.value?.length || 0, 'Password:', passwordRef.current?.value?.length || 0);
+    console.log('Login attempt with:', {
+      email: emailValue,
+      password: passwordValue ? '***' : 'empty',
+    });
+    console.log(
+      'Email length:',
+      emailValue.length,
+      'Password length:',
+      passwordValue.length
+    );
+    console.log(
+      'State values - Email:',
+      email.length,
+      'Password:',
+      password.length
+    );
+    console.log(
+      'Ref values - Email:',
+      emailRef.current?.value?.length || 0,
+      'Password:',
+      passwordRef.current?.value?.length || 0
+    );
 
     try {
       await login({ email: emailValue, password: passwordValue });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(
+        err.response?.data?.message || 'Login failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -117,7 +137,7 @@ const LoginPage: React.FC = () => {
             >
               <BusIcon sx={{ fontSize: 40 }} />
             </Avatar>
-            
+
             <Typography
               component="h1"
               variant="h3"
@@ -133,7 +153,7 @@ const LoginPage: React.FC = () => {
             >
               Rihla
             </Typography>
-            
+
             <Typography
               component="h2"
               variant="h6"
@@ -147,12 +167,12 @@ const LoginPage: React.FC = () => {
             >
               School Transportation Management System
             </Typography>
-            
+
             {error && (
-              <Alert 
-                severity="error" 
-                sx={{ 
-                  mb: 3, 
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 3,
                   width: '100%',
                   borderRadius: 2,
                 }}
@@ -160,7 +180,7 @@ const LoginPage: React.FC = () => {
                 {error}
               </Alert>
             )}
-            
+
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <TextField
                 margin="normal"
@@ -173,12 +193,15 @@ const LoginPage: React.FC = () => {
                 autoFocus
                 inputRef={emailRef}
                 value={email}
-                onChange={(e) => {
+                onChange={e => {
                   console.log('Email onChange:', e.target.value);
                   setEmail(e.target.value);
                 }}
-                onInput={(e) => {
-                  console.log('Email onInput:', (e.target as HTMLInputElement).value);
+                onInput={e => {
+                  console.log(
+                    'Email onInput:',
+                    (e.target as HTMLInputElement).value
+                  );
                   setEmail((e.target as HTMLInputElement).value);
                 }}
                 InputProps={{
@@ -198,7 +221,7 @@ const LoginPage: React.FC = () => {
                   },
                 }}
               />
-              
+
               <TextField
                 margin="normal"
                 required
@@ -210,12 +233,18 @@ const LoginPage: React.FC = () => {
                 autoComplete="current-password"
                 inputRef={passwordRef}
                 value={password}
-                onChange={(e) => {
-                  console.log('Password onChange:', e.target.value ? '***' : 'empty');
+                onChange={e => {
+                  console.log(
+                    'Password onChange:',
+                    e.target.value ? '***' : 'empty'
+                  );
                   setPassword(e.target.value);
                 }}
-                onInput={(e) => {
-                  console.log('Password onInput:', (e.target as HTMLInputElement).value ? '***' : 'empty');
+                onInput={e => {
+                  console.log(
+                    'Password onInput:',
+                    (e.target as HTMLInputElement).value ? '***' : 'empty'
+                  );
                   setPassword((e.target as HTMLInputElement).value);
                 }}
                 InputProps={{
@@ -246,7 +275,7 @@ const LoginPage: React.FC = () => {
                   },
                 }}
               />
-              
+
               <Button
                 type="submit"
                 fullWidth
@@ -260,10 +289,12 @@ const LoginPage: React.FC = () => {
                   fontSize: '1.1rem',
                   fontWeight: 600,
                   textTransform: 'none',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background:
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   boxShadow: '0 8px 20px rgba(102, 126, 234, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                    background:
+                      'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
                     boxShadow: '0 12px 24px rgba(102, 126, 234, 0.4)',
                     transform: 'translateY(-2px)',
                   },
@@ -280,7 +311,7 @@ const LoginPage: React.FC = () => {
                 )}
               </Button>
             </form>
-            
+
             <Typography
               variant="body2"
               color="text.secondary"

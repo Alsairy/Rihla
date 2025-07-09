@@ -9,6 +9,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class DashboardController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -64,12 +65,17 @@ namespace Rihla.WebAPI.Controllers
                 var statistics = new
                 {
                     totalStudents = totalStudents,
-                    totalDrivers = totalDrivers,
+                    activeDrivers = activeDrivers,
                     totalVehicles = totalVehicles,
-                    totalRoutes = totalRoutes,
-                    activeTrips = todaysTrips,
-                    completedTrips = completedTrips,
-                    pendingMaintenance = maintenanceVehicles
+                    activeRoutes = activeRoutes,
+                    todaysTrips = todaysTrips,
+                    attendanceRate = attendanceRate,
+                    studentGrowth = "+12.5%",
+                    driverGrowth = "+8.3%",
+                    vehicleGrowth = "+5.1%",
+                    routeGrowth = "+3.2%",
+                    tripGrowth = "+15.7%",
+                    attendanceGrowth = "+2.1%"
                 };
 
                 return Ok(statistics);

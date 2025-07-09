@@ -21,6 +21,9 @@ namespace Rihla.Core.ValueObjects
             
             if (string.IsNullOrWhiteSpace(zipCode))
                 throw new ArgumentException("Zip code cannot be empty", nameof(zipCode));
+            
+            if (string.IsNullOrWhiteSpace(country))
+                throw new ArgumentException("Country cannot be empty", nameof(country));
 
             Street = street.Trim();
             City = city.Trim();

@@ -8,7 +8,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class NotificationsController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -53,14 +53,15 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
+                var tenantId = _userContext.GetTenantId().ToString();
                 var username = _userContext.GetUsername();
 
-                if (string.IsNullOrEmpty(username))
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(username))
                 {
                     return BadRequest(new { message = "Invalid user context" });
                 }
 
-                var result = await _notificationService.MarkNotificationAsReadAsync(id, username);
+                var result = await _notificationService.MarkNotificationAsReadAsync(id, username, tenantId);
 
                 if (result.IsSuccess)
                 {
@@ -97,7 +98,7 @@ namespace Rihla.WebAPI.Controllers
                 }
 
                 var markReadTasks = notificationsResult.Value.Select(n => 
-                    _notificationService.MarkNotificationAsReadAsync(n.Id, username));
+                    _notificationService.MarkNotificationAsReadAsync(n.Id, username, tenantId));
 
                 await Task.WhenAll(markReadTasks);
 
@@ -190,6 +191,7 @@ namespace Rihla.WebAPI.Controllers
         }
 
         [HttpPost("emergency")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> SendEmergencyAlert([FromBody] EmergencyAlertDto alertData)
         {
             try

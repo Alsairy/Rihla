@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import BiometricToggle from '../components/BiometricToggle';
+import NotificationSettings from '../components/NotificationSettings';
+import LanguageSelector from '../components/LanguageSelector';
+import ThemeSelector from '../components/ThemeSelector';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -83,6 +87,15 @@ export default function ProfileScreen() {
           subtitle="Password and security settings"
           onPress={() => Alert.alert('Info', 'Security settings screen')}
         />
+        <BiometricToggle />
+        
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <LanguageSelector />
+        <ThemeSelector />
+        
+        <Text style={styles.sectionTitle}>Notification Settings</Text>
+        <NotificationSettings />
+        
         <ProfileItem
           icon="card-outline"
           title="Billing & Payments"
@@ -332,6 +345,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94a3b8',
     marginBottom: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginTop: 24,
+    marginBottom: 12,
+    marginHorizontal: 20,
   },
 });
 

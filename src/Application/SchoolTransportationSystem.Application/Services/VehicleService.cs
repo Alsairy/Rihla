@@ -5,18 +5,18 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class VehicleService : IVehicleService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<VehicleService> _logger;
 
-        public VehicleService(ApplicationDbContext context, ILogger<VehicleService> logger)
+        public VehicleService(IUnitOfWork unitOfWork, ILogger<VehicleService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -24,9 +24,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == id && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(id, tenantId);
 
                 if (vehicle == null)
                 {
@@ -47,9 +46,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .AsQueryable();
+                var query = _unitOfWork.Vehicles
+                    .Query(tenantId);
 
                 if (!string.IsNullOrEmpty(searchDto.SearchTerm))
                 {
@@ -89,10 +87,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var existingVehicle = await _context.Vehicles
-                    .Where(v => (v.VehicleNumber == createDto.VehicleNumber || v.LicensePlate == createDto.LicensePlate) 
-                               && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingVehicle = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(v => v.VehicleNumber == createDto.VehicleNumber || v.LicensePlate == createDto.LicensePlate);
 
                 if (existingVehicle != null)
                 {
@@ -113,8 +110,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Vehicles.Add(vehicle);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Vehicles.AddAsync(vehicle);
+                await _unitOfWork.SaveChangesAsync();
 
                 var vehicleDto = MapToDto(vehicle);
                 return Result<VehicleDto>.Success(vehicleDto);
@@ -130,19 +127,17 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == id && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(id, tenantId);
 
                 if (vehicle == null)
                 {
                     return Result<VehicleDto>.Failure("Vehicle not found");
                 }
 
-                var existingVehicle = await _context.Vehicles
-                    .Where(v => (v.VehicleNumber == updateDto.VehicleNumber || v.LicensePlate == updateDto.LicensePlate) 
-                               && v.Id != id && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingVehicle = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(v => (v.VehicleNumber == updateDto.VehicleNumber || v.LicensePlate == updateDto.LicensePlate) && v.Id != id);
 
                 if (existingVehicle != null)
                 {
@@ -158,10 +153,15 @@ namespace Rihla.Application.Services
                 vehicle.LicensePlate = updateDto.LicensePlate;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var vehicleDto = MapToDto(vehicle);
                 return Result<VehicleDto>.Success(vehicleDto);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogWarning(ex, "Concurrency conflict when updating vehicle with ID {VehicleId}", id);
+                return Result<VehicleDto>.Failure("The vehicle was modified by another user. Please refresh and try again.");
             }
             catch (Exception ex)
             {
@@ -174,9 +174,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == id && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(id, tenantId);
 
                 if (vehicle == null)
                 {
@@ -186,7 +185,7 @@ namespace Rihla.Application.Services
                 vehicle.IsDeleted = true;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -200,9 +199,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.VehicleNumber == vehicleNumber && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(v => v.VehicleNumber == vehicleNumber);
 
                 if (vehicle == null)
                 {
@@ -223,9 +222,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted && v.Status == VehicleStatus.Active)
-                    .Where(v => v.InsuranceExpiry > date && v.RegistrationExpiry > date)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .Where(v => v.Status == VehicleStatus.Active && v.InsuranceExpiry > date && v.RegistrationExpiry > date)
                     .ToListAsync();
 
                 var vehicleDtos = vehicles.Select(MapToDto).ToList();
@@ -247,8 +246,9 @@ namespace Rihla.Application.Services
                     return Result<List<VehicleDto>>.Failure("Invalid vehicle status");
                 }
 
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted && v.Status == vehicleStatus)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .Where(v => v.Status == vehicleStatus)
                     .ToListAsync();
 
                 var vehicleDtos = vehicles.Select(MapToDto).ToList();
@@ -269,8 +269,9 @@ namespace Rihla.Application.Services
                     return Result<List<VehicleDto>>.Failure("Invalid vehicle type");
                 }
 
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted && v.Type == type)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .Where(v => v.Type == type)
                     .ToListAsync();
 
                 var vehicleDtos = vehicles.Select(MapToDto).ToList();
@@ -287,18 +288,16 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
                     return Result<bool>.Failure("Vehicle not found");
                 }
 
-                var driver = await _context.Drivers
-                    .Where(d => d.Id == driverId && d.TenantId == int.Parse(tenantId) && !d.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var driver = await _unitOfWork.Drivers
+                    .GetByIdAsync(driverId, tenantId);
 
                 if (driver == null)
                 {
@@ -308,7 +307,7 @@ namespace Rihla.Application.Services
                 vehicle.AssignedDriverId = driverId;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -322,9 +321,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -334,7 +332,7 @@ namespace Rihla.Application.Services
                 vehicle.AssignedDriverId = null;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -353,9 +351,8 @@ namespace Rihla.Application.Services
                     return Result<bool>.Failure("Invalid vehicle status");
                 }
 
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -365,7 +362,7 @@ namespace Rihla.Application.Services
                 vehicle.Status = vehicleStatus;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -379,9 +376,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -390,7 +386,7 @@ namespace Rihla.Application.Services
 
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -404,9 +400,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -421,7 +416,7 @@ namespace Rihla.Application.Services
                 vehicle.Mileage = mileage;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -434,9 +429,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -445,7 +439,7 @@ namespace Rihla.Application.Services
 
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -463,8 +457,8 @@ namespace Rihla.Application.Services
                 var currentDate = DateTime.UtcNow;
                 var alertThreshold = currentDate.AddDays(30);
 
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 foreach (var vehicle in vehicles)
@@ -496,8 +490,8 @@ namespace Rihla.Application.Services
             {
                 var cutoffDate = DateTime.UtcNow.AddDays(daysAhead);
 
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .Where(v => v.Status == VehicleStatus.Active)
                     .ToListAsync();
 
@@ -515,9 +509,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var vehicle = await _unitOfWork.Vehicles
+                    .GetByIdAsync(vehicleId, tenantId);
 
                 if (vehicle == null)
                 {
@@ -544,8 +537,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var report = $"Vehicle Utilization Report ({startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd})\n\n";
@@ -572,8 +565,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var report = $"Vehicle Performance Report ({startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd})\n\n";
@@ -602,8 +595,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var report = $"Vehicle Cost Analysis ({startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd})\n\n";
@@ -633,8 +626,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted && v.Status == VehicleStatus.Active)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
+                    .Where(v => v.Status == VehicleStatus.Active)
                     .ToListAsync();
 
                 var optimalVehicles = vehicles
@@ -656,8 +650,8 @@ namespace Rihla.Application.Services
             try
             {
                 var recommendations = new List<string>();
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var oldVehicles = vehicles.Where(v => DateTime.Now.Year - v.Year > 10).ToList();
@@ -702,8 +696,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var vehicles = await _context.Vehicles
-                    .Where(v => v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                var vehicles = await _unitOfWork.Vehicles
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var report = $"Environmental Impact Report ({startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd})\n\n";

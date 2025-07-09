@@ -6,19 +6,19 @@ using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
 using Rihla.Core.ValueObjects;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 using System.Linq.Expressions;
 
 namespace Rihla.Application.Services
 {
     public class StudentService : IStudentService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<StudentService> _logger;
 
-        public StudentService(ApplicationDbContext context, ILogger<StudentService> logger)
+        public StudentService(IUnitOfWork unitOfWork, ILogger<StudentService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -27,10 +27,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.Id == id && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route)
+                    .FirstOrDefaultAsync(s => s.Id == id);
 
                 if (student == null)
                 {
@@ -51,10 +50,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.StudentNumber == studentNumber && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route)
+                    .FirstOrDefaultAsync(s => s.StudentNumber == studentNumber);
 
                 if (student == null)
                 {
@@ -75,10 +73,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .AsQueryable();
+                var query = _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route);
 
                 // Apply filters
                 if (!string.IsNullOrEmpty(searchDto.SearchTerm))
@@ -162,9 +158,9 @@ namespace Rihla.Application.Services
             try
             {
                 // Check if student number already exists
-                var existingStudent = await _context.Students
-                    .Where(s => s.StudentNumber == createDto.StudentNumber && s.TenantId == int.Parse(tenantId))
-                    .FirstOrDefaultAsync();
+                var existingStudent = await _unitOfWork.Students
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(s => s.StudentNumber == createDto.StudentNumber);
 
                 if (existingStudent != null)
                 {
@@ -198,8 +194,8 @@ namespace Rihla.Application.Services
                     IsDeleted = false
                 };
 
-                _context.Students.Add(student);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Students.AddAsync(student);
+                await _unitOfWork.SaveChangesAsync();
 
                 var studentDto = MapToDto(student);
                 _logger.LogInformation("Student created successfully with ID {StudentId}", student.Id);
@@ -217,9 +213,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == id && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(id, tenantId);
 
                 if (student == null)
                 {
@@ -229,9 +224,9 @@ namespace Rihla.Application.Services
                 // Check if student number already exists (excluding current student)
                 if (updateDto.StudentNumber != student.StudentNumber)
                 {
-                    var existingStudent = await _context.Students
-                        .Where(s => s.StudentNumber == updateDto.StudentNumber && s.TenantId == int.Parse(tenantId) && s.Id != id)
-                        .FirstOrDefaultAsync();
+                    var existingStudent = await _unitOfWork.Students
+                        .Query(tenantId)
+                        .FirstOrDefaultAsync(s => s.StudentNumber == updateDto.StudentNumber && s.Id != id);
 
                     if (existingStudent != null)
                     {
@@ -261,12 +256,17 @@ namespace Rihla.Application.Services
                 student.RouteId = updateDto.RouteId;
                 student.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var studentDto = MapToDto(student);
                 _logger.LogInformation("Student updated successfully with ID {StudentId}", student.Id);
                 
                 return Result<StudentDto>.Success(studentDto);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogWarning(ex, "Concurrency conflict when updating student with ID {StudentId}", id);
+                return Result<StudentDto>.Failure("The student was modified by another user. Please refresh and try again.");
             }
             catch (Exception ex)
             {
@@ -279,9 +279,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == id && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(id, tenantId);
 
                 if (student == null)
                 {
@@ -291,7 +290,7 @@ namespace Rihla.Application.Services
                 student.IsDeleted = true;
                 student.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Student deleted successfully with ID {StudentId}", student.Id);
                 return Result<bool>.Success(true);
@@ -308,9 +307,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var students = await _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.RouteId == routeId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route)
+                    .Where(s => s.RouteId == routeId)
                     .OrderBy(s => s.FullName.LastName)
                     .ThenBy(s => s.FullName.FirstName)
                     .ToListAsync();
@@ -329,9 +328,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var students = await _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.School == schoolName && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route)
+                    .Where(s => s.School == schoolName)
                     .OrderBy(s => s.FullName.LastName)
                     .ThenBy(s => s.FullName.FirstName)
                     .ToListAsync();
@@ -350,9 +349,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var students = await _context.Students
-                    .Include(s => s.Route)
-                    .Where(s => s.Grade == grade && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .QueryWithIncludes(tenantId, s => s.Route)
+                    .Where(s => s.Grade == grade)
                     .OrderBy(s => s.FullName.LastName)
                     .ThenBy(s => s.FullName.FirstName)
                     .ToListAsync();
@@ -371,16 +370,11 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var history = await _context.Attendances
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Route)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Vehicle)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Driver)
-                    .Where(a => a.StudentId == studentId && a.TenantId == int.Parse(tenantId))
+                var history = await _unitOfWork.Attendances
+                    .QueryWithIncludes(tenantId, a => a.Trip, a => a.Trip.Route, a => a.Trip.Vehicle, a => a.Trip.Driver)
+                    .Where(a => a.StudentId == studentId)
                     .OrderByDescending(a => a.Date)
-                    .Take(100) // Limit to last 100 records
+                    .Take(100)
                     .ToListAsync();
 
                 var historyDtos = history.Select(a => new StudentTransportationHistoryDto
@@ -409,8 +403,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var statistics = await _context.Students
-                    .Where(s => s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                var statistics = await _unitOfWork.Students
+                    .Query(tenantId)
                     .GroupBy(s => s.School)
                     .Select(g => new SchoolStatisticsDto
                     {
@@ -437,18 +431,16 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == studentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(studentId, tenantId);
 
                 if (student == null)
                 {
                     return Result<bool>.Failure("Student not found");
                 }
 
-                var route = await _context.Routes
-                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var route = await _unitOfWork.Routes
+                    .GetByIdAsync(routeId, tenantId);
 
                 if (route == null)
                 {
@@ -458,7 +450,7 @@ namespace Rihla.Application.Services
                 student.RouteId = routeId;
                 student.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Student {StudentId} assigned to route {RouteId}", studentId, routeId);
                 return Result<bool>.Success(true);
@@ -474,9 +466,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == studentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(studentId, tenantId);
 
                 if (student == null)
                 {
@@ -486,7 +477,7 @@ namespace Rihla.Application.Services
                 student.RouteId = null;
                 student.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Student {StudentId} removed from route", studentId);
                 return Result<bool>.Success(true);
@@ -502,8 +493,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var students = await _context.Students
-                    .Where(s => studentIds.Contains(s.Id) && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .Query(tenantId)
+                    .Where(s => studentIds.Contains(s.Id))
                     .ToListAsync();
 
                 foreach (var student in students)
@@ -512,7 +504,7 @@ namespace Rihla.Application.Services
                     student.UpdatedAt = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Bulk updated status for {Count} students", students.Count);
                 return Result<bool>.Success(true);

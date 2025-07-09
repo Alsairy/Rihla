@@ -5,19 +5,19 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class AttendanceService : IAttendanceService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AttendanceService> _logger;
         private readonly IUserContext _userContext;
 
-        public AttendanceService(ApplicationDbContext context, ILogger<AttendanceService> logger, IUserContext userContext)
+        public AttendanceService(IUnitOfWork unitOfWork, ILogger<AttendanceService> logger, IUserContext userContext)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
             _userContext = userContext;
         }
@@ -26,12 +26,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendance = await _context.Attendances
-                    .Include(a => a.Student)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Route)
-                    .Where(a => a.Id == id && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var attendance = await _unitOfWork.Attendances
+                    .QueryWithIncludes(tenantId, a => a.Student, a => a.Trip, a => a.Trip.Route)
+                    .FirstOrDefaultAsync(a => a.Id == id);
 
                 if (attendance == null)
                 {
@@ -52,11 +49,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Attendances
-                    .Include(a => a.Student)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Route)
-                    .Where(a => a.TenantId == int.Parse(tenantId) && !a.IsDeleted);
+                var query = _unitOfWork.Attendances
+                    .QueryWithIncludes(tenantId, a => a.Student, a => a.Trip, a => a.Trip.Route);
 
                 if (searchDto.StudentId.HasValue)
                     query = query.Where(a => a.StudentId == searchDto.StudentId.Value);
@@ -107,27 +101,25 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == createDto.StudentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(createDto.StudentId, tenantId);
 
                 if (student == null)
                 {
                     return Result<AttendanceDto>.Failure("Student not found");
                 }
 
-                var trip = await _context.Trips
-                    .Where(t => t.Id == createDto.TripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var trip = await _unitOfWork.Trips
+                    .GetByIdAsync(createDto.TripId, tenantId);
 
                 if (trip == null)
                 {
                     return Result<AttendanceDto>.Failure("Trip not found");
                 }
 
-                var existingAttendance = await _context.Attendances
-                    .Where(a => a.StudentId == createDto.StudentId && a.TripId == createDto.TripId && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var existingAttendance = await _unitOfWork.Attendances
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(a => a.StudentId == createDto.StudentId && a.TripId == createDto.TripId);
 
                 if (existingAttendance != null)
                 {
@@ -148,8 +140,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Attendances.Add(attendance);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Attendances.AddAsync(attendance);
+                await _unitOfWork.SaveChangesAsync();
 
                 var attendanceDto = MapToDto(attendance);
                 return Result<AttendanceDto>.Success(attendanceDto);
@@ -165,9 +157,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendance = await _context.Attendances
-                    .Where(a => a.Id == id && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var attendance = await _unitOfWork.Attendances
+                    .GetByIdAsync(id, tenantId);
 
                 if (attendance == null)
                 {
@@ -180,7 +171,7 @@ namespace Rihla.Application.Services
                 attendance.Notes = updateDto.Notes;
                 attendance.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var attendanceDto = MapToDto(attendance);
                 return Result<AttendanceDto>.Success(attendanceDto);
@@ -196,9 +187,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendance = await _context.Attendances
-                    .Where(a => a.Id == id && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var attendance = await _unitOfWork.Attendances
+                    .GetByIdAsync(id, tenantId);
 
                 if (attendance == null)
                 {
@@ -208,7 +198,7 @@ namespace Rihla.Application.Services
                 attendance.IsDeleted = true;
                 attendance.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -222,11 +212,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendances = await _context.Attendances
-                    .Include(a => a.Student)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Route)
-                    .Where(a => a.StudentId == studentId && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
+                var attendances = await _unitOfWork.Attendances
+                    .QueryWithIncludes(tenantId, a => a.Student, a => a.Trip, a => a.Trip.Route)
+                    .Where(a => a.StudentId == studentId)
                     .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
                     .OrderBy(a => a.Date)
                     .ToListAsync();
@@ -245,11 +233,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendances = await _context.Attendances
-                    .Include(a => a.Student)
-                    .Include(a => a.Trip)
-                        .ThenInclude(t => t.Route)
-                    .Where(a => a.TripId == tripId && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
+                var attendances = await _unitOfWork.Attendances
+                    .QueryWithIncludes(tenantId, a => a.Student, a => a.Trip, a => a.Trip.Route)
+                    .Where(a => a.TripId == tripId)
                     .OrderBy(a => a.Student.FullName.LastName)
                     .ThenBy(a => a.Student.FullName.FirstName)
                     .ToListAsync();
@@ -268,9 +254,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendance = await _context.Attendances
-                    .Where(a => a.StudentId == studentId && a.TripId == tripId && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var attendance = await _unitOfWork.Attendances
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(a => a.StudentId == studentId && a.TripId == tripId);
 
                 if (attendance == null)
                 {
@@ -286,7 +272,7 @@ namespace Rihla.Application.Services
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    _context.Attendances.Add(attendance);
+                    await _unitOfWork.Attendances.AddAsync(attendance);
                 }
                 else
                 {
@@ -295,7 +281,7 @@ namespace Rihla.Application.Services
                     attendance.UpdatedAt = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -309,9 +295,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var attendance = await _context.Attendances
-                    .Where(a => a.StudentId == studentId && a.TripId == tripId && a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var attendance = await _unitOfWork.Attendances
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(a => a.StudentId == studentId && a.TripId == tripId);
 
                 if (attendance == null)
                 {
@@ -321,7 +307,7 @@ namespace Rihla.Application.Services
                 attendance.AlightingTime = alightingTime;
                 attendance.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)

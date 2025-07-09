@@ -7,7 +7,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "DispatcherOrAbove")]
     public class AttendanceController : ControllerBase
     {
         private readonly IAttendanceService _attendanceService;

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Rihla.Infrastructure.Data;
 using Rihla.Core.Entities;
@@ -10,6 +11,7 @@ namespace Rihla.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "ManagerOrAbove")]
     public class StudentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common Messages -->
+  <data name="Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="InvalidRequest" xml:space="preserve">
+    <value>Invalid request</value>
+  </data>
+  <data name="UnauthorizedAccess" xml:space="preserve">
+    <value>Unauthorized access</value>
+  </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>Internal server error</value>
+  </data>
+  
+  <!-- Authentication -->
+  <data name="LoginSuccessful" xml:space="preserve">
+    <value>Login successful</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>Invalid credentials</value>
+  </data>
+  <data name="LogoutSuccessful" xml:space="preserve">
+    <value>Logout successful</value>
+  </data>
+  
+  <!-- Student Management -->
+  <data name="StudentCreated" xml:space="preserve">
+    <value>Student created successfully</value>
+  </data>
+  <data name="StudentUpdated" xml:space="preserve">
+    <value>Student updated successfully</value>
+  </data>
+  <data name="StudentDeleted" xml:space="preserve">
+    <value>Student deleted successfully</value>
+  </data>
+  <data name="StudentNotFound" xml:space="preserve">
+    <value>Student not found</value>
+  </data>
+  
+  <!-- Driver Management -->
+  <data name="DriverCreated" xml:space="preserve">
+    <value>Driver created successfully</value>
+  </data>
+  <data name="DriverUpdated" xml:space="preserve">
+    <value>Driver updated successfully</value>
+  </data>
+  <data name="DriverDeleted" xml:space="preserve">
+    <value>Driver deleted successfully</value>
+  </data>
+  <data name="DriverNotFound" xml:space="preserve">
+    <value>Driver not found</value>
+  </data>
+  
+  <!-- Vehicle Management -->
+  <data name="VehicleCreated" xml:space="preserve">
+    <value>Vehicle created successfully</value>
+  </data>
+  <data name="VehicleUpdated" xml:space="preserve">
+    <value>Vehicle updated successfully</value>
+  </data>
+  <data name="VehicleDeleted" xml:space="preserve">
+    <value>Vehicle deleted successfully</value>
+  </data>
+  <data name="VehicleNotFound" xml:space="preserve">
+    <value>Vehicle not found</value>
+  </data>
+  
+  <!-- Route Management -->
+  <data name="RouteCreated" xml:space="preserve">
+    <value>Route created successfully</value>
+  </data>
+  <data name="RouteUpdated" xml:space="preserve">
+    <value>Route updated successfully</value>
+  </data>
+  <data name="RouteDeleted" xml:space="preserve">
+    <value>Route deleted successfully</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>Route not found</value>
+  </data>
+  
+  <!-- Trip Management -->
+  <data name="TripCreated" xml:space="preserve">
+    <value>Trip created successfully</value>
+  </data>
+  <data name="TripUpdated" xml:space="preserve">
+    <value>Trip updated successfully</value>
+  </data>
+  <data name="TripDeleted" xml:space="preserve">
+    <value>Trip deleted successfully</value>
+  </data>
+  <data name="TripNotFound" xml:space="preserve">
+    <value>Trip not found</value>
+  </data>
+  
+  <!-- Attendance Management -->
+  <data name="AttendanceRecorded" xml:space="preserve">
+    <value>Attendance recorded successfully</value>
+  </data>
+  <data name="AttendanceUpdated" xml:space="preserve">
+    <value>Attendance updated successfully</value>
+  </data>
+  <data name="AttendanceNotFound" xml:space="preserve">
+    <value>Attendance record not found</value>
+  </data>
+  
+  <!-- Payment Management -->
+  <data name="PaymentProcessed" xml:space="preserve">
+    <value>Payment processed successfully</value>
+  </data>
+  <data name="PaymentFailed" xml:space="preserve">
+    <value>Payment processing failed</value>
+  </data>
+  <data name="PaymentNotFound" xml:space="preserve">
+    <value>Payment not found</value>
+  </data>
+  
+  <!-- Maintenance Management -->
+  <data name="MaintenanceScheduled" xml:space="preserve">
+    <value>Maintenance scheduled successfully</value>
+  </data>
+  <data name="MaintenanceCompleted" xml:space="preserve">
+    <value>Maintenance completed successfully</value>
+  </data>
+  <data name="MaintenanceNotFound" xml:space="preserve">
+    <value>Maintenance record not found</value>
+  </data>
+  
+  <!-- Notifications -->
+  <data name="NotificationSent" xml:space="preserve">
+    <value>Notification sent successfully</value>
+  </data>
+  <data name="NotificationMarkedAsRead" xml:space="preserve">
+    <value>Notification marked as read</value>
+  </data>
+  <data name="EmergencyAlertSent" xml:space="preserve">
+    <value>Emergency alert sent successfully</value>
+  </data>
+  <data name="PickupNotificationSent" xml:space="preserve">
+    <value>Pickup notification sent successfully</value>
+  </data>
+  
+  <!-- Validation Messages -->
+  <data name="RequiredField" xml:space="preserve">
+    <value>This field is required</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Invalid email format</value>
+  </data>
+  <data name="InvalidPhoneNumber" xml:space="preserve">
+    <value>Invalid phone number format</value>
+  </data>
+  <data name="InvalidDate" xml:space="preserve">
+    <value>Invalid date format</value>
+  </data>
+</root>

@@ -96,7 +96,7 @@ Edit `src/WebAPI/SchoolTransportationSystem.WebAPI/appsettings.json`:
     "DefaultConnection": "Data Source=rihla.db"
   },
   "JwtSettings": {
-    "SecretKey": "your-secret-key-here",
+    "SecretKey": "",
     "Issuer": "RihlaSystem",
     "Audience": "RihlaUsers",
     "ExpirationMinutes": 60
@@ -289,9 +289,9 @@ curl http://localhost:5078/api/health
 # Check if frontend is accessible
 # Open browser: http://localhost:5173
 
-# Login with demo credentials:
-# Email: admin@rihla.sa
-# Password: admin123
+# Login with your configured credentials:
+# Use the admin account created during database seeding
+# Default: admin@rihla.com / password123
 ```
 
 ### 3. Database Verification
@@ -343,10 +343,12 @@ dotnet ef database update [PreviousMigrationName]
 - **Design System**: design_system/ folder
 - **Deployment Guide**: DEPLOYMENT_GUIDE.md
 
-### Demo Credentials
-- **Admin**: admin@rihla.sa / admin123
-- **Driver**: driver@rihla.sa / driver123
-- **Parent**: parent@rihla.sa / parent123
+### Default Seeded Accounts
+- **Admin**: admin@rihla.com / password123
+- **Manager**: manager@rihla.com / password123
+- **Driver**: driver@rihla.com / password123
+
+Note: Change these default passwords immediately in production environments.
 
 ### Useful Commands
 ```bash

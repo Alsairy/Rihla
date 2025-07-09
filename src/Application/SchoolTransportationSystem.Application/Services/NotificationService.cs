@@ -5,24 +5,24 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
         private readonly ISmsService _smsService;
         private readonly ILogger<NotificationService> _logger;
 
         public NotificationService(
-            ApplicationDbContext context,
+            IUnitOfWork unitOfWork,
             IEmailService emailService,
             ISmsService smsService,
             ILogger<NotificationService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _emailService = emailService;
             _smsService = smsService;
             _logger = logger;
@@ -34,8 +34,9 @@ namespace Rihla.Application.Services
             {
                 _logger.LogInformation("Sending trip update notification for trip {TripId} in tenant {TenantId}", trip.Id, tenantId);
 
-                var students = await _context.Students
-                    .Where(s => s.RouteId == trip.RouteId && s.TenantId.ToString() == tenantId && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .Query(tenantId)
+                    .Where(s => s.RouteId == trip.RouteId)
                     .ToListAsync();
 
                 var notifications = new List<Notification>();
@@ -74,8 +75,8 @@ namespace Rihla.Application.Services
                     }
                 }
 
-                _context.Notifications.AddRange(notifications);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddRangeAsync(notifications);
+                await _unitOfWork.SaveChangesAsync();
 
                 await Task.WhenAll(emailTasks.Concat(smsTasks));
 
@@ -95,8 +96,8 @@ namespace Rihla.Application.Services
             {
                 _logger.LogInformation("Sending attendance update notification for student {StudentId}", attendance.StudentId);
 
-                var student = await _context.Students
-                    .FirstOrDefaultAsync(s => s.Id == attendance.StudentId && s.TenantId.ToString() == tenantId && !s.IsDeleted);
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(attendance.StudentId, tenantId);
 
                 if (student == null)
                 {
@@ -117,8 +118,8 @@ namespace Rihla.Application.Services
                     CreatedBy = attendance.RecordedBy
                 };
 
-                _context.Notifications.Add(notification);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddAsync(notification);
+                await _unitOfWork.SaveChangesAsync();
 
                 var tasks = new List<Task>();
 
@@ -153,16 +154,17 @@ namespace Rihla.Application.Services
             {
                 _logger.LogInformation("Sending emergency alert to all users in tenant {TenantId}", tenantId);
 
-                var users = await _context.Users
-                    .Where(u => u.TenantId == tenantId && u.IsActive)
+                var users = await _unitOfWork.Users
+                    .Query(tenantId.ToString())
+                    .Where(u => u.IsActive)
                     .ToListAsync();
 
-                var students = await _context.Students
-                    .Where(s => s.TenantId.ToString() == tenantId && !s.IsDeleted)
+                var students = await _unitOfWork.Students
+                    .Query(tenantId)
                     .ToListAsync();
 
-                var drivers = await _context.Drivers
-                    .Where(d => d.TenantId.ToString() == tenantId && !d.IsDeleted)
+                var drivers = await _unitOfWork.Drivers
+                    .Query(tenantId)
                     .ToListAsync();
 
                 var notifications = new List<Notification>();
@@ -212,8 +214,8 @@ namespace Rihla.Application.Services
                     }
                 }
 
-                _context.Notifications.AddRange(notifications);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddRangeAsync(notifications);
+                await _unitOfWork.SaveChangesAsync();
 
                 await Task.WhenAll(emailTasks.Concat(smsTasks));
 
@@ -234,17 +236,18 @@ namespace Rihla.Application.Services
             {
                 _logger.LogInformation("Sending maintenance alert for vehicle {VehicleId}", maintenance.VehicleId);
 
-                var vehicle = await _context.Vehicles
-                    .Include(v => v.AssignedDriver)
-                    .FirstOrDefaultAsync(v => v.Id == maintenance.VehicleId && v.TenantId.ToString() == tenantId && !v.IsDeleted);
+                var vehicle = await _unitOfWork.Vehicles
+                    .QueryWithIncludes(tenantId, v => v.AssignedDriver)
+                    .FirstOrDefaultAsync(v => v.Id == maintenance.VehicleId);
 
                 if (vehicle == null)
                 {
                     return Result<bool>.Failure("Vehicle not found");
                 }
 
-                var managers = await _context.Users
-                    .Where(u => u.TenantId == tenantId && (u.Role == "TenantAdmin" || u.Role == "SystemAdmin" || u.Role == "Maintenance"))
+                var managers = await _unitOfWork.Users
+                    .Query(tenantId.ToString())
+                    .Where(u => u.Role == "TenantAdmin" || u.Role == "SystemAdmin" || u.Role == "Maintenance")
                     .ToListAsync();
 
                 var notifications = new List<Notification>();
@@ -295,8 +298,8 @@ namespace Rihla.Application.Services
                     smsTasks.Add(_smsService.SendSmsAsync(vehicle.AssignedDriver.Phone, alertMessage));
                 }
 
-                _context.Notifications.AddRange(notifications);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddRangeAsync(notifications);
+                await _unitOfWork.SaveChangesAsync();
 
                 await Task.WhenAll(emailTasks.Concat(smsTasks));
 
@@ -311,16 +314,25 @@ namespace Rihla.Application.Services
             }
         }
 
-        public async Task<Result<bool>> SendTripLocationUpdateAsync(string tripId, double latitude, double longitude)
+        public async Task<Result<bool>> SendTripLocationUpdateAsync(string tripId, double latitude, double longitude, string tenantId)
         {
             try
             {
                 _logger.LogInformation("Sending trip location update for trip {TripId}", tripId);
 
-                var trip = await _context.Trips
-                    .Include(t => t.Route)
-                    .ThenInclude(r => r.Students)
-                    .FirstOrDefaultAsync(t => t.Id.ToString() == tripId && !t.IsDeleted);
+                var trip = await _unitOfWork.Trips
+                    .QueryWithIncludes(tenantId, t => t.Route)
+                    .FirstOrDefaultAsync(t => t.Id.ToString() == tripId);
+
+                if (trip?.Route?.Students == null)
+                {
+                    var routeStudents = await _unitOfWork.Students
+                        .Query(tenantId)
+                        .Where(s => s.RouteId == trip.RouteId)
+                        .ToListAsync();
+                    if (trip?.Route != null)
+                        trip.Route.Students = routeStudents;
+                }
 
                 if (trip == null)
                 {
@@ -358,8 +370,8 @@ namespace Rihla.Application.Services
                     }
                 }
 
-                _context.Notifications.AddRange(notifications);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddRangeAsync(notifications);
+                await _unitOfWork.SaveChangesAsync();
 
                 await Task.WhenAll(smsTasks);
 
@@ -379,8 +391,8 @@ namespace Rihla.Application.Services
             {
                 _logger.LogInformation("Sending pickup notification for student {StudentId} with status {Status}", studentId, status);
 
-                var student = await _context.Students
-                    .FirstOrDefaultAsync(s => s.Id == studentId && s.TenantId.ToString() == tenantId && !s.IsDeleted);
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(studentId, tenantId);
 
                 if (student == null)
                 {
@@ -401,8 +413,8 @@ namespace Rihla.Application.Services
                     CreatedBy = "System"
                 };
 
-                _context.Notifications.Add(notification);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Notifications.AddAsync(notification);
+                await _unitOfWork.SaveChangesAsync();
 
                 var tasks = new List<Task>();
 
@@ -435,8 +447,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Notifications
-                    .Where(n => n.TenantId.ToString() == tenantId && n.UserId == userId && !n.IsDeleted);
+                var query = _unitOfWork.Notifications
+                    .Query(tenantId)
+                    .Where(n => n.UserId == userId);
 
                 if (unreadOnly)
                 {
@@ -483,12 +496,13 @@ namespace Rihla.Application.Services
             }
         }
 
-        public async Task<Result<bool>> MarkNotificationAsReadAsync(int notificationId, string readBy)
+        public async Task<Result<bool>> MarkNotificationAsReadAsync(int notificationId, string readBy, string tenantId)
         {
             try
             {
-                var notification = await _context.Notifications
-                    .FirstOrDefaultAsync(n => n.Id == notificationId && !n.IsDeleted);
+                var notification = await _unitOfWork.Notifications
+                    .Query(tenantId)
+                    .FirstOrDefaultAsync(n => n.Id == notificationId);
 
                 if (notification == null)
                 {
@@ -496,7 +510,7 @@ namespace Rihla.Application.Services
                 }
 
                 notification.MarkAsRead(readBy);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 return Result<bool>.Success(true);
             }

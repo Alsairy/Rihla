@@ -5,18 +5,18 @@ using Rihla.Application.Interfaces;
 using Rihla.Core.Common;
 using Rihla.Core.Entities;
 using Rihla.Core.Enums;
-using Rihla.Infrastructure.Data;
+using Rihla.Core.Interfaces;
 
 namespace Rihla.Application.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PaymentService> _logger;
 
-        public PaymentService(ApplicationDbContext context, ILogger<PaymentService> logger)
+        public PaymentService(IUnitOfWork unitOfWork, ILogger<PaymentService> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -24,10 +24,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var payment = await _context.Payments
-                    .Include(p => p.Student)
-                    .Where(p => p.Id == id && p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var payment = await _unitOfWork.Payments
+                    .QueryWithIncludes(tenantId, p => p.Student)
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (payment == null)
                 {
@@ -48,9 +47,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var query = _context.Payments
-                    .Include(p => p.Student)
-                    .Where(p => p.TenantId == int.Parse(tenantId) && !p.IsDeleted);
+                var query = _unitOfWork.Payments
+                    .QueryWithIncludes(tenantId, p => p.Student);
 
                 if (searchDto.StudentId.HasValue)
                     query = query.Where(p => p.StudentId == searchDto.StudentId.Value);
@@ -110,9 +108,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var student = await _context.Students
-                    .Where(s => s.Id == createDto.StudentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var student = await _unitOfWork.Students
+                    .GetByIdAsync(createDto.StudentId, tenantId);
 
                 if (student == null)
                 {
@@ -136,8 +133,8 @@ namespace Rihla.Application.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Payments.Add(payment);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Payments.AddAsync(payment);
+                await _unitOfWork.SaveChangesAsync();
 
                 var paymentDto = MapToDto(payment);
                 return Result<PaymentDto>.Success(paymentDto);
@@ -153,9 +150,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var payment = await _context.Payments
-                    .Where(p => p.Id == id && p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var payment = await _unitOfWork.Payments
+                    .GetByIdAsync(id, tenantId);
 
                 if (payment == null)
                 {
@@ -170,7 +166,7 @@ namespace Rihla.Application.Services
                 payment.Notes = updateDto.Notes;
                 payment.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 var paymentDto = MapToDto(payment);
                 return Result<PaymentDto>.Success(paymentDto);
@@ -186,9 +182,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var payment = await _context.Payments
-                    .Where(p => p.Id == id && p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var payment = await _unitOfWork.Payments
+                    .GetByIdAsync(id, tenantId);
 
                 if (payment == null)
                 {
@@ -203,7 +198,7 @@ namespace Rihla.Application.Services
                 payment.IsDeleted = true;
                 payment.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -217,9 +212,9 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var payments = await _context.Payments
-                    .Include(p => p.Student)
-                    .Where(p => p.StudentId == studentId && p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
+                var payments = await _unitOfWork.Payments
+                    .QueryWithIncludes(tenantId, p => p.Student)
+                    .Where(p => p.StudentId == studentId)
                     .Where(p => p.CreatedAt.Date >= startDate.Date && p.CreatedAt.Date <= endDate.Date)
                     .OrderByDescending(p => p.CreatedAt)
                     .ToListAsync();
@@ -239,9 +234,8 @@ namespace Rihla.Application.Services
             try
             {
                 var today = DateTime.Today;
-                var payments = await _context.Payments
-                    .Include(p => p.Student)
-                    .Where(p => p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
+                var payments = await _unitOfWork.Payments
+                    .QueryWithIncludes(tenantId, p => p.Student)
                     .Where(p => p.DueDate < today && p.Status != PaymentStatus.Completed)
                     .OrderBy(p => p.DueDate)
                     .ToListAsync();
@@ -260,9 +254,8 @@ namespace Rihla.Application.Services
         {
             try
             {
-                var payment = await _context.Payments
-                    .Where(p => p.Id == paymentId && p.TenantId == int.Parse(tenantId) && !p.IsDeleted)
-                    .FirstOrDefaultAsync();
+                var payment = await _unitOfWork.Payments
+                    .GetByIdAsync(paymentId, tenantId);
 
                 if (payment == null)
                 {
@@ -280,7 +273,7 @@ namespace Rihla.Application.Services
                 payment.TransactionId = Guid.NewGuid().ToString();
                 payment.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
             catch (Exception ex)
@@ -292,8 +285,8 @@ namespace Rihla.Application.Services
 
         private async Task<string> GeneratePaymentNumberAsync(string tenantId)
         {
-            var count = await _context.Payments
-                .Where(p => p.TenantId == int.Parse(tenantId))
+            var count = await _unitOfWork.Payments
+                .Query(tenantId)
                 .CountAsync();
 
             return $"PAY-{DateTime.UtcNow:yyyyMM}-{(count + 1):D4}";
