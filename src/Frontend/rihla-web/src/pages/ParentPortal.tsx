@@ -72,7 +72,10 @@ const ParentPortal: React.FC = () => {
   };
 
   const getStatusColor = (status: string | number) => {
-    const statusStr = typeof status === 'string' ? status.toLowerCase() : String(status).toLowerCase();
+    const statusStr =
+      typeof status === 'string'
+        ? status.toLowerCase()
+        : String(status).toLowerCase();
     switch (statusStr) {
       case 'completed':
       case '3':

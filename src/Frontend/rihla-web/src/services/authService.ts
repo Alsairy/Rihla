@@ -35,7 +35,7 @@ class AuthService {
       if (response.data.requiresMfa) {
         return response.data;
       }
-      
+
       if (response.data.token) {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('refreshToken', response.data.refreshToken);
