@@ -9,13 +9,14 @@ import { User } from '../types';
 import {
   authService,
   LoginRequest,
+  LoginResponse,
   RegisterRequest,
 } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
   register: (userData: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -66,15 +67,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
     setLoading(true);
     try {
       const response = await authService.login(credentials);
+
+      if (response.requiresMfa) {
+        setLoading(false);
+        return response;
+      }
 
       if (response.user && response.token) {
         setUser(response.user);
         localStorage.setItem('rihla_user', JSON.stringify(response.user));
         localStorage.setItem('rihla_token', response.token);
+        return response;
       } else {
         throw new Error('Invalid response from authentication service');
       }
@@ -83,9 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
+      setLoading(false);
       throw error;
     } finally {
-      setLoading(false);
+      if (!credentials.mfaCode) {
+        setLoading(false);
+      }
     }
   };
 

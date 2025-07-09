@@ -52,7 +52,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Super",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     },
                     new User
                     {
@@ -65,7 +75,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Tenant",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     },
                     new User
                     {
@@ -78,7 +98,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "System",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     },
                     new User
                     {
@@ -91,7 +121,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Main",
                         LastName = "Dispatcher",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     },
                     new User
                     {
@@ -104,7 +144,40 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Fleet",
                         LastName = "Maintenance",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
+                    },
+                    new User
+                    {
+                        TenantId = "1",
+                        Username = "safetyofficer",
+                        Email = "safety@rihla.com",
+                        PasswordHash = passwordHash,
+                        Salt = passwordSalt,
+                        Role = "SafetyOfficer",
+                        FirstName = "Safety",
+                        LastName = "Officer",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow,
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     }
                 };
                 
@@ -129,7 +202,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 95, // 95% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     });
                 }
                 
@@ -152,7 +235,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 98, // 98% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 730))
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 730)),
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow.AddDays(-random.Next(30, 730)),
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     });
                 }
                 
@@ -175,7 +268,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 97, // 97% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 1095))
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 1095)),
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow.AddDays(-random.Next(30, 1095)),
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     });
                 }
                 
@@ -195,7 +298,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 96, // 96% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     });
                 }
                 
@@ -215,7 +328,17 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 94, // 94% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        FailedLoginAttempts = 0,
+                        AccountLockedUntil = null,
+                        MfaEnabled = false,
+                        MfaSecret = null,
+                        BackupCodes = null,
+                        LastLoginAt = null,
+                        LastPasswordChangeAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
+                        PasswordHistory = null,
+                        RefreshToken = null,
+                        RefreshTokenExpiryTime = null
                     });
                 }
 
@@ -508,10 +631,57 @@ namespace SchoolTransportationSystem.WebAPI
                 await context.SaveChangesAsync();
                 Console.WriteLine($"Generated {maintenanceRecords.Count} maintenance records");
 
+                var auditLogs = new List<AuditLog>();
+                var auditActions = new[] { "Login", "Logout", "PasswordChange", "MfaSetup", "MfaVerification", "AccountLockout", "PermissionDenied" };
+                var userAgents = new[] 
+                {
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1",
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                };
+                var ipAddresses = new[] { "192.168.1.100", "10.0.0.50", "172.16.0.25", "203.0.113.10", "198.51.100.5" };
+
+                for (int i = 0; i < 500; i++)
+                {
+                    var randomUser = users[random.Next(Math.Min(users.Count, 50))]; // Use first 50 users for audit logs
+                    var action = auditActions[random.Next(auditActions.Length)];
+                    var success = action != "PermissionDenied" && action != "AccountLockout" ? random.Next(100) < 95 : false; // 95% success rate except for denied actions
+                    var timestamp = DateTime.UtcNow.AddDays(-random.Next(0, 30)).AddHours(-random.Next(0, 24)).AddMinutes(-random.Next(0, 60));
+                    
+                    var details = action switch
+                    {
+                        "Login" => success ? "Successful login" : "Invalid credentials",
+                        "Logout" => "User logged out",
+                        "PasswordChange" => success ? "Password changed successfully" : "Password change failed - invalid current password",
+                        "MfaSetup" => success ? "MFA setup completed" : "MFA setup failed",
+                        "MfaVerification" => success ? "MFA verification successful" : "Invalid MFA code",
+                        "AccountLockout" => "Account locked due to failed login attempts",
+                        "PermissionDenied" => $"Access denied to {new[] { "ManageUsers", "ViewReports", "ManageVehicles", "DeleteStudents" }[random.Next(4)]}",
+                        _ => "System action"
+                    };
+
+                    auditLogs.Add(new AuditLog
+                    {
+                        UserId = randomUser.Id,
+                        Email = randomUser.Email,
+                        Action = action,
+                        IpAddress = ipAddresses[random.Next(ipAddresses.Length)],
+                        UserAgent = userAgents[random.Next(userAgents.Length)],
+                        Success = success,
+                        Details = details,
+                        Timestamp = timestamp,
+                        TenantId = "1"
+                    });
+                }
+
+                context.Set<AuditLog>().AddRange(auditLogs);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Generated {auditLogs.Count} audit log entries");
+
                 Console.WriteLine("\n🎉 Large dataset generation completed successfully!");
                 Console.WriteLine(new string('=', 60));
                 Console.WriteLine($"📊 COMPREHENSIVE DATA SUMMARY:");
-                Console.WriteLine($"   👥 Users: {users.Count} (across all 8 personas)");
+                Console.WriteLine($"   👥 Users: {users.Count} (across all 8 personas including SafetyOfficer)");
                 Console.WriteLine($"   🚗 Drivers: {drivers.Count}");
                 Console.WriteLine($"   🚌 Vehicles: {vehicles.Count}");
                 Console.WriteLine($"   🗺️  Routes: {routes.Count}");
@@ -519,8 +689,9 @@ namespace SchoolTransportationSystem.WebAPI
                 Console.WriteLine($"   🚌 Trips: {trips.Count}");
                 Console.WriteLine($"   💰 Payments: {payments.Count}");
                 Console.WriteLine($"   🔧 Maintenance Records: {maintenanceRecords.Count}");
+                Console.WriteLine($"   📋 Audit Logs: {auditLogs.Count}");
                 Console.WriteLine(new string('=', 60));
-                Console.WriteLine($"📈 TOTAL RECORDS: {users.Count + drivers.Count + vehicles.Count + routes.Count + students.Count + trips.Count + payments.Count + maintenanceRecords.Count}");
+                Console.WriteLine($"📈 TOTAL RECORDS: {users.Count + drivers.Count + vehicles.Count + routes.Count + students.Count + trips.Count + payments.Count + maintenanceRecords.Count + auditLogs.Count}");
                 Console.WriteLine("🚀 System ready for comprehensive testing with realistic data volumes!");
             }
             catch (Exception ex)

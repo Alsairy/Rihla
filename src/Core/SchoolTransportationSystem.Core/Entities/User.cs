@@ -44,5 +44,19 @@ namespace SchoolTransportationSystem.Core.Entities
         public string? RefreshToken { get; set; }
         
         public DateTime? RefreshTokenExpiryTime { get; set; }
+        
+        public int FailedLoginAttempts { get; set; } = 0;
+        
+        public DateTime? AccountLockedUntil { get; set; }
+        
+        public bool MfaEnabled { get; set; } = false;
+        
+        public string? MfaSecret { get; set; }
+        
+        public string? BackupCodes { get; set; }
+        
+        public DateTime? LastPasswordChangeAt { get; set; }
+        
+        public string? PasswordHistory { get; set; }
     }
 }
