@@ -250,9 +250,12 @@ builder.Services.AddHsts(options =>
     options.MaxAge = TimeSpan.FromDays(365);
 });
 
-// Configure Entity Framework
+// Configure Entity Framework with SQL Server for all environments
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=rihla.db"));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
+});
 
 
 builder.Services.AddScoped<IRouteService, RouteService>();
