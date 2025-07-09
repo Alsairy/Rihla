@@ -292,7 +292,7 @@ const ParentPortal: React.FC = () => {
                 </Box>
               ) : (
                 <Grid container spacing={2}>
-                  {students.map((student) => (
+                  {students.map(student => (
                     <Grid size={{ xs: 12, md: 6 }} key={student.id}>
                       <Card
                         sx={{

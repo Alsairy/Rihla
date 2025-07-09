@@ -14,7 +14,7 @@ describe('ApiClient', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     const result = await apiClient.get('/api/test');
@@ -25,8 +25,8 @@ describe('ApiClient', () => {
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({
-          'Content-Type': 'application/json'
-        })
+          'Content-Type': 'application/json',
+        }),
       })
     );
   });
@@ -34,11 +34,11 @@ describe('ApiClient', () => {
   test('POST request with data', async () => {
     const mockData = { id: 1, name: 'Test' };
     const postData = { name: 'New Test' };
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     const result = await apiClient.post('/api/test', postData);
@@ -49,20 +49,20 @@ describe('ApiClient', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         }),
-        body: JSON.stringify(postData)
+        body: JSON.stringify(postData),
       })
     );
   });
 
   test('handles authentication headers when token exists', async () => {
     localStorage.setItem('authToken', 'test-token');
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({}),
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     await apiClient.get('/api/test');
@@ -71,8 +71,8 @@ describe('ApiClient', () => {
       expect.stringContaining('/api/test'),
       expect.objectContaining({
         headers: expect.objectContaining({
-          'Authorization': 'Bearer test-token'
-        })
+          Authorization: 'Bearer test-token',
+        }),
       })
     );
   });
@@ -85,10 +85,12 @@ describe('ApiClient', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
-      json: async () => ({ message: 'Unauthorized' })
+      json: async () => ({ message: 'Unauthorized' }),
     } as Response);
 
-    await expect(apiClient.get('/api/test')).rejects.toThrow('Authentication required');
+    await expect(apiClient.get('/api/test')).rejects.toThrow(
+      'Authentication required'
+    );
 
     expect(localStorage.getItem('authToken')).toBeNull();
     expect(localStorage.getItem('refreshToken')).toBeNull();
@@ -106,7 +108,7 @@ describe('ApiClient', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       text: async () => textResponse,
-      headers: new Headers({ 'content-type': 'text/plain' })
+      headers: new Headers({ 'content-type': 'text/plain' }),
     } as Response);
 
     const result = await apiClient.get('/api/test');
@@ -117,11 +119,11 @@ describe('ApiClient', () => {
   test('PUT request works correctly', async () => {
     const mockData = { id: 1, name: 'Updated Test' };
     const putData = { name: 'Updated Test' };
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     const result = await apiClient.put('/api/test/1', putData);
@@ -131,7 +133,7 @@ describe('ApiClient', () => {
       expect.stringContaining('/api/test/1'),
       expect.objectContaining({
         method: 'PUT',
-        body: JSON.stringify(putData)
+        body: JSON.stringify(putData),
       })
     );
   });
@@ -140,7 +142,7 @@ describe('ApiClient', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true }),
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     const result = await apiClient.delete('/api/test/1');
@@ -149,18 +151,18 @@ describe('ApiClient', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/test/1'),
       expect.objectContaining({
-        method: 'DELETE'
+        method: 'DELETE',
       })
     );
   });
 
   test('getRealtimeUpdates works correctly', async () => {
     const mockUpdates = [{ id: 1, message: 'Update 1' }];
-    
+
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockUpdates,
-      headers: new Headers({ 'content-type': 'application/json' })
+      headers: new Headers({ 'content-type': 'application/json' }),
     } as Response);
 
     const result = await apiClient.getRealtimeUpdates();
@@ -169,7 +171,7 @@ describe('ApiClient', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/realtime-updates'),
       expect.objectContaining({
-        method: 'GET'
+        method: 'GET',
       })
     );
   });

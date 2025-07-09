@@ -44,10 +44,10 @@ const NotificationCenter: React.FC = () => {
 
     signalRService.startConnection();
 
-    signalRService.onNotificationReceived((notification) => {
-      setNotifications((prev) => [notification, ...prev]);
+    signalRService.onNotificationReceived(notification => {
+      setNotifications(prev => [notification, ...prev]);
       if (!notification.isRead) {
-        setUnreadCount((prev) => prev + 1);
+        setUnreadCount(prev => prev + 1);
       }
 
       if (Notification.permission === 'granted') {
@@ -58,9 +58,9 @@ const NotificationCenter: React.FC = () => {
       }
     });
 
-    signalRService.onEmergencyAlert((alert) => {
-      setNotifications((prev) => [alert, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+    signalRService.onEmergencyAlert(alert => {
+      setNotifications(prev => [alert, ...prev]);
+      setUnreadCount(prev => prev + 1);
 
       if (Notification.permission === 'granted') {
         new Notification('🚨 EMERGENCY ALERT', {
@@ -107,10 +107,10 @@ const NotificationCenter: React.FC = () => {
   const markAsRead = async (notificationId: string) => {
     try {
       await apiClient.put(`/api/notifications/${notificationId}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+      setNotifications(prev =>
+        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -119,7 +119,7 @@ const NotificationCenter: React.FC = () => {
   const markAllAsRead = async () => {
     try {
       await apiClient.put('/api/notifications/mark-all-read');
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
@@ -194,7 +194,7 @@ const NotificationCenter: React.FC = () => {
           </Box>
         ) : (
           <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {notifications.slice(0, 10).map((notification) => (
+            {notifications.slice(0, 10).map(notification => (
               <ListItem
                 key={notification.id}
                 onClick={() =>

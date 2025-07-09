@@ -5,20 +5,20 @@ import { apiClient } from '../../services/apiClient';
 
 const SimpleAdminComponent = () => {
   const [stats, setStats] = React.useState<any>(null);
-  
+
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await apiClient.get('/api/dashboard/stats') as any;
+        const response = (await apiClient.get('/api/dashboard/stats')) as any;
         setStats(response);
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
     };
-    
+
     fetchStats();
   }, []);
-  
+
   return (
     <div>
       <h1>Admin Dashboard</h1>
@@ -53,15 +53,11 @@ const mockStats = {
   pendingMaintenance: 3,
   pendingPayments: 15,
   maintenanceAlerts: 2,
-  attendanceRate: 94.5
+  attendanceRate: 94.5,
 };
 
 const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <AuthProvider>
-      {component}
-    </AuthProvider>
-  );
+  return render(<AuthProvider>{component}</AuthProvider>);
 };
 
 describe('SimpleAdminComponent', () => {
@@ -75,16 +71,16 @@ describe('SimpleAdminComponent', () => {
   });
 
   test('shows loading state initially', () => {
-    (mockApiClient.get as jest.Mock)
-      .mockImplementation(() => new Promise(() => {}));
+    (mockApiClient.get as jest.Mock).mockImplementation(
+      () => new Promise(() => {})
+    );
 
     renderWithProviders(<SimpleAdminComponent />);
     expect(screen.getByTestId('loading')).toBeInTheDocument();
   });
 
   test('loads stats successfully', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockResolvedValueOnce(mockStats);
+    (mockApiClient.get as jest.Mock).mockResolvedValueOnce(mockStats);
 
     renderWithProviders(<SimpleAdminComponent />);
 
@@ -94,8 +90,7 @@ describe('SimpleAdminComponent', () => {
   });
 
   test('handles API errors gracefully', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockRejectedValue(new Error('API Error'));
+    (mockApiClient.get as jest.Mock).mockRejectedValue(new Error('API Error'));
 
     renderWithProviders(<SimpleAdminComponent />);
 

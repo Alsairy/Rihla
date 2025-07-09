@@ -11,7 +11,7 @@ const LanguageSwitcher: React.FC = () => {
   ];
 
   const currentLanguage =
-    languages.find((lang) => lang.code === i18n.language) || languages[0];
+    languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
@@ -68,7 +68,7 @@ const LanguageSwitcher: React.FC = () => {
           {/* Dropdown */}
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20">
             <div className="py-1">
-              {languages.map((language) => (
+              {languages.map(language => (
                 <button
                   key={language.code}
                   onClick={() => handleLanguageChange(language.code)}

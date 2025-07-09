@@ -37,7 +37,7 @@ describe('AuthContext', () => {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      role: 'Admin'
+      role: 'Admin',
     };
 
     localStorage.setItem('rihla_user', JSON.stringify(mockUser));
@@ -55,13 +55,13 @@ describe('AuthContext', () => {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      role: 'Admin'
+      role: 'Admin',
     };
 
     const mockResponse = {
       user: mockUser,
       token: 'test-token',
-      refreshToken: 'refresh-token'
+      refreshToken: 'refresh-token',
     };
 
     (mockAuthService.login as jest.Mock).mockResolvedValue(mockResponse);
@@ -71,7 +71,7 @@ describe('AuthContext', () => {
     await act(async () => {
       await result.current.login({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       });
     });
 
@@ -82,7 +82,9 @@ describe('AuthContext', () => {
   });
 
   test('login handles errors correctly', async () => {
-    (mockAuthService.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
+    (mockAuthService.login as jest.Mock).mockRejectedValue(
+      new Error('Invalid credentials')
+    );
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -90,7 +92,7 @@ describe('AuthContext', () => {
       act(async () => {
         await result.current.login({
           email: 'test@example.com',
-          password: 'wrongpassword'
+          password: 'wrongpassword',
         });
       })
     ).rejects.toThrow('Invalid credentials');
@@ -105,13 +107,13 @@ describe('AuthContext', () => {
       email: 'newuser@example.com',
       firstName: 'New',
       lastName: 'User',
-      role: 'Parent'
+      role: 'Parent',
     };
 
     const mockResponse = {
       user: mockUser,
       token: 'test-token',
-      refreshToken: 'refresh-token'
+      refreshToken: 'refresh-token',
     };
 
     (mockAuthService.register as jest.Mock).mockResolvedValue(mockResponse);
@@ -123,7 +125,7 @@ describe('AuthContext', () => {
         email: 'newuser@example.com',
         password: 'password123',
         username: 'newuser',
-        role: 'Parent'
+        role: 'Parent',
       });
     });
 
@@ -139,7 +141,7 @@ describe('AuthContext', () => {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      role: 'Admin'
+      role: 'Admin',
     };
 
     localStorage.setItem('rihla_user', JSON.stringify(mockUser));
@@ -160,7 +162,9 @@ describe('AuthContext', () => {
   });
 
   test('logout handles errors gracefully', async () => {
-    (mockAuthService.logout as jest.Mock).mockRejectedValue(new Error('Logout failed'));
+    (mockAuthService.logout as jest.Mock).mockRejectedValue(
+      new Error('Logout failed')
+    );
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 

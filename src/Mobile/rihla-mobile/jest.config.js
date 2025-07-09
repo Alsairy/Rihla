@@ -12,7 +12,7 @@ module.exports = {
     '!**/node_modules/**'
   ],
   testEnvironment: 'jsdom',
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   }
 };

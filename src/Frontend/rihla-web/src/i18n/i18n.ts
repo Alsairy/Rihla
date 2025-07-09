@@ -34,7 +34,7 @@ i18n.use(initReactI18next).init({
   },
 });
 
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', lng => {
   const isRTL = lng === 'ar';
   document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;

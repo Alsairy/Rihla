@@ -193,11 +193,11 @@ const LoginPage: React.FC = () => {
                 autoFocus
                 inputRef={emailRef}
                 value={email}
-                onChange={(e) => {
+                onChange={e => {
                   console.log('Email onChange:', e.target.value);
                   setEmail(e.target.value);
                 }}
-                onInput={(e) => {
+                onInput={e => {
                   console.log(
                     'Email onInput:',
                     (e.target as HTMLInputElement).value
@@ -233,14 +233,14 @@ const LoginPage: React.FC = () => {
                 autoComplete="current-password"
                 inputRef={passwordRef}
                 value={password}
-                onChange={(e) => {
+                onChange={e => {
                   console.log(
                     'Password onChange:',
                     e.target.value ? '***' : 'empty'
                   );
                   setPassword(e.target.value);
                 }}
-                onInput={(e) => {
+                onInput={e => {
                   console.log(
                     'Password onInput:',
                     (e.target as HTMLInputElement).value ? '***' : 'empty'

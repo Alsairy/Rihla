@@ -456,7 +456,7 @@ const AdminDashboard: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {students.slice(0, 5).map((student) => (
+                    {students.slice(0, 5).map(student => (
                       <TableRow
                         key={student.id}
                         sx={{
@@ -537,7 +537,7 @@ const AdminDashboard: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {drivers.slice(0, 5).map((driver) => (
+                    {drivers.slice(0, 5).map(driver => (
                       <TableRow
                         key={driver.id}
                         sx={{

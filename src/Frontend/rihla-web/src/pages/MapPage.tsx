@@ -98,9 +98,9 @@ const MapPage: React.FC = () => {
       setRoutes(routesData);
 
       const activeVehicles = vehiclesData.filter(
-        (v) => v.status === 'Active' || v.status === 'InTransit'
+        v => v.status === 'Active' || v.status === 'InTransit'
       ).length;
-      const activeRoutes = routesData.filter((r) => r.vehicleId).length;
+      const activeRoutes = routesData.filter(r => r.vehicleId).length;
 
       setMapStats({
         totalVehicles: vehiclesData.length,
@@ -174,8 +174,8 @@ const MapPage: React.FC = () => {
     }
   };
 
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-  const selectedRoute = routes.find((r) => r.id === selectedRouteId);
+  const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
+  const selectedRoute = routes.find(r => r.id === selectedRouteId);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -241,9 +241,8 @@ const MapPage: React.FC = () => {
               <LocationIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">
                 {
-                  vehicles.filter(
-                    (v) => v.currentLatitude && v.currentLongitude
-                  ).length
+                  vehicles.filter(v => v.currentLatitude && v.currentLongitude)
+                    .length
                 }
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -305,10 +304,10 @@ const MapPage: React.FC = () => {
               <Select
                 value={selectedVehicleId}
                 label="Select Vehicle"
-                onChange={(e) => setSelectedVehicleId(e.target.value)}
+                onChange={e => setSelectedVehicleId(e.target.value)}
               >
                 <MenuItem value="">All Vehicles</MenuItem>
-                {vehicles.map((vehicle) => (
+                {vehicles.map(vehicle => (
                   <MenuItem key={vehicle.id} value={vehicle.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {vehicle.plateNumber}
@@ -329,10 +328,10 @@ const MapPage: React.FC = () => {
               <Select
                 value={selectedRouteId}
                 label="Select Route"
-                onChange={(e) => setSelectedRouteId(e.target.value)}
+                onChange={e => setSelectedRouteId(e.target.value)}
               >
                 <MenuItem value="">All Routes</MenuItem>
-                {routes.map((route) => (
+                {routes.map(route => (
                   <MenuItem key={route.id} value={route.id}>
                     {route.name}
                   </MenuItem>
@@ -345,7 +344,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showVehicles}
-                  onChange={(e) => setShowVehicles(e.target.checked)}
+                  onChange={e => setShowVehicles(e.target.checked)}
                 />
               }
               label="Vehicles"
@@ -356,7 +355,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showRoutes}
-                  onChange={(e) => setShowRoutes(e.target.checked)}
+                  onChange={e => setShowRoutes(e.target.checked)}
                 />
               }
               label="Routes"
@@ -367,7 +366,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showStudents}
-                  onChange={(e) => setShowStudents(e.target.checked)}
+                  onChange={e => setShowStudents(e.target.checked)}
                 />
               }
               label="Students"
@@ -380,7 +379,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={realTimeEnabled}
-                  onChange={(e) => handleRealTimeToggle(e.target.checked)}
+                  onChange={e => handleRealTimeToggle(e.target.checked)}
                 />
               }
               label="Real-time Updates"

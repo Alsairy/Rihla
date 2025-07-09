@@ -6,11 +6,13 @@ import { apiClient } from '../../services/apiClient';
 const SimpleDriverComponent = () => {
   const [trips, setTrips] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  
+
   React.useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const response = await apiClient.get('/api/trips/driver/current') as any;
+        const response = (await apiClient.get(
+          '/api/trips/driver/current'
+        )) as any;
         setTrips(response.data || []);
       } catch (error) {
         console.error('Error fetching trips:', error);
@@ -18,10 +20,10 @@ const SimpleDriverComponent = () => {
         setLoading(false);
       }
     };
-    
+
     fetchTrips();
   }, []);
-  
+
   const handleStartTrip = async (tripId: number) => {
     try {
       await apiClient.post(`/api/trips/${tripId}/start`);
@@ -29,7 +31,7 @@ const SimpleDriverComponent = () => {
       console.error('Error starting trip:', error);
     }
   };
-  
+
   return (
     <div>
       <h1>Driver Interface</h1>
@@ -73,16 +75,12 @@ const mockTrips = [
     endTime: '08:30',
     status: 'Scheduled',
     studentsCount: 15,
-    pickupPoints: ['Point A', 'Point B', 'Point C']
-  }
+    pickupPoints: ['Point A', 'Point B', 'Point C'],
+  },
 ];
 
 const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <AuthProvider>
-      {component}
-    </AuthProvider>
-  );
+  return render(<AuthProvider>{component}</AuthProvider>);
 };
 
 describe('SimpleDriverComponent', () => {
@@ -96,16 +94,16 @@ describe('SimpleDriverComponent', () => {
   });
 
   test('shows loading state initially', () => {
-    (mockApiClient.get as jest.Mock)
-      .mockImplementation(() => new Promise(() => {}));
+    (mockApiClient.get as jest.Mock).mockImplementation(
+      () => new Promise(() => {})
+    );
 
     renderWithProviders(<SimpleDriverComponent />);
     expect(screen.getByTestId('loading')).toBeInTheDocument();
   });
 
   test('displays trips when available', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockResolvedValueOnce({ data: mockTrips });
+    (mockApiClient.get as jest.Mock).mockResolvedValueOnce({ data: mockTrips });
 
     renderWithProviders(<SimpleDriverComponent />);
 
@@ -117,8 +115,7 @@ describe('SimpleDriverComponent', () => {
   });
 
   test('shows empty state when no trips available', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockResolvedValueOnce({ data: [] });
+    (mockApiClient.get as jest.Mock).mockResolvedValueOnce({ data: [] });
 
     renderWithProviders(<SimpleDriverComponent />);
 
@@ -128,11 +125,9 @@ describe('SimpleDriverComponent', () => {
   });
 
   test('handles start trip functionality', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockResolvedValueOnce({ data: mockTrips });
-    
-    (mockApiClient.post as jest.Mock)
-      .mockResolvedValueOnce({ success: true });
+    (mockApiClient.get as jest.Mock).mockResolvedValueOnce({ data: mockTrips });
+
+    (mockApiClient.post as jest.Mock).mockResolvedValueOnce({ success: true });
 
     renderWithProviders(<SimpleDriverComponent />);
 
@@ -145,8 +140,7 @@ describe('SimpleDriverComponent', () => {
   });
 
   test('handles API errors gracefully', async () => {
-    (mockApiClient.get as jest.Mock)
-      .mockRejectedValue(new Error('API Error'));
+    (mockApiClient.get as jest.Mock).mockRejectedValue(new Error('API Error'));
 
     renderWithProviders(<SimpleDriverComponent />);
 

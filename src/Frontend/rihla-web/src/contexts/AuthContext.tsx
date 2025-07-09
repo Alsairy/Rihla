@@ -39,13 +39,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     const initializeAuth = () => {
       try {
         const storedUser = localStorage.getItem('rihla_user');
         const storedToken = localStorage.getItem('rihla_token');
-        
+
         if (storedUser && storedToken) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
@@ -71,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const response = await authService.login(credentials);
-      
+
       if (response.user && response.token) {
         setUser(response.user);
         localStorage.setItem('rihla_user', JSON.stringify(response.user));
@@ -94,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const response = await authService.register(userData);
-      
+
       if (response.user && response.token) {
         setUser(response.user);
         localStorage.setItem('rihla_user', JSON.stringify(response.user));
@@ -117,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       await authService.logout();
-      
+
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');

@@ -179,11 +179,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   const filteredVehicles = selectedVehicleId
-    ? vehicles.filter((v) => v.id === selectedVehicleId)
+    ? vehicles.filter(v => v.id === selectedVehicleId)
     : vehicles;
 
   const filteredRoutes = selectedRouteId
-    ? routes.filter((r) => r.id === selectedRouteId)
+    ? routes.filter(r => r.id === selectedRouteId)
     : routes;
 
   if (loading) {
@@ -227,7 +227,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
         {/* Vehicle Markers */}
         {showVehicles &&
-          filteredVehicles.map((vehicle) => {
+          filteredVehicles.map(vehicle => {
             if (!vehicle.currentLatitude || !vehicle.currentLongitude)
               return null;
 
@@ -267,12 +267,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
         {/* Route Polylines */}
         {showRoutes &&
-          filteredRoutes.map((route) => {
+          filteredRoutes.map(route => {
             if (!route.waypoints || route.waypoints.length < 2) return null;
 
             const positions: LatLngExpression[] = route.waypoints
               .sort((a, b) => a.order - b.order)
-              .map((wp) => [wp.latitude, wp.longitude]);
+              .map(wp => [wp.latitude, wp.longitude]);
 
             return (
               <Polyline
@@ -305,7 +305,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
         {/* Route Waypoint Markers */}
         {showRoutes &&
-          filteredRoutes.map((route) =>
+          filteredRoutes.map(route =>
             route.waypoints?.map((waypoint, index) => (
               <Marker
                 key={`${route.id}-waypoint-${index}`}
@@ -347,7 +347,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
         {/* Student Pickup Locations */}
         {showStudents &&
-          students.map((student) => {
+          students.map(student => {
             if (!student.pickupLatitude || !student.pickupLongitude)
               return null;
 

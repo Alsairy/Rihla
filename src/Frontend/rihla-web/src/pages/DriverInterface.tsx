@@ -82,8 +82,8 @@ const DriverInterface: React.FC = () => {
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error starting trip:', error);
-      setTrips((prevTrips) =>
-        prevTrips.map((trip) =>
+      setTrips(prevTrips =>
+        prevTrips.map(trip =>
           trip.id === tripId
             ? {
                 ...trip,
@@ -103,8 +103,8 @@ const DriverInterface: React.FC = () => {
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
       console.error('Error completing trip:', error);
-      setTrips((prevTrips) =>
-        prevTrips.map((trip) =>
+      setTrips(prevTrips =>
+        prevTrips.map(trip =>
           trip.id === tripId
             ? {
                 ...trip,
@@ -135,7 +135,7 @@ const DriverInterface: React.FC = () => {
   const getTodaysTrips = () => {
     const today = new Date().toDateString();
     return trips.filter(
-      (trip) => new Date(trip.scheduledStartTime).toDateString() === today
+      trip => new Date(trip.scheduledStartTime).toDateString() === today
     );
   };
 

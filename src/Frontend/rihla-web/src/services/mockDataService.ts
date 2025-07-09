@@ -425,7 +425,7 @@ class MockDataService {
   }
 
   updateStudent(id: number, student: Partial<Student>): Promise<Student> {
-    return this.getStudents(1, 1).then((result) => {
+    return this.getStudents(1, 1).then(result => {
       const existing = result.data[0];
       const updated = {
         ...existing,
@@ -490,7 +490,7 @@ class MockDataService {
       },
     ];
 
-    const user = mockUsers.find((u) => u.email === email);
+    const user = mockUsers.find(u => u.email === email);
     if (user) {
       return Promise.resolve({
         user,
