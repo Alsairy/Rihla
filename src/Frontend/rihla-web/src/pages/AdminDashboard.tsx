@@ -47,115 +47,41 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [statsResponse, studentsResponse, driversResponse, vehiclesResponse] = await Promise.all([
+        const [
+          statsResponse,
+          studentsResponse,
+          driversResponse,
+          vehiclesResponse,
+        ] = await Promise.all([
           apiClient.get<DashboardStats>('/api/dashboard/statistics'),
-          apiClient.get<{ data: Student[], total: number }>('/api/students?page=1&pageSize=10'),
-          apiClient.get<{ data: Driver[], total: number }>('/api/drivers?page=1&pageSize=10'),
-          apiClient.get<{ data: Vehicle[], total: number }>('/api/vehicles?page=1&pageSize=10'),
+          apiClient.get<{ data: Student[]; total: number }>(
+            '/api/students?page=1&pageSize=10'
+          ),
+          apiClient.get<{ data: Driver[]; total: number }>(
+            '/api/drivers?page=1&pageSize=10'
+          ),
+          apiClient.get<{ data: Vehicle[]; total: number }>(
+            '/api/vehicles?page=1&pageSize=10'
+          ),
         ]);
 
         setStats(statsResponse);
-        setStudents(Array.isArray(studentsResponse?.data) ? studentsResponse.data : []);
-        setDrivers(Array.isArray(driversResponse?.data) ? driversResponse.data : []);
-        setVehicles(Array.isArray(vehiclesResponse?.data) ? vehiclesResponse.data : []);
+        setStudents(
+          Array.isArray(studentsResponse?.data) ? studentsResponse.data : []
+        );
+        setDrivers(
+          Array.isArray(driversResponse?.data) ? driversResponse.data : []
+        );
+        setVehicles(
+          Array.isArray(vehiclesResponse?.data) ? vehiclesResponse.data : []
+        );
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        
-        setStats({
-          totalStudents: 1250,
-          totalDrivers: 45,
-          totalVehicles: 38,
-          totalRoutes: 150,
-          activeTrips: 12,
-          completedTrips: 89,
-          pendingMaintenance: 3,
-          pendingPayments: 15,
-          maintenanceAlerts: 2,
-          attendanceRate: 94.5
-        });
-        
-        setStudents([
-          {
-            id: 1,
-            firstName: 'Ahmed',
-            lastName: 'Al-Rashid',
-            email: 'ahmed.rashid@example.com',
-            phoneNumber: '+966501234567',
-            address: 'Riyadh, Saudi Arabia',
-            parentName: 'Mohammed Al-Rashid',
-            parentPhone: '+966501234568',
-            routeId: 1,
-            routeName: 'Route A - Downtown',
-            isActive: true,
-            grade: '10th Grade',
-            school: 'Al-Noor International School'
-          },
-          {
-            id: 2,
-            firstName: 'Fatima',
-            lastName: 'Al-Zahra',
-            email: 'fatima.zahra@example.com',
-            phoneNumber: '+966501234569',
-            address: 'Jeddah, Saudi Arabia',
-            parentName: 'Ali Al-Zahra',
-            parentPhone: '+966501234570',
-            routeId: 2,
-            routeName: 'Route B - Suburbs',
-            isActive: true,
-            grade: '9th Grade',
-            school: 'King Fahd Academy'
-          }
-        ]);
-        
-        setDrivers([
-          {
-            id: 1,
-            firstName: 'Omar',
-            lastName: 'Al-Mansouri',
-            email: 'omar.mansouri@example.com',
-            phoneNumber: '+966501234571',
-            licenseNumber: 'DL123456789',
-            licenseExpiryDate: '2025-12-31',
-            isActive: true,
-            address: 'Riyadh, Saudi Arabia',
-            vehicleId: 1
-          },
-          {
-            id: 2,
-            firstName: 'Khalid',
-            lastName: 'Al-Otaibi',
-            email: 'khalid.otaibi@example.com',
-            phoneNumber: '+966501234572',
-            licenseNumber: 'DL987654321',
-            licenseExpiryDate: '2026-06-30',
-            isActive: true,
-            address: 'Jeddah, Saudi Arabia',
-            vehicleId: 2
-          }
-        ]);
-        
-        setVehicles([
-          {
-            id: 1,
-            plateNumber: 'ABC-123',
-            model: 'Toyota Coaster',
-            year: 2022,
-            capacity: 30,
-            status: 'Active',
-            driverId: 1,
-            driverName: 'Omar Al-Mansouri'
-          },
-          {
-            id: 2,
-            plateNumber: 'XYZ-789',
-            model: 'Mercedes Sprinter',
-            year: 2023,
-            capacity: 25,
-            status: 'Active',
-            driverId: 2,
-            driverName: 'Khalid Al-Otaibi'
-          }
-        ]);
+
+        setStats(null);
+        setStudents([]);
+        setDrivers([]);
+        setVehicles([]);
       } finally {
         setLoading(false);
       }
@@ -174,8 +100,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1, bgcolor: '#f8fafc', minHeight: '100vh' }}>
-      <AppBar 
-        position="static" 
+      <AppBar
+        position="static"
         elevation={0}
         sx={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -193,10 +119,10 @@ const AdminDashboard: React.FC = () => {
           >
             <DashboardIcon />
           </Avatar>
-          <Typography 
-            variant="h5" 
-            component="div" 
-            sx={{ 
+          <Typography
+            variant="h5"
+            component="div"
+            sx={{
               flexGrow: 1,
               fontWeight: 700,
               letterSpacing: 0.5,
@@ -210,15 +136,17 @@ const AdminDashboard: React.FC = () => {
               <SettingsIcon />
             </IconButton>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}>
+              <Avatar
+                sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}
+              >
                 {user?.username?.charAt(0).toUpperCase()}
               </Avatar>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 Welcome, {user?.username}
               </Typography>
             </Box>
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={handleLogout}
               startIcon={<LogoutIcon />}
               sx={{
@@ -255,7 +183,13 @@ const AdminDashboard: React.FC = () => {
               }}
             >
               <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Box>
                     <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                       Total Students
@@ -264,22 +198,31 @@ const AdminDashboard: React.FC = () => {
                       {stats?.totalStudents || 0}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      width: 56,
+                      height: 56,
+                    }}
+                  >
                     <SchoolIcon sx={{ fontSize: 28 }} />
                   </Avatar>
                 </Box>
                 <Box sx={{ mt: 2 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={75} 
-                    sx={{ 
+                  <LinearProgress
+                    variant="determinate"
+                    value={75}
+                    sx={{
                       bgcolor: 'rgba(255,255,255,0.2)',
                       '& .MuiLinearProgress-bar': {
                         bgcolor: 'rgba(255,255,255,0.8)',
                       },
-                    }} 
+                    }}
                   />
-                  <Typography variant="caption" sx={{ opacity: 0.8, mt: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ opacity: 0.8, mt: 1, display: 'block' }}
+                  >
                     +12% from last month
                   </Typography>
                 </Box>
@@ -302,7 +245,13 @@ const AdminDashboard: React.FC = () => {
               }}
             >
               <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Box>
                     <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                       Total Drivers
@@ -311,22 +260,31 @@ const AdminDashboard: React.FC = () => {
                       {stats?.totalDrivers || 0}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      width: 56,
+                      height: 56,
+                    }}
+                  >
                     <PeopleIcon sx={{ fontSize: 28 }} />
                   </Avatar>
                 </Box>
                 <Box sx={{ mt: 2 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={60} 
-                    sx={{ 
+                  <LinearProgress
+                    variant="determinate"
+                    value={60}
+                    sx={{
                       bgcolor: 'rgba(255,255,255,0.2)',
                       '& .MuiLinearProgress-bar': {
                         bgcolor: 'rgba(255,255,255,0.8)',
                       },
-                    }} 
+                    }}
                   />
-                  <Typography variant="caption" sx={{ opacity: 0.8, mt: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ opacity: 0.8, mt: 1, display: 'block' }}
+                  >
                     +8% from last month
                   </Typography>
                 </Box>
@@ -349,7 +307,13 @@ const AdminDashboard: React.FC = () => {
               }}
             >
               <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Box>
                     <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                       Total Vehicles
@@ -358,22 +322,31 @@ const AdminDashboard: React.FC = () => {
                       {stats?.totalVehicles || 0}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      width: 56,
+                      height: 56,
+                    }}
+                  >
                     <CarIcon sx={{ fontSize: 28 }} />
                   </Avatar>
                 </Box>
                 <Box sx={{ mt: 2 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={85} 
-                    sx={{ 
+                  <LinearProgress
+                    variant="determinate"
+                    value={85}
+                    sx={{
                       bgcolor: 'rgba(255,255,255,0.2)',
                       '& .MuiLinearProgress-bar': {
                         bgcolor: 'rgba(255,255,255,0.8)',
                       },
-                    }} 
+                    }}
                   />
-                  <Typography variant="caption" sx={{ opacity: 0.8, mt: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ opacity: 0.8, mt: 1, display: 'block' }}
+                  >
                     +5% from last month
                   </Typography>
                 </Box>
@@ -396,7 +369,13 @@ const AdminDashboard: React.FC = () => {
               }}
             >
               <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <Box>
                     <Typography variant="body2" sx={{ opacity: 0.8, mb: 1 }}>
                       Active Trips
@@ -405,22 +384,31 @@ const AdminDashboard: React.FC = () => {
                       {stats?.activeTrips || 0}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      width: 56,
+                      height: 56,
+                    }}
+                  >
                     <RouteIcon sx={{ fontSize: 28 }} />
                   </Avatar>
                 </Box>
                 <Box sx={{ mt: 2 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={92} 
-                    sx={{ 
+                  <LinearProgress
+                    variant="determinate"
+                    value={92}
+                    sx={{
                       bgcolor: 'rgba(255,255,255,0.2)',
                       '& .MuiLinearProgress-bar': {
                         bgcolor: 'rgba(255,255,255,0.8)',
                       },
-                    }} 
+                    }}
                   />
-                  <Typography variant="caption" sx={{ opacity: 0.8, mt: 1, display: 'block' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ opacity: 0.8, mt: 1, display: 'block' }}
+                  >
                     +15% from last month
                   </Typography>
                 </Box>
@@ -430,9 +418,9 @@ const AdminDashboard: React.FC = () => {
 
           {/* Recent Students */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper 
-              sx={{ 
-                p: 3, 
+            <Paper
+              sx={{
+                p: 3,
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.05)',
@@ -450,14 +438,26 @@ const AdminDashboard: React.FC = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Name</TableCell>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Email</TableCell>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Route</TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        Name
+                      </TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        Email
+                      </TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        Route
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {students.slice(0, 5).map((student) => (
-                      <TableRow 
+                      <TableRow
                         key={student.id}
                         sx={{
                           '&:hover': {
@@ -467,7 +467,14 @@ const AdminDashboard: React.FC = () => {
                       >
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar sx={{ width: 32, height: 32, mr: 2, bgcolor: 'primary.light' }}>
+                            <Avatar
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                mr: 2,
+                                bgcolor: 'primary.light',
+                              }}
+                            >
                               {student.firstName?.charAt(0)}
                             </Avatar>
                             {`${student.firstName} ${student.lastName}`}
@@ -475,8 +482,8 @@ const AdminDashboard: React.FC = () => {
                         </TableCell>
                         <TableCell>{student.email}</TableCell>
                         <TableCell>
-                          <Chip 
-                            label={student.routeName || 'Not Assigned'} 
+                          <Chip
+                            label={student.routeName || 'Not Assigned'}
                             size="small"
                             color={student.routeName ? 'primary' : 'default'}
                             variant="outlined"
@@ -492,9 +499,9 @@ const AdminDashboard: React.FC = () => {
 
           {/* Recent Drivers */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper 
-              sx={{ 
-                p: 3, 
+            <Paper
+              sx={{
+                p: 3,
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.05)',
@@ -512,14 +519,26 @@ const AdminDashboard: React.FC = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Name</TableCell>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Email</TableCell>
-                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>License</TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        Name
+                      </TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        Email
+                      </TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        License
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {drivers.slice(0, 5).map((driver) => (
-                      <TableRow 
+                      <TableRow
                         key={driver.id}
                         sx={{
                           '&:hover': {
@@ -529,7 +548,14 @@ const AdminDashboard: React.FC = () => {
                       >
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar sx={{ width: 32, height: 32, mr: 2, bgcolor: 'secondary.light' }}>
+                            <Avatar
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                mr: 2,
+                                bgcolor: 'secondary.light',
+                              }}
+                            >
                               {driver.firstName?.charAt(0)}
                             </Avatar>
                             {`${driver.firstName} ${driver.lastName}`}
@@ -537,8 +563,8 @@ const AdminDashboard: React.FC = () => {
                         </TableCell>
                         <TableCell>{driver.email}</TableCell>
                         <TableCell>
-                          <Chip 
-                            label={driver.licenseNumber} 
+                          <Chip
+                            label={driver.licenseNumber}
                             size="small"
                             color="secondary"
                             variant="outlined"
