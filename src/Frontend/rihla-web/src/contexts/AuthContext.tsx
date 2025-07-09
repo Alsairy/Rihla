@@ -55,7 +55,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem('rihla_token');
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
         setUser(null);
         localStorage.removeItem('rihla_user');
         localStorage.removeItem('rihla_token');
@@ -86,7 +85,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid response from authentication service');
       }
     } catch (error) {
-      console.error('Login error:', error);
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
@@ -112,7 +110,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid response from registration service');
       }
     } catch (error) {
-      console.error('Registration error:', error);
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
@@ -131,7 +128,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
     } catch (error) {
-      console.error('Logout error:', error);
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');

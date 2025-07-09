@@ -7,9 +7,6 @@ class ApiClient {
     this.isProduction =
       window.location.hostname !== 'localhost' &&
       window.location.hostname !== '127.0.0.1';
-    console.log(
-      `ApiClient initialized with base URL: ${this.baseURL}, isProduction: ${this.isProduction}, hostname: ${window.location.hostname}`
-    );
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -48,8 +45,6 @@ class ApiClient {
   }
 
   async get<T>(url: string): Promise<T> {
-    console.log(`API GET: ${this.baseURL}${url}`);
-
     try {
       const response = await fetch(`${this.baseURL}${url}`, {
         method: 'GET',
@@ -58,14 +53,11 @@ class ApiClient {
 
       return this.handleResponse<T>(response);
     } catch (error) {
-      console.error(`API GET error for ${url}:`, error);
       throw error;
     }
   }
 
   async post<T>(url: string, data?: any): Promise<T> {
-    console.log(`API POST: ${this.baseURL}${url}`, data);
-
     try {
       const response = await fetch(`${this.baseURL}${url}`, {
         method: 'POST',
@@ -75,14 +67,11 @@ class ApiClient {
 
       return this.handleResponse<T>(response);
     } catch (error) {
-      console.error(`API POST error for ${url}:`, error);
       throw error;
     }
   }
 
   async put<T>(url: string, data?: any): Promise<T> {
-    console.log(`API PUT: ${this.baseURL}${url}`, data);
-
     try {
       const response = await fetch(`${this.baseURL}${url}`, {
         method: 'PUT',
@@ -92,14 +81,11 @@ class ApiClient {
 
       return this.handleResponse<T>(response);
     } catch (error) {
-      console.error(`API PUT error for ${url}:`, error);
       throw error;
     }
   }
 
   async delete<T>(url: string): Promise<T> {
-    console.log(`API DELETE: ${this.baseURL}${url}`);
-
     try {
       const response = await fetch(`${this.baseURL}${url}`, {
         method: 'DELETE',
@@ -108,14 +94,11 @@ class ApiClient {
 
       return this.handleResponse<T>(response);
     } catch (error) {
-      console.error(`API DELETE error for ${url}:`, error);
       throw error;
     }
   }
 
   async getRealtimeUpdates(): Promise<any[]> {
-    console.log(`API GET: ${this.baseURL}/api/realtime-updates`);
-
     try {
       const response = await fetch(`${this.baseURL}/api/realtime-updates`, {
         method: 'GET',
@@ -124,7 +107,6 @@ class ApiClient {
 
       return this.handleResponse<any[]>(response);
     } catch (error) {
-      console.error(`API GET error for /api/realtime-updates:`, error);
       throw error;
     }
   }

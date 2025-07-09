@@ -112,11 +112,6 @@ const LoginPage: React.FC = () => {
     const emailValue = email || emailRef.current?.value || '';
     const passwordValue = password || passwordRef.current?.value || '';
 
-    console.log('Login attempt with:', {
-      email: emailValue,
-      password: passwordValue ? '***' : 'empty',
-      failedAttempts: failedAttempts,
-    });
 
     try {
       const response = await login({
@@ -358,14 +353,9 @@ const LoginPage: React.FC = () => {
                 inputRef={emailRef}
                 value={email}
                 onChange={e => {
-                  console.log('Email onChange:', e.target.value);
                   setEmail(e.target.value);
                 }}
                 onInput={e => {
-                  console.log(
-                    'Email onInput:',
-                    (e.target as HTMLInputElement).value
-                  );
                   setEmail((e.target as HTMLInputElement).value);
                 }}
                 InputProps={{
@@ -398,17 +388,9 @@ const LoginPage: React.FC = () => {
                 inputRef={passwordRef}
                 value={password}
                 onChange={e => {
-                  console.log(
-                    'Password onChange:',
-                    e.target.value ? '***' : 'empty'
-                  );
                   setPassword(e.target.value);
                 }}
                 onInput={e => {
-                  console.log(
-                    'Password onInput:',
-                    (e.target as HTMLInputElement).value ? '***' : 'empty'
-                  );
                   setPassword((e.target as HTMLInputElement).value);
                 }}
                 InputProps={{

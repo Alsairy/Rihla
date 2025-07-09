@@ -6,7 +6,6 @@ class SignalRService {
 
   async startConnection(): Promise<void> {
     if (process.env.NODE_ENV === 'production') {
-      console.log('SignalR disabled in production environment');
       this.isConnected = false;
       return;
     }
@@ -29,7 +28,6 @@ class SignalRService {
 
       await this.connection.start();
       this.isConnected = true;
-      console.log('SignalR Connected');
 
       const userStr = localStorage.getItem('user');
       if (userStr) {
@@ -42,10 +40,6 @@ class SignalRService {
         }
       }
     } catch (err) {
-      console.warn(
-        'SignalR connection failed, continuing without real-time features:',
-        err
-      );
       this.isConnected = false;
       this.connection = null;
     }
@@ -55,9 +49,7 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
-        console.log('SignalR Disconnected');
       } catch (err) {
-        console.warn('Error stopping SignalR connection:', err);
       } finally {
         this.isConnected = false;
         this.connection = null;
@@ -70,12 +62,7 @@ class SignalRService {
       try {
         this.connection.on('ReceiveNotification', callback);
       } catch (err) {
-        console.warn('Failed to register notification callback:', err);
       }
-    } else {
-      console.log(
-        'SignalR not connected, notification callback not registered'
-      );
     }
   }
 
@@ -86,10 +73,7 @@ class SignalRService {
       try {
         this.connection.on('TripStatusUpdated', callback);
       } catch (err) {
-        console.warn('Failed to register trip status callback:', err);
       }
-    } else {
-      console.log('SignalR not connected, trip status callback not registered');
     }
   }
 
@@ -98,12 +82,7 @@ class SignalRService {
       try {
         this.connection.on('EmergencyAlert', callback);
       } catch (err) {
-        console.warn('Failed to register emergency alert callback:', err);
       }
-    } else {
-      console.log(
-        'SignalR not connected, emergency alert callback not registered'
-      );
     }
   }
 
@@ -112,10 +91,7 @@ class SignalRService {
       try {
         await this.connection.invoke('JoinTripGroup', tripId);
       } catch (err) {
-        console.warn('Failed to join trip group:', err);
       }
-    } else {
-      console.log('SignalR not connected, cannot join trip group');
     }
   }
 
@@ -124,10 +100,7 @@ class SignalRService {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
       } catch (err) {
-        console.warn('Failed to leave trip group:', err);
       }
-    } else {
-      console.log('SignalR not connected, cannot leave trip group');
     }
   }
 

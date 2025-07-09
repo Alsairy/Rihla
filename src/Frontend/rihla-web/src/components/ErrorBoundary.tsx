@@ -19,7 +19,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch() {}
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {}
 
   render() {
     if (this.state.hasError) {
