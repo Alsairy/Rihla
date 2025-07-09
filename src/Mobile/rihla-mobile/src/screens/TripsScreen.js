@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { apiClient } from '../services/apiClient';
 
 export default function TripsScreen() {
   const [trips, setTrips] = useState([]);
@@ -21,45 +22,33 @@ export default function TripsScreen() {
 
   const fetchTrips = async () => {
     try {
-      // Mock data for trips
-      const mockTrips = [
-        {
-          id: 1,
-          routeName: 'Route A - Morning',
-          driverName: 'Ahmed Al-Rashid',
-          vehicleNumber: 'BUS-001',
-          startTime: '07:00 AM',
-          endTime: '08:30 AM',
-          status: 'In Progress',
-          studentsCount: 25,
-          currentLocation: 'Al-Noor School',
-        },
-        {
-          id: 2,
-          routeName: 'Route B - Morning',
-          driverName: 'Omar Al-Mansouri',
-          vehicleNumber: 'BUS-002',
-          startTime: '07:15 AM',
-          endTime: '08:45 AM',
-          status: 'Completed',
-          studentsCount: 30,
-          currentLocation: 'King Abdulaziz School',
-        },
-        {
-          id: 3,
-          routeName: 'Route C - Afternoon',
-          driverName: 'Khalid Al-Zahra',
-          vehicleNumber: 'BUS-003',
-          startTime: '02:00 PM',
-          endTime: '03:30 PM',
-          status: 'Scheduled',
-          studentsCount: 22,
-          currentLocation: 'Depot',
-        },
-      ];
-      setTrips(mockTrips);
+      const response = await apiClient.get('/trips');
+      const tripsData = response.data || [];
+      
+      const formattedTrips = tripsData.map(trip => ({
+        id: trip.id,
+        routeName: trip.routeName || `Route ${trip.id}`,
+        driverName: trip.driverName || 'Unknown Driver',
+        vehicleNumber: trip.vehicleNumber || 'Unknown Vehicle',
+        startTime: trip.scheduledStartTime ? new Date(trip.scheduledStartTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }) : 'N/A',
+        endTime: trip.scheduledEndTime ? new Date(trip.scheduledEndTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }) : 'N/A',
+        status: trip.status || 'Unknown',
+        studentsCount: trip.studentsCount || 0,
+        currentLocation: trip.currentLocation || 'Unknown Location',
+      }));
+      
+      setTrips(formattedTrips);
     } catch (error) {
       console.error('Error fetching trips:', error);
+      setTrips([]);
     } finally {
       setRefreshing(false);
     }

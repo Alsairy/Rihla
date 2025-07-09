@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Rihla.Infrastructure.Data;
 using Rihla.Core.Enums;
+using Rihla.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Rihla.WebAPI.Controllers
 {
@@ -11,11 +13,13 @@ namespace Rihla.WebAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DashboardController> _logger;
+        private readonly IUserContext _userContext;
 
-        public DashboardController(ApplicationDbContext context, ILogger<DashboardController> logger)
+        public DashboardController(ApplicationDbContext context, ILogger<DashboardController> logger, IUserContext userContext)
         {
             _context = context;
             _logger = logger;
+            _userContext = userContext;
         }
 
         [HttpGet("statistics")]
@@ -45,56 +49,27 @@ namespace Rihla.WebAPI.Controllers
                 var totalRoutes = await _context.Routes.CountAsync(r => !r.IsDeleted);
                 var activeRoutes = await _context.Routes.CountAsync(r => !r.IsDeleted && r.Status == RouteStatus.Active);
 
-                // Trip statistics (mock data for now)
-                var todaysTrips = 64; // Mock data
-                var completedTrips = 45; // Mock data
-                var inProgressTrips = 12; // Mock data
-                var scheduledTrips = 7; // Mock data
+                // Trip statistics from database
+                var tenantId = _userContext.GetTenantId();
+                var todaysTrips = await _context.Trips.CountAsync(t => !t.IsDeleted && t.TenantId == tenantId && t.ScheduledStartTime.Date == today);
+                var completedTrips = await _context.Trips.CountAsync(t => !t.IsDeleted && t.TenantId == tenantId && t.ScheduledStartTime.Date == today && t.Status == TripStatus.Completed);
+                var inProgressTrips = await _context.Trips.CountAsync(t => !t.IsDeleted && t.TenantId == tenantId && t.ScheduledStartTime.Date == today && t.Status == TripStatus.InProgress);
+                var scheduledTrips = await _context.Trips.CountAsync(t => !t.IsDeleted && t.TenantId == tenantId && t.ScheduledStartTime.Date == today && t.Status == TripStatus.Scheduled);
 
-                // Attendance statistics (mock data)
-                var attendanceRate = 94.5; // Mock data
+                // Attendance statistics from database
+                var totalAttendanceToday = await _context.Attendances.CountAsync(a => a.TenantId == tenantId && a.Date.Date == today);
+                var presentAttendanceToday = await _context.Attendances.CountAsync(a => a.TenantId == tenantId && a.Date.Date == today && a.Status == AttendanceStatus.Present);
+                var attendanceRate = totalAttendanceToday > 0 ? Math.Round((double)presentAttendanceToday / totalAttendanceToday * 100, 1) : 0.0;
 
                 var statistics = new
                 {
-                    Students = new
-                    {
-                        Total = totalStudents,
-                        Active = activeStudents,
-                        ChangeFromLastMonth = totalStudents > 0 ? "+5.2%" : "0%"
-                    },
-                    Drivers = new
-                    {
-                        Total = totalDrivers,
-                        Active = activeDrivers,
-                        ChangeFromLastMonth = totalDrivers > 0 ? "+2.1%" : "0%"
-                    },
-                    Vehicles = new
-                    {
-                        Total = totalVehicles,
-                        Active = activeVehicles,
-                        Maintenance = maintenanceVehicles,
-                        OutOfService = outOfServiceVehicles,
-                        ChangeFromLastMonth = "0%"
-                    },
-                    Routes = new
-                    {
-                        Total = totalRoutes,
-                        Active = activeRoutes,
-                        ChangeFromLastMonth = totalRoutes > 0 ? "-1.2%" : "0%"
-                    },
-                    Trips = new
-                    {
-                        Today = todaysTrips,
-                        Completed = completedTrips,
-                        InProgress = inProgressTrips,
-                        Scheduled = scheduledTrips,
-                        ChangeFromLastMonth = "+8.3%"
-                    },
-                    Attendance = new
-                    {
-                        Rate = attendanceRate,
-                        ChangeFromLastMonth = "+1.5%"
-                    }
+                    totalStudents = totalStudents,
+                    totalDrivers = totalDrivers,
+                    totalVehicles = totalVehicles,
+                    totalRoutes = totalRoutes,
+                    activeTrips = todaysTrips,
+                    completedTrips = completedTrips,
+                    pendingMaintenance = maintenanceVehicles
                 };
 
                 return Ok(statistics);
@@ -111,39 +86,80 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Mock alerts data - replace with real alerts from database
-                var alerts = new[]
-                {
-                    new
-                    {
-                        Id = 1,
-                        Type = "warning",
-                        Title = "Vehicle Maintenance",
-                        Message = "Vehicle BUS-001 maintenance due",
-                        Time = "2 hours ago",
-                        IsRead = false
-                    },
-                    new
-                    {
-                        Id = 2,
-                        Type = "info",
-                        Title = "New Registration",
-                        Message = "New student registration pending",
-                        Time = "4 hours ago",
-                        IsRead = false
-                    },
-                    new
-                    {
-                        Id = 3,
-                        Type = "error",
-                        Title = "Route Delay",
-                        Message = "Route 5 delayed by 15 minutes",
-                        Time = "6 hours ago",
-                        IsRead = true
-                    }
-                };
+                var tenantId = _userContext.GetTenantId();
+                var alerts = new List<object>();
 
-                return Ok(alerts);
+                // Vehicle maintenance alerts
+                var maintenanceDue = await _context.MaintenanceRecords
+                    .Where(m => !m.IsDeleted && m.TenantId == tenantId && 
+                               !m.IsCompleted && 
+                               m.ScheduledDate <= DateTime.UtcNow.AddDays(7))
+                    .Include(m => m.Vehicle)
+                    .OrderBy(m => m.ScheduledDate)
+                    .Take(5)
+                    .ToListAsync();
+
+                foreach (var maintenance in maintenanceDue)
+                {
+                    var daysUntil = (maintenance.ScheduledDate - DateTime.UtcNow).Days;
+                    var timeText = daysUntil <= 0 ? "Overdue" : daysUntil == 1 ? "Tomorrow" : $"In {daysUntil} days";
+                    
+                    alerts.Add(new
+                    {
+                        Id = maintenance.Id,
+                        Type = daysUntil <= 0 ? "error" : "warning",
+                        Title = "Vehicle Maintenance",
+                        Message = $"Vehicle {maintenance.Vehicle?.LicensePlate ?? "Unknown"} maintenance {(daysUntil <= 0 ? "overdue" : "due")}",
+                        Time = timeText,
+                        IsRead = false
+                    });
+                }
+
+                // Vehicle out of service alerts
+                var outOfServiceVehicles = await _context.Vehicles
+                    .Where(v => !v.IsDeleted && v.TenantId == tenantId && v.Status == VehicleStatus.OutOfService)
+                    .Take(3)
+                    .ToListAsync();
+
+                foreach (var vehicle in outOfServiceVehicles)
+                {
+                    alerts.Add(new
+                    {
+                        Id = vehicle.Id + 10000, // Offset to avoid ID conflicts
+                        Type = "error",
+                        Title = "Vehicle Out of Service",
+                        Message = $"Vehicle {vehicle.LicensePlate} is out of service",
+                        Time = "Active",
+                        IsRead = false
+                    });
+                }
+
+                var delayedTrips = await _context.Trips
+                    .Where(t => !t.IsDeleted && t.TenantId == tenantId && 
+                               t.ScheduledStartTime.Date == DateTime.Today && 
+                               t.Status == TripStatus.Completed &&
+                               t.ActualEndTime.HasValue &&
+                               t.ActualEndTime > t.ScheduledEndTime.AddMinutes(15))
+                    .Include(t => t.Route)
+                    .OrderByDescending(t => t.ActualEndTime)
+                    .Take(2)
+                    .ToListAsync();
+
+                foreach (var trip in delayedTrips)
+                {
+                    var delay = trip.ActualEndTime.Value - trip.ScheduledEndTime;
+                    alerts.Add(new
+                    {
+                        Id = trip.Id + 20000, // Offset to avoid ID conflicts
+                        Type = "warning",
+                        Title = "Route Delay",
+                        Message = $"Route {trip.Route?.RouteNumber ?? "Unknown"} delayed by {delay.Minutes} minutes",
+                        Time = $"{(DateTime.UtcNow - trip.ActualEndTime.Value).Hours} hours ago",
+                        IsRead = true
+                    });
+                }
+
+                return Ok(alerts.Take(10));
             }
             catch (Exception ex)
             {
@@ -157,39 +173,89 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Mock activity data - replace with real activity from database
-                var activities = new[]
+                var tenantId = _userContext.GetTenantId();
+                var activities = new List<object>();
+
+                var recentTrips = await _context.Trips
+                    .Where(t => !t.IsDeleted && t.TenantId == tenantId && 
+                               t.Status == TripStatus.Completed && 
+                               t.ActualEndTime.HasValue)
+                    .Include(t => t.Route)
+                    .OrderByDescending(t => t.ActualEndTime)
+                    .Take(5)
+                    .ToListAsync();
+
+                foreach (var trip in recentTrips)
                 {
-                    new
+                    var timeAgo = DateTime.UtcNow - trip.ActualEndTime.Value;
+                    var timeText = timeAgo.TotalMinutes < 60 ? $"{(int)timeAgo.TotalMinutes} minutes ago" : $"{(int)timeAgo.TotalHours} hours ago";
+                    
+                    activities.Add(new
                     {
-                        Id = 1,
+                        Id = trip.Id,
                         Type = "trip_completed",
                         Title = "Trip completed",
-                        Description = "Route 3 - Morning",
-                        Time = "10 minutes ago",
+                        Description = $"Route {trip.Route?.RouteNumber ?? "Unknown"} - {trip.Status}",
+                        Time = timeText,
                         Icon = "checkmark-circle"
-                    },
-                    new
+                    });
+                }
+
+                var recentAttendance = await _context.Attendances
+                    .Where(a => a.TenantId == tenantId && 
+                               a.Status == AttendanceStatus.Present && 
+                               a.BoardingTime.HasValue)
+                    .Include(a => a.Student)
+                    .Include(a => a.Trip)
+                    .ThenInclude(t => t.Vehicle)
+                    .OrderByDescending(a => a.BoardingTime)
+                    .Take(5)
+                    .ToListAsync();
+
+                foreach (var attendance in recentAttendance)
+                {
+                    var timeAgo = DateTime.UtcNow - attendance.BoardingTime.Value;
+                    var timeText = timeAgo.TotalMinutes < 60 ? $"{(int)timeAgo.TotalMinutes} minutes ago" : $"{(int)timeAgo.TotalHours} hours ago";
+                    
+                    activities.Add(new
                     {
-                        Id = 2,
+                        Id = attendance.Id + 10000, // Offset to avoid ID conflicts
                         Type = "student_checkin",
                         Title = "Student checked in",
-                        Description = "John Doe - Bus 12",
-                        Time = "15 minutes ago",
+                        Description = $"{attendance.Student?.FullName?.FirstName ?? "Unknown"} {attendance.Student?.FullName?.LastName ?? ""} - {attendance.Trip?.Vehicle?.LicensePlate ?? "Unknown"}",
+                        Time = timeText,
                         Icon = "person"
-                    },
-                    new
-                    {
-                        Id = 3,
-                        Type = "vehicle_inspection",
-                        Title = "Vehicle inspection",
-                        Description = "BUS-005 passed inspection",
-                        Time = "1 hour ago",
-                        Icon = "shield-checkmark"
-                    }
-                };
+                    });
+                }
 
-                return Ok(activities);
+                var recentMaintenance = await _context.MaintenanceRecords
+                    .Where(m => !m.IsDeleted && m.TenantId == tenantId && 
+                               m.IsCompleted && 
+                               m.CompletedDate.HasValue)
+                    .Include(m => m.Vehicle)
+                    .OrderByDescending(m => m.CompletedDate)
+                    .Take(3)
+                    .ToListAsync();
+
+                foreach (var maintenance in recentMaintenance)
+                {
+                    var timeAgo = DateTime.UtcNow - maintenance.CompletedDate.Value;
+                    var timeText = timeAgo.TotalMinutes < 60 ? $"{(int)timeAgo.TotalMinutes} minutes ago" : 
+                                  timeAgo.TotalHours < 24 ? $"{(int)timeAgo.TotalHours} hours ago" : 
+                                  $"{(int)timeAgo.TotalDays} days ago";
+                    
+                    activities.Add(new
+                    {
+                        Id = maintenance.Id + 20000, // Offset to avoid ID conflicts
+                        Type = "vehicle_maintenance",
+                        Title = "Vehicle maintenance completed",
+                        Description = $"{maintenance.Vehicle?.LicensePlate ?? "Unknown"} - {maintenance.MaintenanceType}",
+                        Time = timeText,
+                        Icon = "shield-checkmark"
+                    });
+                }
+
+                return Ok(activities.OrderByDescending(a => a.GetType().GetProperty("Time")?.GetValue(a)).Take(10));
             }
             catch (Exception ex)
             {
@@ -203,17 +269,29 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Mock weekly attendance data - replace with real data
-                var weeklyData = new[]
+                var tenantId = _userContext.GetTenantId();
+                var today = DateTime.Today;
+                var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+                var weeklyData = new List<object>();
+
+                for (int i = 0; i < 7; i++)
                 {
-                    new { Day = "Mon", Attendance = 95.2 },
-                    new { Day = "Tue", Attendance = 94.8 },
-                    new { Day = "Wed", Attendance = 96.1 },
-                    new { Day = "Thu", Attendance = 93.7 },
-                    new { Day = "Fri", Attendance = 97.3 },
-                    new { Day = "Sat", Attendance = 89.5 },
-                    new { Day = "Sun", Attendance = 87.2 }
-                };
+                    var currentDay = startOfWeek.AddDays(i);
+                    var dayName = currentDay.ToString("ddd");
+                    
+                    var totalAttendance = await _context.Attendances
+                        .CountAsync(a => a.TenantId == tenantId && a.Date.Date == currentDay);
+                    
+                    var presentAttendance = await _context.Attendances
+                        .CountAsync(a => a.TenantId == tenantId && 
+                                   a.Date.Date == currentDay && 
+                                   a.Status == AttendanceStatus.Present);
+                    
+                    var attendanceRate = totalAttendance > 0 ? 
+                        Math.Round((double)presentAttendance / totalAttendance * 100, 1) : 0.0;
+                    
+                    weeklyData.Add(new { Day = dayName, Attendance = attendanceRate });
+                }
 
                 return Ok(weeklyData);
             }
@@ -229,18 +307,23 @@ namespace Rihla.WebAPI.Controllers
         {
             try
             {
-                // Mock daily trip schedule - replace with real data
-                var scheduleData = new[]
+                var tenantId = _userContext.GetTenantId();
+                var today = DateTime.Today;
+                var scheduleData = new List<object>();
+
+                var hourlyTrips = await _context.Trips
+                    .Where(t => !t.IsDeleted && t.TenantId == tenantId && t.ScheduledStartTime.Date == today)
+                    .GroupBy(t => t.ScheduledStartTime.Hour)
+                    .Select(g => new { Hour = g.Key, Count = g.Count() })
+                    .OrderBy(x => x.Hour)
+                    .ToListAsync();
+
+                for (int hour = 6; hour <= 18; hour++)
                 {
-                    new { Hour = "06:00", Trips = 8 },
-                    new { Hour = "07:00", Trips = 15 },
-                    new { Hour = "08:00", Trips = 12 },
-                    new { Hour = "09:00", Trips = 3 },
-                    new { Hour = "14:00", Trips = 5 },
-                    new { Hour = "15:00", Trips = 18 },
-                    new { Hour = "16:00", Trips = 14 },
-                    new { Hour = "17:00", Trips = 9 }
-                };
+                    var tripCount = hourlyTrips.FirstOrDefault(h => h.Hour == hour)?.Count ?? 0;
+                    var hourString = hour.ToString("00") + ":00";
+                    scheduleData.Add(new { Hour = hourString, Trips = tripCount });
+                }
 
                 return Ok(scheduleData);
             }

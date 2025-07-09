@@ -1,266 +1,350 @@
-using SchoolTransportationSystem.Application.DTOs;
-using SchoolTransportationSystem.Core.Entities;
-using SchoolTransportationSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Rihla.Application.DTOs;
+using Rihla.Application.Interfaces;
+using Rihla.Core.Common;
+using Rihla.Core.Entities;
+using Rihla.Core.Enums;
+using Rihla.Infrastructure.Data;
 
-namespace SchoolTransportationSystem.Application.Services
+namespace Rihla.Application.Services
 {
-    public class RouteService
+    public class RouteService : IRouteService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RouteService> _logger;
 
-        public RouteService(ApplicationDbContext context)
+        public RouteService(ApplicationDbContext context, ILogger<RouteService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task<IEnumerable<RouteDto>> GetAllRoutesAsync()
+        public async Task<Result<RouteDto>> GetByIdAsync(int id, string tenantId)
         {
-            var routes = await _context.Routes
-                .Where(r => !r.IsDeleted)
-                .Include(r => r.AssignedVehicle)
-                .Include(r => r.AssignedDriver)
-                .ToListAsync();
-
-            return routes.Select(r => new RouteDto
+            try
             {
-                Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
-                Status = r.Status.ToString(),
-                EstimatedDuration = r.EstimatedDuration,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
-                AssignedVehicleId = r.AssignedVehicleId,
-                AssignedVehicleName = r.AssignedVehicle?.PlateNumber ?? "Not Assigned",
-                AssignedDriverId = r.AssignedDriverId,
-                AssignedDriverName = r.AssignedDriver != null ? $"{r.AssignedDriver.FirstName} {r.AssignedDriver.LastName}" : "Not Assigned"
-            });
+                var route = await _context.Routes
+                    .Include(r => r.AssignedVehicle)
+                    .Include(r => r.AssignedDriver)
+                    .Include(r => r.RouteStops)
+                    .Include(r => r.Students)
+                    .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteDto>.Failure("Route not found");
+                }
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting route by ID {RouteId}", id);
+                return Result<RouteDto>.Failure("An error occurred while retrieving the route");
+            }
         }
 
-        public async Task<RouteDto?> GetRouteByIdAsync(int id)
+        public async Task<Result<PagedResult<RouteDto>>> GetAllAsync(RouteSearchDto searchDto, string tenantId)
         {
-            var route = await _context.Routes
-                .Where(r => r.Id == id && !r.IsDeleted)
-                .Include(r => r.AssignedVehicle)
-                .Include(r => r.AssignedDriver)
-                .FirstOrDefaultAsync();
+            try
+            {
+                var query = _context.Routes
+                    .Include(r => r.AssignedVehicle)
+                    .Include(r => r.AssignedDriver)
+                    .Where(r => r.TenantId == int.Parse(tenantId) && !r.IsDeleted);
 
-            if (route == null) return null;
+                if (!string.IsNullOrEmpty(searchDto.RouteNumber))
+                {
+                    query = query.Where(r => r.RouteNumber.Contains(searchDto.RouteNumber));
+                }
 
+                if (!string.IsNullOrEmpty(searchDto.Name))
+                {
+                    query = query.Where(r => r.Name.Contains(searchDto.Name));
+                }
+
+
+                if (searchDto.Status.HasValue)
+                {
+                    query = query.Where(r => r.Status == searchDto.Status.Value);
+                }
+
+                if (searchDto.VehicleId.HasValue)
+                {
+                    query = query.Where(r => r.AssignedVehicleId == searchDto.VehicleId.Value);
+                }
+
+                if (searchDto.DriverId.HasValue)
+                {
+                    query = query.Where(r => r.AssignedDriverId == searchDto.DriverId.Value);
+                }
+
+
+                var totalCount = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalCount / searchDto.PageSize);
+
+                var routes = await query
+                    .Skip((searchDto.Page - 1) * searchDto.PageSize)
+                    .Take(searchDto.PageSize)
+                    .ToListAsync();
+
+                var routeDtos = routes.Select(MapToDto).ToList();
+
+                var pagedResult = new PagedResult<RouteDto>
+                {
+                    Items = routeDtos,
+                    TotalCount = totalCount,
+                    Page = searchDto.Page,
+                    PageSize = searchDto.PageSize,
+                    TotalPages = totalPages
+                };
+
+                return Result<PagedResult<RouteDto>>.Success(pagedResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting routes");
+                return Result<PagedResult<RouteDto>>.Failure("An error occurred while retrieving routes");
+            }
+        }
+
+        public async Task<Result<RouteDto>> CreateAsync(CreateRouteDto createDto, string tenantId)
+        {
+            try
+            {
+                var existingRoute = await _context.Routes
+                    .Where(r => r.RouteNumber == createDto.RouteNumber && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingRoute != null)
+                {
+                    return Result<RouteDto>.Failure("Route number already exists");
+                }
+
+                var route = new Route
+                {
+                    RouteNumber = createDto.RouteNumber,
+                    Name = createDto.Name,
+                    Description = createDto.Description ?? string.Empty,
+                    Status = createDto.Status,
+                    StartTime = createDto.StartTime,
+                    EndTime = createDto.EndTime,
+                    Distance = createDto.EstimatedDistance,
+                    EstimatedDuration = (int)createDto.EstimatedDuration.TotalMinutes,
+                    StartLocation = string.Empty,
+                    EndLocation = string.Empty,
+                    Notes = createDto.Notes,
+                    TenantId = int.Parse(tenantId),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Routes.Add(route);
+                await _context.SaveChangesAsync();
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating route");
+                return Result<RouteDto>.Failure("An error occurred while creating the route");
+            }
+        }
+
+        public async Task<Result<RouteDto>> UpdateAsync(int id, UpdateRouteDto updateDto, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteDto>.Failure("Route not found");
+                }
+
+                var existingRoute = await _context.Routes
+                    .Where(r => r.RouteNumber == updateDto.RouteNumber && r.Id != id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingRoute != null)
+                {
+                    return Result<RouteDto>.Failure("Route number already exists");
+                }
+
+                route.RouteNumber = updateDto.RouteNumber;
+                route.Name = updateDto.Name;
+                route.Description = updateDto.Description ?? string.Empty;
+                route.Status = updateDto.Status;
+                route.StartTime = updateDto.StartTime;
+                route.EndTime = updateDto.EndTime;
+                route.Distance = updateDto.EstimatedDistance;
+                route.EstimatedDuration = (int)updateDto.EstimatedDuration.TotalMinutes;
+                route.Notes = updateDto.Notes;
+                route.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating route {RouteId}", id);
+                return Result<RouteDto>.Failure("An error occurred while updating the route");
+            }
+        }
+
+        public async Task<Result<bool>> DeleteAsync(int id, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Where(r => r.Id == id && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<bool>.Failure("Route not found");
+                }
+
+                route.IsDeleted = true;
+                route.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting route {RouteId}", id);
+                return Result<bool>.Failure("An error occurred while deleting the route");
+            }
+        }
+
+        public async Task<Result<RouteDto>> GetByRouteNumberAsync(string routeNumber, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.AssignedVehicle)
+                    .Include(r => r.AssignedDriver)
+                    .Where(r => r.RouteNumber == routeNumber && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteDto>.Failure("Route not found");
+                }
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting route by number {RouteNumber}", routeNumber);
+                return Result<RouteDto>.Failure("An error occurred while retrieving the route");
+            }
+        }
+
+        public async Task<Result<List<RouteDto>>> GetActiveRoutesAsync(string tenantId)
+        {
+            try
+            {
+                var routes = await _context.Routes
+                    .Include(r => r.AssignedVehicle)
+                    .Include(r => r.AssignedDriver)
+                    .Where(r => r.TenantId == int.Parse(tenantId) && !r.IsDeleted && r.Status == RouteStatus.Active)
+                    .ToListAsync();
+
+                var routeDtos = routes.Select(MapToDto).ToList();
+                return Result<List<RouteDto>>.Success(routeDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active routes");
+                return Result<List<RouteDto>>.Failure("An error occurred while retrieving active routes");
+            }
+        }
+
+        public async Task<Result<List<StudentDto>>> GetStudentsOnRouteAsync(int routeId, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<List<StudentDto>>.Failure("Route not found");
+                }
+
+                var students = await _context.Students
+                    .Where(s => s.RouteId == routeId && !s.IsDeleted)
+                    .ToListAsync();
+
+                var studentDtos = students.Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    StudentNumber = s.StudentNumber,
+                    FirstName = s.FullName.FirstName,
+                    LastName = s.FullName.LastName,
+                    MiddleName = s.FullName.MiddleName,
+                    Grade = s.Grade,
+                    Status = s.Status,
+                    RouteId = s.RouteId
+                }).ToList();
+
+                return Result<List<StudentDto>>.Success(studentDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting students on route {RouteId}", routeId);
+                return Result<List<StudentDto>>.Failure("An error occurred while retrieving students on route");
+            }
+        }
+
+        private RouteDto MapToDto(Route route)
+        {
             return new RouteDto
             {
                 Id = route.Id,
+                RouteNumber = route.RouteNumber,
                 Name = route.Name,
                 Description = route.Description,
-                Status = route.Status.ToString(),
-                EstimatedDuration = route.EstimatedDuration,
+                Status = route.Status,
+                StartTime = route.StartTime,
+                EndTime = route.EndTime,
+                EstimatedDistance = route.Distance,
+                EstimatedDuration = TimeSpan.FromMinutes(route.EstimatedDuration),
+                Notes = route.Notes,
+                IsActive = true,
                 CreatedAt = route.CreatedAt,
                 UpdatedAt = route.UpdatedAt,
-                AssignedVehicleId = route.AssignedVehicleId,
-                AssignedVehicleName = route.AssignedVehicle?.PlateNumber ?? "Not Assigned",
-                AssignedDriverId = route.AssignedDriverId,
-                AssignedDriverName = route.AssignedDriver != null ? $"{route.AssignedDriver.FirstName} {route.AssignedDriver.LastName}" : "Not Assigned"
-            };
-        }
-
-        public async Task<RouteDto> CreateRouteAsync(CreateRouteDto createRouteDto)
-        {
-            var route = new Route
-            {
-                Name = createRouteDto.Name,
-                Description = createRouteDto.Description,
-                Status = Enum.Parse<RouteStatus>(createRouteDto.Status),
-                EstimatedDuration = createRouteDto.EstimatedDuration,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-            _context.Routes.Add(route);
-            await _context.SaveChangesAsync();
-
-            return await GetRouteByIdAsync(route.Id) ?? throw new InvalidOperationException("Failed to create route");
-        }
-
-        public async Task<RouteDto?> UpdateRouteAsync(int id, UpdateRouteDto updateRouteDto)
-        {
-            var route = await _context.Routes
-                .Where(r => r.Id == id && !r.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (route == null) return null;
-
-            route.Name = updateRouteDto.Name;
-            route.Description = updateRouteDto.Description;
-            route.Status = Enum.Parse<RouteStatus>(updateRouteDto.Status);
-            route.EstimatedDuration = updateRouteDto.EstimatedDuration;
-            route.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return await GetRouteByIdAsync(route.Id);
-        }
-
-        public async Task<bool> DeleteRouteAsync(int id)
-        {
-            var route = await _context.Routes
-                .Where(r => r.Id == id && !r.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (route == null) return false;
-
-            route.IsDeleted = true;
-            route.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<object> GetRouteStatisticsAsync()
-        {
-            var totalRoutes = await _context.Routes.Where(r => !r.IsDeleted).CountAsync();
-            var activeRoutes = await _context.Routes.Where(r => !r.IsDeleted && r.Status == RouteStatus.Active).CountAsync();
-            var inactiveRoutes = await _context.Routes.Where(r => !r.IsDeleted && r.Status == RouteStatus.Inactive).CountAsync();
-            var routesWithVehicles = await _context.Routes.Where(r => !r.IsDeleted && r.AssignedVehicleId != null).CountAsync();
-            var routesWithDrivers = await _context.Routes.Where(r => !r.IsDeleted && r.AssignedDriverId != null).CountAsync();
-
-            return new
-            {
-                TotalRoutes = totalRoutes,
-                ActiveRoutes = activeRoutes,
-                InactiveRoutes = inactiveRoutes,
-                RoutesWithVehicles = routesWithVehicles,
-                RoutesWithDrivers = routesWithDrivers,
-                AssignmentCompletionRate = totalRoutes > 0 ? Math.Round((double)(routesWithVehicles + routesWithDrivers) / (totalRoutes * 2) * 100, 2) : 0
-            };
-        }
-
-        public async Task<IEnumerable<RouteDto>> SearchRoutesAsync(string searchTerm)
-        {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-            {
-                return await GetAllRoutesAsync();
-            }
-
-            var routes = await _context.Routes
-                .Where(r => !r.IsDeleted && 
-                           (r.Name.Contains(searchTerm) || 
-                            r.Description.Contains(searchTerm)))
-                .Include(r => r.AssignedVehicle)
-                .Include(r => r.AssignedDriver)
-                .ToListAsync();
-
-            return routes.Select(r => new RouteDto
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
-                Status = r.Status.ToString(),
-                EstimatedDuration = r.EstimatedDuration,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
-                AssignedVehicleId = r.AssignedVehicleId,
-                AssignedVehicleName = r.AssignedVehicle?.PlateNumber ?? "Not Assigned",
-                AssignedDriverId = r.AssignedDriverId,
-                AssignedDriverName = r.AssignedDriver != null ? $"{r.AssignedDriver.FirstName} {r.AssignedDriver.LastName}" : "Not Assigned"
-            });
-        }
-
-        public async Task<bool> AssignVehicleToRouteAsync(int routeId, int vehicleId)
-        {
-            var route = await _context.Routes
-                .Where(r => r.Id == routeId && !r.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (route == null) return false;
-
-            var vehicle = await _context.Vehicles
-                .Where(v => v.Id == vehicleId && !v.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (vehicle == null) return false;
-
-            route.AssignedVehicleId = vehicleId;
-            route.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> AssignDriverToRouteAsync(int routeId, int driverId)
-        {
-            var route = await _context.Routes
-                .Where(r => r.Id == routeId && !r.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (route == null) return false;
-
-            var driver = await _context.Drivers
-                .Where(d => d.Id == driverId && !d.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (driver == null) return false;
-
-            route.AssignedDriverId = driverId;
-            route.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<IEnumerable<object>> GetRouteStudentsAsync(int routeId)
-        {
-            var students = await _context.Students
-                .Where(s => s.RouteId == routeId && !s.IsDeleted)
-                .Select(s => new
+                TenantId = route.TenantId.ToString(),
+                AssignedVehicle = route.AssignedVehicle != null ? new VehicleDto
                 {
-                    s.Id,
-                    s.FirstName,
-                    s.LastName,
-                    s.StudentId,
-                    s.Grade,
-                    s.Status
-                })
-                .ToListAsync();
-
-            return students;
-        }
-
-        public async Task<object> OptimizeRouteAsync(int routeId)
-        {
-            // This is a placeholder for route optimization logic
-            // In a real implementation, this would use algorithms like:
-            // - Traveling Salesman Problem (TSP) solvers
-            // - Google Maps API for real-time traffic
-            // - Machine learning for historical data analysis
-
-            var route = await GetRouteByIdAsync(routeId);
-            if (route == null) return new { message = "Route not found" };
-
-            var students = await GetRouteStudentsAsync(routeId);
-            var studentCount = students.Count();
-
-            // Simulate optimization results
-            var optimizedDuration = route.EstimatedDuration.Subtract(TimeSpan.FromMinutes(5));
-            var fuelSavings = Math.Round(studentCount * 0.5, 2); // Simulated fuel savings
-
-            return new
-            {
-                RouteId = routeId,
-                RouteName = route.Name,
-                OriginalDuration = route.EstimatedDuration,
-                OptimizedDuration = optimizedDuration,
-                TimeSaved = TimeSpan.FromMinutes(5),
-                EstimatedFuelSavings = $"{fuelSavings} liters",
-                StudentCount = studentCount,
-                OptimizationScore = 85.5, // Simulated score
-                Recommendations = new[]
+                    Id = route.AssignedVehicle.Id,
+                    VehicleNumber = route.AssignedVehicle.VehicleNumber,
+                    LicensePlate = route.AssignedVehicle.LicensePlate,
+                    Make = route.AssignedVehicle.Make,
+                    Model = route.AssignedVehicle.Model,
+                    Capacity = route.AssignedVehicle.Capacity
+                } : null,
+                AssignedDriver = route.AssignedDriver != null ? new DriverDto
                 {
-                    "Adjust pickup order to reduce backtracking",
-                    "Consider traffic patterns during peak hours",
-                    "Optimize stop locations for efficiency"
-                }
+                    Id = route.AssignedDriver.Id,
+                    EmployeeNumber = route.AssignedDriver.EmployeeNumber,
+                    FirstName = route.AssignedDriver.FullName.FirstName,
+                    LastName = route.AssignedDriver.FullName.LastName,
+                    MiddleName = route.AssignedDriver.FullName.MiddleName,
+                    Phone = route.AssignedDriver.Phone
+                } : null
             };
         }
     }

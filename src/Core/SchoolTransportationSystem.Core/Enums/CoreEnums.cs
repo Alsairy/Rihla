@@ -92,6 +92,14 @@ namespace Rihla.Core.Enums
         Voice = 5
     }
 
+    public enum NotificationPriority
+    {
+        Normal = 1,
+        High = 2,
+        Urgent = 3,
+        Critical = 4
+    }
+
     public enum PaymentStatus
     {
         Pending = 1,

@@ -20,6 +20,8 @@ namespace Rihla.Infrastructure.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +40,8 @@ namespace Rihla.Infrastructure.Data
             ConfigureAttendance(modelBuilder);
             ConfigurePayment(modelBuilder);
             ConfigureMaintenanceRecord(modelBuilder);
+            ConfigureUser(modelBuilder);
+            ConfigureNotification(modelBuilder);
 
             // Configure relationships
             ConfigureRelationships(modelBuilder);
@@ -253,6 +257,50 @@ namespace Rihla.Infrastructure.Data
             });
         }
 
+        private void ConfigureUser(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.Salt).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.TenantId).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.RefreshToken).HasMaxLength(500);
+
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.Email }).IsUnique();
+                entity.HasIndex(e => new { e.TenantId, e.Username }).IsUnique();
+            });
+        }
+
+        private void ConfigureNotification(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Message).HasMaxLength(1000).IsRequired();
+                entity.Property(e => e.Priority).IsRequired();
+                entity.Property(e => e.Channel).IsRequired();
+                entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+                entity.Property(e => e.EmailError).HasMaxLength(500);
+                entity.Property(e => e.SmsError).HasMaxLength(500);
+                entity.Property(e => e.Metadata).HasMaxLength(1000);
+
+                entity.HasIndex(e => new { e.UserId, e.IsRead });
+                entity.HasIndex(e => new { e.TenantId, e.Type });
+                entity.HasIndex(e => new { e.TenantId, e.Priority });
+                entity.HasIndex(e => e.CreatedAt);
+            });
+        }
+
         private void ConfigureRelationships(ModelBuilder modelBuilder)
         {
             // Student -> Route (Many-to-One)
@@ -337,6 +385,13 @@ namespace Rihla.Infrastructure.Data
                 .HasOne(mr => mr.Vehicle)
                 .WithMany(v => v.MaintenanceRecords)
                 .HasForeignKey(mr => mr.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Notification -> User (Many-to-One)
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

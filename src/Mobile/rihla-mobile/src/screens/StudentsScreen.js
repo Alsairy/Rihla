@@ -31,42 +31,23 @@ export default function StudentsScreen() {
     try {
       setLoading(true);
       const response = await apiClient.get('/students');
-      setStudents(response.data || []);
+      const studentsData = response.data || [];
+      
+      const formattedStudents = studentsData.map(student => ({
+        id: student.id,
+        studentNumber: student.studentNumber,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        school: student.school,
+        grade: student.grade,
+        status: student.status,
+        parentPhone: student.parentPhone,
+      }));
+      
+      setStudents(formattedStudents);
     } catch (error) {
       console.error('Error fetching students:', error);
-      // Use mock data if API fails
-      setStudents([
-        {
-          id: 1,
-          studentNumber: 'STU001',
-          firstName: 'Ahmed',
-          lastName: 'Al-Rashid',
-          school: 'Al-Noor International School',
-          grade: '10',
-          status: 'Active',
-          parentPhone: '+966501234567',
-        },
-        {
-          id: 2,
-          studentNumber: 'STU002',
-          firstName: 'Fatima',
-          lastName: 'Al-Zahra',
-          school: 'Al-Noor International School',
-          grade: '9',
-          status: 'Active',
-          parentPhone: '+966501234568',
-        },
-        {
-          id: 3,
-          studentNumber: 'STU003',
-          firstName: 'Omar',
-          lastName: 'Al-Mansouri',
-          school: 'King Abdulaziz School',
-          grade: '11',
-          status: 'Active',
-          parentPhone: '+966501234569',
-        },
-      ]);
+      setStudents([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
