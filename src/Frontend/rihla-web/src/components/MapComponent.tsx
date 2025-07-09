@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -120,11 +120,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadMapData();
-  }, [showVehicles, showRoutes, showStudents]);
-
-  const loadMapData = async () => {
+  const loadMapData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -157,12 +153,16 @@ const MapComponent: React.FC<MapComponentProps> = ({
       if (showStudents) {
         setStudents(results[resultIndex] || []);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load map data. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showVehicles, showRoutes, showStudents]);
+
+  useEffect(() => {
+    loadMapData();
+  }, [loadMapData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
