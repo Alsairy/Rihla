@@ -15,9 +15,7 @@ class SignalRService {
       return;
     }
 
-    const apiUrl = (window as any).ENV?.REACT_APP_API_URL || 
-                  (process.env as any).REACT_APP_API_URL || 
-                  'https://jsonplaceholder.typicode.com';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     
     try {
       this.connection = new signalR.HubConnectionBuilder()
