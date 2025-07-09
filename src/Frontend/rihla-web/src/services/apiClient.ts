@@ -45,70 +45,50 @@ class ApiClient {
   }
 
   async get<T>(url: string): Promise<T> {
-    try {
-      const response = await fetch(`${this.baseURL}${url}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+    const response = await fetch(`${this.baseURL}${url}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
 
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      throw error;
-    }
+    return this.handleResponse<T>(response);
   }
 
   async post<T>(url: string, data?: any): Promise<T> {
-    try {
-      const response = await fetch(`${this.baseURL}${url}`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
+    const response = await fetch(`${this.baseURL}${url}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
 
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      throw error;
-    }
+    return this.handleResponse<T>(response);
   }
 
   async put<T>(url: string, data?: any): Promise<T> {
-    try {
-      const response = await fetch(`${this.baseURL}${url}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
+    const response = await fetch(`${this.baseURL}${url}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
 
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      throw error;
-    }
+    return this.handleResponse<T>(response);
   }
 
   async delete<T>(url: string): Promise<T> {
-    try {
-      const response = await fetch(`${this.baseURL}${url}`, {
-        method: 'DELETE',
-        headers: this.getAuthHeaders(),
-      });
+    const response = await fetch(`${this.baseURL}${url}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
 
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      throw error;
-    }
+    return this.handleResponse<T>(response);
   }
 
   async getRealtimeUpdates(): Promise<any[]> {
-    try {
-      const response = await fetch(`${this.baseURL}/api/realtime-updates`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      });
+    const response = await fetch(`${this.baseURL}/api/realtime-updates`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
 
-      return this.handleResponse<any[]>(response);
-    } catch (error) {
-      throw error;
-    }
+    return this.handleResponse<any[]>(response);
   }
 }
 
