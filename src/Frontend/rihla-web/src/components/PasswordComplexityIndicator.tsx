@@ -11,10 +11,9 @@ interface PasswordRequirement {
   met: boolean;
 }
 
-export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorProps> = ({
-  password,
-  onValidationChange,
-}) => {
+export const PasswordComplexityIndicator: React.FC<
+  PasswordComplexityIndicatorProps
+> = ({ password, onValidationChange }) => {
   const [requirements, setRequirements] = useState<PasswordRequirement[]>([
     {
       label: 'At least 12 characters',
@@ -43,17 +42,19 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
     },
   ]);
 
-  const [strength, setStrength] = useState<'weak' | 'medium' | 'strong'>('weak');
+  const [strength, setStrength] = useState<'weak' | 'medium' | 'strong'>(
+    'weak'
+  );
 
   useEffect(() => {
-    const updatedRequirements = requirements.map((req) => ({
+    const updatedRequirements = requirements.map(req => ({
       ...req,
       met: req.test(password),
     }));
 
     setRequirements(updatedRequirements);
 
-    const metCount = updatedRequirements.filter((req) => req.met).length;
+    const metCount = updatedRequirements.filter(req => req.met).length;
     const allMet = metCount === requirements.length;
 
     let newStrength: 'weak' | 'medium' | 'strong' = 'weak';
@@ -106,7 +107,9 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
             marginBottom: '4px',
           }}
         >
-          <span style={{ fontSize: '14px', fontWeight: '500' }}>Password Strength:</span>
+          <span style={{ fontSize: '14px', fontWeight: '500' }}>
+            Password Strength:
+          </span>
           <span
             style={{
               fontSize: '14px',
@@ -128,7 +131,7 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
         >
           <div
             style={{
-              width: `${(requirements.filter((req) => req.met).length / requirements.length) * 100}%`,
+              width: `${(requirements.filter(req => req.met).length / requirements.length) * 100}%`,
               height: '100%',
               backgroundColor: getStrengthColor(),
               transition: 'width 0.3s ease, background-color 0.3s ease',
@@ -139,7 +142,9 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
 
       {/* Requirements List */}
       <div style={{ fontSize: '13px' }}>
-        <div style={{ marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
+        <div
+          style={{ marginBottom: '8px', fontWeight: '500', color: '#374151' }}
+        >
           Password Requirements:
         </div>
         <ul style={{ margin: 0, paddingLeft: '16px', listStyle: 'none' }}>
@@ -181,8 +186,9 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
             color: '#92400e',
           }}
         >
-          <strong>Security Tip:</strong> Use a combination of letters, numbers, and special characters
-          to create a strong password that protects your account.
+          <strong>Security Tip:</strong> Use a combination of letters, numbers,
+          and special characters to create a strong password that protects your
+          account.
         </div>
       )}
 
@@ -199,7 +205,8 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
             color: '#065f46',
           }}
         >
-          <strong>Excellent!</strong> Your password meets all security requirements.
+          <strong>Excellent!</strong> Your password meets all security
+          requirements.
         </div>
       )}
     </div>

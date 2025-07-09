@@ -66,12 +66,12 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    
+
     if (isAccountLocked && lockoutEndTime) {
       interval = setInterval(() => {
         const now = new Date();
         const timeLeft = lockoutEndTime.getTime() - now.getTime();
-        
+
         if (timeLeft <= 0) {
           setIsAccountLocked(false);
           setLockoutEndTime(null);
@@ -81,11 +81,13 @@ const LoginPage: React.FC = () => {
         } else {
           const minutes = Math.floor(timeLeft / (1000 * 60));
           const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          setLockoutTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+          setLockoutTimeRemaining(
+            `${minutes}:${seconds.toString().padStart(2, '0')}`
+          );
         }
       }, 1000);
     }
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -100,7 +102,9 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     if (isAccountLocked) {
-      setError(`Your account is locked. Please try again in ${lockoutTimeRemaining}.`);
+      setError(
+        `Your account is locked. Please try again in ${lockoutTimeRemaining}.`
+      );
       setLoading(false);
       return;
     }
@@ -115,48 +119,66 @@ const LoginPage: React.FC = () => {
     });
 
     try {
-      const response = await login({ email: emailValue, password: passwordValue });
-      
+      const response = await login({
+        email: emailValue,
+        password: passwordValue,
+      });
+
       if (response?.requiresMfa) {
         setPendingMfaToken(response.mfaToken || '');
         setShowMfaDialog(true);
         setLoading(false);
         return;
       }
-      
+
       setFailedAttempts(0);
       setIsAccountLocked(false);
       setLockoutEndTime(null);
-      
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please try again.';
-      
-      if (errorMessage.toLowerCase().includes('account is locked') || 
-          errorMessage.toLowerCase().includes('account locked')) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'Login failed. Please try again.';
+
+      if (
+        errorMessage.toLowerCase().includes('account is locked') ||
+        errorMessage.toLowerCase().includes('account locked')
+      ) {
         const minutesMatch = errorMessage.match(/(\d+)\s*minutes?/i);
         const lockoutMinutes = minutesMatch ? parseInt(minutesMatch[1]) : 30;
-        
-        setError(`Your account is locked due to too many failed login attempts. Please try again in ${lockoutMinutes} minutes or contact an administrator.`);
+
+        setError(
+          `Your account is locked due to too many failed login attempts. Please try again in ${lockoutMinutes} minutes or contact an administrator.`
+        );
         setIsAccountLocked(true);
         setLockoutEndTime(new Date(Date.now() + lockoutMinutes * 60 * 1000));
         setFailedAttempts(5);
-        
-      } else if (err.response?.status === 401 || errorMessage.toLowerCase().includes('invalid')) {
+      } else if (
+        err.response?.status === 401 ||
+        errorMessage.toLowerCase().includes('invalid')
+      ) {
         const newFailedAttempts = failedAttempts + 1;
         setFailedAttempts(newFailedAttempts);
-        
+
         if (newFailedAttempts >= 5) {
-          setError('Your account has been locked due to too many failed login attempts. Please try again in 30 minutes or contact an administrator.');
+          setError(
+            'Your account has been locked due to too many failed login attempts. Please try again in 30 minutes or contact an administrator.'
+          );
           setIsAccountLocked(true);
           setLockoutEndTime(new Date(Date.now() + 30 * 60 * 1000));
         } else {
           const attemptsLeft = 5 - newFailedAttempts;
-          setError(`Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining before account lockout.`);
+          setError(
+            `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining before account lockout.`
+          );
         }
-        
-      } else if (errorMessage.toLowerCase().includes('mfa') || errorMessage.toLowerCase().includes('verification')) {
-        setError('Multi-factor authentication is required. Please contact your administrator.');
-        
+      } else if (
+        errorMessage.toLowerCase().includes('mfa') ||
+        errorMessage.toLowerCase().includes('verification')
+      ) {
+        setError(
+          'Multi-factor authentication is required. Please contact your administrator.'
+        );
       } else {
         setError(errorMessage);
       }
@@ -179,23 +201,27 @@ const LoginPage: React.FC = () => {
     setMfaError('');
 
     try {
-      await login({ 
-        email: email, 
-        password: password, 
+      await login({
+        email: email,
+        password: password,
         mfaCode: mfaCode.trim(),
-        mfaToken: pendingMfaToken 
+        mfaToken: pendingMfaToken,
       });
-      
+
       setShowMfaDialog(false);
       setMfaCode('');
       setPendingMfaToken('');
       setFailedAttempts(0);
-      
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'MFA verification failed.';
-      
-      if (errorMessage.toLowerCase().includes('invalid') || 
-          errorMessage.toLowerCase().includes('incorrect')) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'MFA verification failed.';
+
+      if (
+        errorMessage.toLowerCase().includes('invalid') ||
+        errorMessage.toLowerCase().includes('incorrect')
+      ) {
         setMfaError('Invalid verification code. Please try again.');
       } else {
         setMfaError(errorMessage);
@@ -285,7 +311,7 @@ const LoginPage: React.FC = () => {
 
             {error && (
               <Alert
-                severity={isAccountLocked ? "warning" : "error"}
+                severity={isAccountLocked ? 'warning' : 'error'}
                 sx={{
                   mb: 3,
                   width: '100%',
@@ -294,7 +320,10 @@ const LoginPage: React.FC = () => {
               >
                 {error}
                 {isAccountLocked && lockoutTimeRemaining && (
-                  <Typography variant="body2" sx={{ mt: 1, fontWeight: 'bold' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 1, fontWeight: 'bold' }}
+                  >
                     Time remaining: {lockoutTimeRemaining}
                   </Typography>
                 )}
@@ -310,8 +339,9 @@ const LoginPage: React.FC = () => {
                   borderRadius: 2,
                 }}
               >
-                Security Notice: {failedAttempts} failed login attempt{failedAttempts !== 1 ? 's' : ''}. 
-                Your account will be locked after 5 failed attempts.
+                Security Notice: {failedAttempts} failed login attempt
+                {failedAttempts !== 1 ? 's' : ''}. Your account will be locked
+                after 5 failed attempts.
               </Alert>
             )}
 
@@ -423,18 +453,18 @@ const LoginPage: React.FC = () => {
                   fontSize: '1.1rem',
                   fontWeight: 600,
                   textTransform: 'none',
-                  background: isAccountLocked 
-                    ? 'rgba(0, 0, 0, 0.12)' 
+                  background: isAccountLocked
+                    ? 'rgba(0, 0, 0, 0.12)'
                     : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  boxShadow: isAccountLocked 
-                    ? 'none' 
+                  boxShadow: isAccountLocked
+                    ? 'none'
                     : '0 8px 20px rgba(102, 126, 234, 0.3)',
                   '&:hover': {
-                    background: isAccountLocked 
-                      ? 'rgba(0, 0, 0, 0.12)' 
+                    background: isAccountLocked
+                      ? 'rgba(0, 0, 0, 0.12)'
                       : 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                    boxShadow: isAccountLocked 
-                      ? 'none' 
+                    boxShadow: isAccountLocked
+                      ? 'none'
                       : '0 12px 24px rgba(102, 126, 234, 0.4)',
                     transform: isAccountLocked ? 'none' : 'translateY(-2px)',
                   },
@@ -467,8 +497,8 @@ const LoginPage: React.FC = () => {
       </Container>
 
       {/* MFA Verification Dialog */}
-      <Dialog 
-        open={showMfaDialog} 
+      <Dialog
+        open={showMfaDialog}
         onClose={handleCloseMfaDialog}
         maxWidth="sm"
         fullWidth
@@ -476,7 +506,7 @@ const LoginPage: React.FC = () => {
           sx: {
             borderRadius: 3,
             padding: 2,
-          }
+          },
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
@@ -488,69 +518,78 @@ const LoginPage: React.FC = () => {
             Enter the 6-digit verification code from your authenticator app
           </Typography>
         </DialogTitle>
-        
+
         <DialogContent sx={{ pt: 2 }}>
           {mfaError && (
             <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
               {mfaError}
             </Alert>
           )}
-          
+
           <TextField
             autoFocus
             fullWidth
             label="Verification Code"
             type="text"
             value={mfaCode}
-            onChange={(e) => {
+            onChange={e => {
               const value = e.target.value.replace(/\D/g, '').slice(0, 6);
               setMfaCode(value);
             }}
             placeholder="000000"
             inputProps={{
               maxLength: 6,
-              style: { 
-                textAlign: 'center', 
+              style: {
+                textAlign: 'center',
                 fontSize: '1.5rem',
                 letterSpacing: '0.5rem',
-                fontFamily: 'monospace'
-              }
+                fontFamily: 'monospace',
+              },
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
               },
             }}
-            onKeyPress={(e) => {
+            onKeyPress={e => {
               if (e.key === 'Enter' && mfaCode.length === 6) {
                 handleMfaVerification();
               }
             }}
           />
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-            Can't access your authenticator app? Contact your system administrator for assistance.
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 2, textAlign: 'center' }}
+          >
+            Can't access your authenticator app? Contact your system
+            administrator for assistance.
           </Typography>
         </DialogContent>
-        
+
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
+          <Button
             onClick={handleCloseMfaDialog}
             variant="outlined"
             sx={{ borderRadius: 2 }}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleMfaVerification}
             variant="contained"
             disabled={loading || mfaCode.length !== 6}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             }}
           >
-            {loading ? <CircularProgress size={20} color="inherit" /> : 'Verify'}
+            {loading ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              'Verify'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
