@@ -112,7 +112,6 @@ const LoginPage: React.FC = () => {
     const emailValue = email || emailRef.current?.value || '';
     const passwordValue = password || passwordRef.current?.value || '';
 
-
     try {
       const response = await login({
         email: emailValue,
