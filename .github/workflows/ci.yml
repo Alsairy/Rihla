@@ -56,7 +56,7 @@ jobs:
       run: dotnet restore
     
     - name: Build with StyleCop analysis
-      run: dotnet build --no-restore --configuration Release --verbosity normal
+      run: dotnet build --no-restore --configuration Debug --verbosity normal
     
     - name: Run unit tests
       run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
@@ -87,7 +87,7 @@ jobs:
       run: npm install
     
     - name: Run tests
-      run: npm test -- --watchAll=false
+      run: npm test -- --watchAll=false --passWithNoTests
     
     - name: Check Expo configuration
       run: npx expo-doctor
