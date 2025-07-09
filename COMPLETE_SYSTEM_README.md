@@ -15,9 +15,9 @@ This package contains the **complete, production-ready Rihla School Transportati
 - **Documentation**: Swagger/OpenAPI integration
 
 ### 🌐 Frontend (React 18)
-- **Location**: `src/Frontend/school-transport-frontend/`
-- **Framework**: React 18 + Vite
-- **UI Library**: Tailwind CSS + Radix UI
+- **Location**: `src/Frontend/rihla-web/`
+- **Framework**: React 18 + Create React App
+- **UI Library**: Material-UI + Tailwind CSS
 - **Features**: 10 complete modules with professional UI
 - **Responsive**: Desktop and mobile compatible
 - **Real-time**: Live dashboard with charts
@@ -57,10 +57,10 @@ dotnet run
 
 ### 2. Frontend Setup
 ```bash
-cd src/Frontend/school-transport-frontend
-npm install
-npm run dev
-# Frontend will run on http://localhost:5173
+cd src/Frontend/rihla-web
+npm install --legacy-peer-deps
+npm start
+# Frontend will run on http://localhost:3000
 ```
 
 ### 3. Mobile App Setup
