@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Rihla.Application.Interfaces;
+using SchoolTransportationSystem.Application.Interfaces;
 using System.Net;
 using System.Net.Mail;
 
-namespace Rihla.Application.Services
+namespace SchoolTransportationSystem.Application.Services
 {
     public class EmailService : IEmailService
     {

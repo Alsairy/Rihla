@@ -1,4 +1,4 @@
-namespace Rihla.Core.Enums
+namespace SchoolTransportationSystem.Core.Enums
 {
     public enum UserRole
     {

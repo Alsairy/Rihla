@@ -3,11 +3,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Rihla.Application.Interfaces;
-using Rihla.Application.DTOs;
+using SchoolTransportationSystem.Application.Interfaces;
+using SchoolTransportationSystem.Application.DTOs;
 using System.Security.Cryptography;
 
-namespace Rihla.WebAPI.Controllers
+namespace SchoolTransportationSystem.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -135,7 +135,7 @@ namespace Rihla.WebAPI.Controllers
             }
         }
 
-        private string GenerateJwtToken(Rihla.Core.Entities.User user)
+        private string GenerateJwtToken(SchoolTransportationSystem.Core.Entities.User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"] ?? "your-super-secret-key-that-is-at-least-32-characters-long";

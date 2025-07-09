@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Rihla.Application.Interfaces
+namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface IUserContext
     {

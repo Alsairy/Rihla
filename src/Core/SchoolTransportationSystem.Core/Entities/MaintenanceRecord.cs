@@ -1,4 +1,4 @@
-namespace Rihla.Core.Entities
+namespace SchoolTransportationSystem.Core.Entities
 {
     public class MaintenanceRecord : TenantEntity
     {

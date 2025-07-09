@@ -3,11 +3,11 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Rihla.Infrastructure.Data;
+using SchoolTransportationSystem.Infrastructure.Data;
 
 #nullable disable
 
-namespace Rihla.Infrastructure.Migrations
+namespace SchoolTransportationSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace Rihla.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            modelBuilder.Entity("Rihla.Core.Entities.Attendance", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Attendance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,7 +93,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Attendances");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Driver", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Driver", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,7 +191,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Drivers");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.MaintenanceRecord", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.MaintenanceRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -279,7 +279,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("MaintenanceRecords");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Notification", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -384,7 +384,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Payment", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -472,7 +472,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Payments");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Route", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Route", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -569,7 +569,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Routes");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.RouteStop", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.RouteStop", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -640,7 +640,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("RouteStops");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Student", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Student", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -757,7 +757,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Trip", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Trip", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -835,7 +835,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Trips");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.User", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -912,7 +912,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Vehicle", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Vehicle", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1043,15 +1043,15 @@ namespace Rihla.Infrastructure.Migrations
                     b.ToTable("Vehicles");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Attendance", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Attendance", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Student", "Student")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Student", "Student")
                         .WithMany("Attendances")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Rihla.Core.Entities.Trip", "Trip")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Trip", "Trip")
                         .WithMany("Attendances")
                         .HasForeignKey("TripId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1062,9 +1062,9 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Trip");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Driver", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Driver", b =>
                 {
-                    b.OwnsOne("Rihla.Core.ValueObjects.Address", "Address", b1 =>
+                    b.OwnsOne("SchoolTransportationSystem.Core.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<int>("DriverId")
                                 .HasColumnType("INTEGER");
@@ -1102,7 +1102,7 @@ namespace Rihla.Infrastructure.Migrations
                                 .HasForeignKey("DriverId");
                         });
 
-                    b.OwnsOne("Rihla.Core.ValueObjects.FullName", "FullName", b1 =>
+                    b.OwnsOne("SchoolTransportationSystem.Core.ValueObjects.FullName", "FullName", b1 =>
                         {
                             b1.Property<int>("DriverId")
                                 .HasColumnType("INTEGER");
@@ -1136,9 +1136,9 @@ namespace Rihla.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.MaintenanceRecord", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.MaintenanceRecord", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Vehicle", "Vehicle")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Vehicle", "Vehicle")
                         .WithMany("MaintenanceRecords")
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1147,9 +1147,9 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Notification", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Notification", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.User", "User")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1158,9 +1158,9 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Payment", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Payment", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Student", "Student")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Student", "Student")
                         .WithMany("Payments")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1169,14 +1169,14 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Route", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Route", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Driver", "AssignedDriver")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Driver", "AssignedDriver")
                         .WithMany("Routes")
                         .HasForeignKey("AssignedDriverId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Rihla.Core.Entities.Vehicle", "AssignedVehicle")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Vehicle", "AssignedVehicle")
                         .WithMany("Routes")
                         .HasForeignKey("AssignedVehicleId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1186,15 +1186,15 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("AssignedVehicle");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.RouteStop", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.RouteStop", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Route", "Route")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Route", "Route")
                         .WithMany("RouteStops")
                         .HasForeignKey("RouteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Rihla.Core.ValueObjects.Address", "Address", b1 =>
+                    b.OwnsOne("SchoolTransportationSystem.Core.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<int>("RouteStopId")
                                 .HasColumnType("INTEGER");
@@ -1238,14 +1238,14 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Route");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Student", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Student", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Route", "Route")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Route", "Route")
                         .WithMany("Students")
                         .HasForeignKey("RouteId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.OwnsOne("Rihla.Core.ValueObjects.Address", "Address", b1 =>
+                    b.OwnsOne("SchoolTransportationSystem.Core.ValueObjects.Address", "Address", b1 =>
                         {
                             b1.Property<int>("StudentId")
                                 .HasColumnType("INTEGER");
@@ -1283,7 +1283,7 @@ namespace Rihla.Infrastructure.Migrations
                                 .HasForeignKey("StudentId");
                         });
 
-                    b.OwnsOne("Rihla.Core.ValueObjects.FullName", "FullName", b1 =>
+                    b.OwnsOne("SchoolTransportationSystem.Core.ValueObjects.FullName", "FullName", b1 =>
                         {
                             b1.Property<int>("StudentId")
                                 .HasColumnType("INTEGER");
@@ -1319,21 +1319,21 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Route");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Trip", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Trip", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Driver", "Driver")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Driver", "Driver")
                         .WithMany("Trips")
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Rihla.Core.Entities.Route", "Route")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Route", "Route")
                         .WithMany("Trips")
                         .HasForeignKey("RouteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Rihla.Core.Entities.Vehicle", "Vehicle")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Vehicle", "Vehicle")
                         .WithMany("Trips")
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1346,9 +1346,9 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Vehicle", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Vehicle", b =>
                 {
-                    b.HasOne("Rihla.Core.Entities.Driver", "AssignedDriver")
+                    b.HasOne("SchoolTransportationSystem.Core.Entities.Driver", "AssignedDriver")
                         .WithMany("Vehicles")
                         .HasForeignKey("AssignedDriverId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1356,7 +1356,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("AssignedDriver");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Driver", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Driver", b =>
                 {
                     b.Navigation("Routes");
 
@@ -1365,7 +1365,7 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Vehicles");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Route", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Route", b =>
                 {
                     b.Navigation("RouteStops");
 
@@ -1374,19 +1374,19 @@ namespace Rihla.Infrastructure.Migrations
                     b.Navigation("Trips");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Student", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Student", b =>
                 {
                     b.Navigation("Attendances");
 
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Trip", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Trip", b =>
                 {
                     b.Navigation("Attendances");
                 });
 
-            modelBuilder.Entity("Rihla.Core.Entities.Vehicle", b =>
+            modelBuilder.Entity("SchoolTransportationSystem.Core.Entities.Vehicle", b =>
                 {
                     b.Navigation("MaintenanceRecords");
 

@@ -91,15 +91,17 @@ const MapPage: React.FC = () => {
       const [vehiclesData, routesData, dashboardData] = await Promise.all([
         apiClient.get<Vehicle[]>('/api/vehicles'),
         apiClient.get<Route[]>('/api/routes'),
-        apiClient.get<{totalStudents: number}>('/api/dashboard/stats'),
+        apiClient.get<{ totalStudents: number }>('/api/dashboard/stats'),
       ]);
 
       setVehicles(vehiclesData);
       setRoutes(routesData);
-      
-      const activeVehicles = vehiclesData.filter(v => v.status === 'Active' || v.status === 'InTransit').length;
+
+      const activeVehicles = vehiclesData.filter(
+        v => v.status === 'Active' || v.status === 'InTransit'
+      ).length;
       const activeRoutes = routesData.filter(r => r.vehicleId).length;
-      
+
       setMapStats({
         totalVehicles: vehiclesData.length,
         activeVehicles,
@@ -129,8 +131,10 @@ const MapPage: React.FC = () => {
       });
 
       signalRService.onNotificationReceived((notification: any) => {
-        if (notification.type === 'VehicleLocationUpdate' || 
-            notification.type === 'TripStatusChange') {
+        if (
+          notification.type === 'VehicleLocationUpdate' ||
+          notification.type === 'TripStatusChange'
+        ) {
           loadMapData();
         }
       });
@@ -139,7 +143,6 @@ const MapPage: React.FC = () => {
         console.log('Emergency alert received:', alert);
         loadMapData();
       });
-
     } catch (err) {
       console.error('Failed to setup real-time updates:', err);
     }
@@ -160,10 +163,14 @@ const MapPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'success';
-      case 'InTransit': return 'warning';
-      case 'Maintenance': return 'error';
-      default: return 'default';
+      case 'Active':
+        return 'success';
+      case 'InTransit':
+        return 'warning';
+      case 'Maintenance':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -172,7 +179,11 @@ const MapPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+      >
         <LocationIcon color="primary" />
         Live Transportation Map
       </Typography>
@@ -229,7 +240,10 @@ const MapPage: React.FC = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <LocationIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">
-                {vehicles.filter(v => v.currentLatitude && v.currentLongitude).length}
+                {
+                  vehicles.filter(v => v.currentLatitude && v.currentLongitude)
+                    .length
+                }
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 GPS Tracked
@@ -240,13 +254,22 @@ const MapPage: React.FC = () => {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1,
+                }}
+              >
                 <Box
                   sx={{
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    backgroundColor: realTimeEnabled ? 'success.main' : 'error.main',
+                    backgroundColor: realTimeEnabled
+                      ? 'success.main'
+                      : 'error.main',
                     mr: 1,
                   }}
                 />
@@ -281,16 +304,16 @@ const MapPage: React.FC = () => {
               <Select
                 value={selectedVehicleId}
                 label="Select Vehicle"
-                onChange={(e) => setSelectedVehicleId(e.target.value)}
+                onChange={e => setSelectedVehicleId(e.target.value)}
               >
                 <MenuItem value="">All Vehicles</MenuItem>
-                {vehicles.map((vehicle) => (
+                {vehicles.map(vehicle => (
                   <MenuItem key={vehicle.id} value={vehicle.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {vehicle.plateNumber}
-                      <Chip 
-                        label={vehicle.status} 
-                        size="small" 
+                      <Chip
+                        label={vehicle.status}
+                        size="small"
                         color={getStatusColor(vehicle.status) as any}
                       />
                     </Box>
@@ -305,10 +328,10 @@ const MapPage: React.FC = () => {
               <Select
                 value={selectedRouteId}
                 label="Select Route"
-                onChange={(e) => setSelectedRouteId(e.target.value)}
+                onChange={e => setSelectedRouteId(e.target.value)}
               >
                 <MenuItem value="">All Routes</MenuItem>
-                {routes.map((route) => (
+                {routes.map(route => (
                   <MenuItem key={route.id} value={route.id}>
                     {route.name}
                   </MenuItem>
@@ -321,7 +344,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showVehicles}
-                  onChange={(e) => setShowVehicles(e.target.checked)}
+                  onChange={e => setShowVehicles(e.target.checked)}
                 />
               }
               label="Vehicles"
@@ -332,7 +355,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showRoutes}
-                  onChange={(e) => setShowRoutes(e.target.checked)}
+                  onChange={e => setShowRoutes(e.target.checked)}
                 />
               }
               label="Routes"
@@ -343,7 +366,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={showStudents}
-                  onChange={(e) => setShowStudents(e.target.checked)}
+                  onChange={e => setShowStudents(e.target.checked)}
                 />
               }
               label="Students"
@@ -356,7 +379,7 @@ const MapPage: React.FC = () => {
               control={
                 <Switch
                   checked={realTimeEnabled}
-                  onChange={(e) => handleRealTimeToggle(e.target.checked)}
+                  onChange={e => handleRealTimeToggle(e.target.checked)}
                 />
               }
               label="Real-time Updates"
@@ -394,17 +417,19 @@ const MapPage: React.FC = () => {
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Capacity:</strong> {selectedVehicle.capacity} students
+                    <strong>Capacity:</strong> {selectedVehicle.capacity}{' '}
+                    students
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Driver:</strong> {selectedVehicle.driverName || 'Not assigned'}
+                    <strong>Driver:</strong>{' '}
+                    {selectedVehicle.driverName || 'Not assigned'}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <Chip 
-                    label={selectedVehicle.status} 
+                  <Chip
+                    label={selectedVehicle.status}
                     color={getStatusColor(selectedVehicle.status) as any}
                     size="small"
                   />

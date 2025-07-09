@@ -1,8 +1,8 @@
-using Rihla.Application.DTOs;
-using Rihla.Core.Common;
-using Rihla.Core.Entities;
+using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Core.Common;
+using SchoolTransportationSystem.Core.Entities;
 
-namespace Rihla.Application.Interfaces
+namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface IUserService
     {

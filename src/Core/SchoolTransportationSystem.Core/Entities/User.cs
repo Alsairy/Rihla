@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Rihla.Core.Entities
+namespace SchoolTransportationSystem.Core.Entities
 {
     public class User
     {

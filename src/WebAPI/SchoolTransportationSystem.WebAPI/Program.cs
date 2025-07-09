@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
@@ -8,19 +7,14 @@ using Microsoft.OpenApi.Models;
 using System.Globalization;
 using System.Text;
 using System.Reflection;
-using Rihla.Infrastructure.Data;
-using Rihla.Infrastructure.Repositories;
-using Rihla.Application.Interfaces;
-using Rihla.Application.Services;
-using Rihla.Core.Entities;
-using Rihla.Core.Enums;
-using Rihla.Core.ValueObjects;
-using Rihla.Core.Interfaces;
-using SchoolTransportationSystem.WebAPI;
-using Rihla.WebAPI.Hubs;
-using Rihla.WebAPI.Resources;
-using Rihla.WebAPI.Services;
-using Rihla.WebAPI.Options;
+using SchoolTransportationSystem.Infrastructure.Data;
+using SchoolTransportationSystem.Application.Interfaces;
+using SchoolTransportationSystem.Application.Services;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.Enums;
+using SchoolTransportationSystem.Core.ValueObjects;
+using SchoolTransportationSystem.WebAPI.Hubs;
+using SchoolTransportationSystem.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,9 +88,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddSignalR();
 
-// Configure Active Directory options
-builder.Services.Configure<ActiveDirectoryOptions>(
-    builder.Configuration.GetSection(ActiveDirectoryOptions.SectionName));
 
 // Configure authentication with multiple schemes
 var authBuilder = builder.Services.AddAuthentication(options =>
@@ -121,6 +112,7 @@ var authBuilder = builder.Services.AddAuthentication(options =>
 var azureAdConfig = builder.Configuration.GetSection("ActiveDirectory:AzureAd");
 var azureAdEnabled = azureAdConfig.GetValue<bool>("Enabled");
 
+/*
 if (azureAdEnabled && !string.IsNullOrEmpty(azureAdConfig["ClientId"]))
 {
     authBuilder.AddOpenIdConnect("AzureAD", options =>
@@ -163,6 +155,7 @@ if (azureAdEnabled && !string.IsNullOrEmpty(azureAdConfig["ClientId"]))
         };
     });
 }
+*/
 
 // Configure Authorization with Role-Based Policies
 builder.Services.AddAuthorization(options =>
@@ -218,8 +211,6 @@ builder.Services.AddHsts(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=rihla.db"));
 
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
@@ -230,9 +221,7 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserContext, Rihla.WebAPI.Services.UserContext>();
-builder.Services.AddScoped<ILocalizationService, LocalizationService>();
-builder.Services.AddScoped<IActiveDirectoryService, ActiveDirectoryService>();
+builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -243,11 +232,6 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DatabaseSeeder.SeedAsync(context);
-}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -316,3 +300,5 @@ app.MapGet("/test-db", async (ApplicationDbContext context) =>
 });
 
 app.Run();
+
+public partial class Program { }

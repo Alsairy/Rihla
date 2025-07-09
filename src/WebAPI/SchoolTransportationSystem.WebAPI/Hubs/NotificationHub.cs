@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Rihla.WebAPI.Hubs
+namespace SchoolTransportationSystem.WebAPI.Hubs
 {
     [Authorize]
     public class NotificationHub : Hub
@@ -36,7 +36,7 @@ namespace Rihla.WebAPI.Hubs
             await base.OnConnectedAsync();
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var tenantId = Context.User?.FindFirst("tenant_id")?.Value;
             if (!string.IsNullOrEmpty(tenantId))

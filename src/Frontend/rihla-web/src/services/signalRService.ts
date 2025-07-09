@@ -16,13 +16,13 @@ class SignalRService {
     }
 
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    
+
     try {
       this.connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiUrl}/notificationHub`, {
           accessTokenFactory: () => {
             return localStorage.getItem('authToken') || '';
-          }
+          },
         })
         .withAutomaticReconnect()
         .build();
@@ -30,16 +30,22 @@ class SignalRService {
       await this.connection.start();
       this.isConnected = true;
       console.log('SignalR Connected');
-      
+
       const userStr = localStorage.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user.tenantId) {
-          await this.connection.invoke('JoinTenantGroup', user.tenantId.toString());
+          await this.connection.invoke(
+            'JoinTenantGroup',
+            user.tenantId.toString()
+          );
         }
       }
     } catch (err) {
-      console.warn('SignalR connection failed, continuing without real-time features:', err);
+      console.warn(
+        'SignalR connection failed, continuing without real-time features:',
+        err
+      );
       this.isConnected = false;
       this.connection = null;
     }
@@ -67,11 +73,15 @@ class SignalRService {
         console.warn('Failed to register notification callback:', err);
       }
     } else {
-      console.log('SignalR not connected, notification callback not registered');
+      console.log(
+        'SignalR not connected, notification callback not registered'
+      );
     }
   }
 
-  onTripStatusUpdated(callback: (tripId: string, status: string) => void): void {
+  onTripStatusUpdated(
+    callback: (tripId: string, status: string) => void
+  ): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
@@ -91,7 +101,9 @@ class SignalRService {
         console.warn('Failed to register emergency alert callback:', err);
       }
     } else {
-      console.log('SignalR not connected, emergency alert callback not registered');
+      console.log(
+        'SignalR not connected, emergency alert callback not registered'
+      );
     }
   }
 
@@ -124,7 +136,10 @@ class SignalRService {
   }
 
   isConnectionActive(): boolean {
-    return this.isConnected && this.connection?.state === signalR.HubConnectionState.Connected;
+    return (
+      this.isConnected &&
+      this.connection?.state === signalR.HubConnectionState.Connected
+    );
   }
 }
 

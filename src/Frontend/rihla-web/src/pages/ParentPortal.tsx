@@ -55,7 +55,7 @@ const ParentPortal: React.FC = () => {
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
       } catch (error) {
         console.error('Error fetching parent data:', error);
-        
+
         setStudents([
           {
             id: 1,
@@ -70,7 +70,7 @@ const ParentPortal: React.FC = () => {
             routeName: 'Route A - Downtown',
             isActive: true,
             grade: '8th Grade',
-            school: 'Al-Noor International School'
+            school: 'Al-Noor International School',
           },
           {
             id: 2,
@@ -85,10 +85,10 @@ const ParentPortal: React.FC = () => {
             routeName: 'Route A - Downtown',
             isActive: true,
             grade: '5th Grade',
-            school: 'Al-Noor International School'
-          }
+            school: 'Al-Noor International School',
+          },
         ]);
-        
+
         setTrips([
           {
             id: 1,
@@ -102,7 +102,7 @@ const ParentPortal: React.FC = () => {
             scheduledEndTime: new Date(Date.now() + 3600000).toISOString(),
             status: 'In Progress',
             tripType: 'Morning',
-            notes: 'Regular morning pickup'
+            notes: 'Regular morning pickup',
           },
           {
             id: 2,
@@ -113,12 +113,18 @@ const ParentPortal: React.FC = () => {
             driverId: 1,
             driverName: 'Khalid Al-Otaibi',
             scheduledStartTime: new Date(Date.now() - 86400000).toISOString(),
-            actualStartTime: new Date(Date.now() - 86400000 + 300000).toISOString(),
-            scheduledEndTime: new Date(Date.now() - 86400000 + 3600000).toISOString(),
-            actualEndTime: new Date(Date.now() - 86400000 + 3900000).toISOString(),
+            actualStartTime: new Date(
+              Date.now() - 86400000 + 300000
+            ).toISOString(),
+            scheduledEndTime: new Date(
+              Date.now() - 86400000 + 3600000
+            ).toISOString(),
+            actualEndTime: new Date(
+              Date.now() - 86400000 + 3900000
+            ).toISOString(),
             status: 'Completed',
             tripType: 'Morning',
-            notes: 'Completed successfully'
+            notes: 'Completed successfully',
           },
           {
             id: 3,
@@ -129,13 +135,19 @@ const ParentPortal: React.FC = () => {
             driverId: 1,
             driverName: 'Khalid Al-Otaibi',
             scheduledStartTime: new Date(Date.now() - 172800000).toISOString(),
-            actualStartTime: new Date(Date.now() - 172800000 + 600000).toISOString(),
-            scheduledEndTime: new Date(Date.now() - 172800000 + 3600000).toISOString(),
-            actualEndTime: new Date(Date.now() - 172800000 + 4200000).toISOString(),
+            actualStartTime: new Date(
+              Date.now() - 172800000 + 600000
+            ).toISOString(),
+            scheduledEndTime: new Date(
+              Date.now() - 172800000 + 3600000
+            ).toISOString(),
+            actualEndTime: new Date(
+              Date.now() - 172800000 + 4200000
+            ).toISOString(),
             status: 'Completed',
             tripType: 'Afternoon',
-            notes: 'Afternoon drop-off completed'
-          }
+            notes: 'Afternoon drop-off completed',
+          },
         ]);
       } finally {
         setLoading(false);
@@ -170,8 +182,8 @@ const ParentPortal: React.FC = () => {
 
   return (
     <Box sx={{ flexGrow: 1, bgcolor: '#f8fafc', minHeight: '100vh' }}>
-      <AppBar 
-        position="static" 
+      <AppBar
+        position="static"
         elevation={0}
         sx={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -189,10 +201,10 @@ const ParentPortal: React.FC = () => {
           >
             <FamilyIcon />
           </Avatar>
-          <Typography 
-            variant="h5" 
-            component="div" 
-            sx={{ 
+          <Typography
+            variant="h5"
+            component="div"
+            sx={{
               flexGrow: 1,
               fontWeight: 700,
               letterSpacing: 0.5,
@@ -206,15 +218,17 @@ const ParentPortal: React.FC = () => {
               <SettingsIcon />
             </IconButton>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}>
+              <Avatar
+                sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}
+              >
                 {user?.username?.charAt(0).toUpperCase()}
               </Avatar>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 Welcome, {user?.username}
               </Typography>
             </Box>
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={handleLogout}
               startIcon={<LogoutIcon />}
               sx={{
@@ -237,26 +251,36 @@ const ParentPortal: React.FC = () => {
         <Grid container spacing={3}>
           {/* My Children */}
           <Grid size={{ xs: 12, lg: 8 }}>
-            <Paper 
-              sx={{ 
-                p: 3, 
+            <Paper
+              sx={{
+                p: 3,
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.05)',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar sx={{ bgcolor: 'primary.main', mr: 2, width: 48, height: 48 }}>
+                <Avatar
+                  sx={{ bgcolor: 'primary.main', mr: 2, width: 48, height: 48 }}
+                >
                   <FamilyIcon sx={{ fontSize: 24 }} />
                 </Avatar>
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
                   My Children
                 </Typography>
               </Box>
-              
+
               {students.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 6 }}>
-                  <Avatar sx={{ bgcolor: 'grey.100', width: 80, height: 80, mx: 'auto', mb: 2 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'grey.100',
+                      width: 80,
+                      height: 80,
+                      mx: 'auto',
+                      mb: 2,
+                    }}
+                  >
                     <PersonIcon sx={{ fontSize: 40, color: 'grey.400' }} />
                   </Avatar>
                   <Typography variant="h6" color="textSecondary" gutterBottom>
@@ -268,10 +292,10 @@ const ParentPortal: React.FC = () => {
                 </Box>
               ) : (
                 <Grid container spacing={2}>
-                  {students.map((student) => (
+                  {students.map(student => (
                     <Grid size={{ xs: 12, md: 6 }} key={student.id}>
-                      <Card 
-                        sx={{ 
+                      <Card
+                        sx={{
                           borderRadius: 2,
                           border: '1px solid rgba(0,0,0,0.08)',
                           transition: 'all 0.3s ease',
@@ -282,25 +306,36 @@ const ParentPortal: React.FC = () => {
                         }}
                       >
                         <CardContent sx={{ p: 3 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Avatar 
-                              sx={{ 
-                                bgcolor: 'primary.light', 
-                                mr: 2, 
-                                width: 48, 
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mb: 2,
+                            }}
+                          >
+                            <Avatar
+                              sx={{
+                                bgcolor: 'primary.light',
+                                mr: 2,
+                                width: 48,
                                 height: 48,
                                 fontSize: '1.2rem',
                                 fontWeight: 600,
                               }}
                             >
-                              {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
+                              {student.firstName?.charAt(0)}
+                              {student.lastName?.charAt(0)}
                             </Avatar>
                             <Box sx={{ flexGrow: 1 }}>
                               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                 {`${student.firstName} ${student.lastName}`}
                               </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Grade: {student.grade} • School: {student.school}
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                Grade: {student.grade} • School:{' '}
+                                {student.school}
                               </Typography>
                             </Box>
                             <Chip
@@ -310,13 +345,26 @@ const ParentPortal: React.FC = () => {
                             />
                           </Box>
                           <Divider sx={{ my: 2 }} />
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                            }}
+                          >
                             <LocationIcon color="action" />
                             <Typography variant="body2">
                               Route: {student.routeName || 'Not Assigned'}
                             </Typography>
                           </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              mt: 1,
+                            }}
+                          >
                             <PhoneIcon color="action" />
                             <Typography variant="body2">
                               {student.phoneNumber}
@@ -333,26 +381,41 @@ const ParentPortal: React.FC = () => {
 
           {/* Recent Trips */}
           <Grid size={{ xs: 12, lg: 4 }}>
-            <Paper 
-              sx={{ 
-                p: 3, 
+            <Paper
+              sx={{
+                p: 3,
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.05)',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar sx={{ bgcolor: 'secondary.main', mr: 2, width: 48, height: 48 }}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'secondary.main',
+                    mr: 2,
+                    width: 48,
+                    height: 48,
+                  }}
+                >
                   <BusIcon sx={{ fontSize: 24 }} />
                 </Avatar>
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
                   Recent Trips
                 </Typography>
               </Box>
-              
+
               {trips.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 6 }}>
-                  <Avatar sx={{ bgcolor: 'grey.100', width: 80, height: 80, mx: 'auto', mb: 2 }}>
+                  <Avatar
+                    sx={{
+                      bgcolor: 'grey.100',
+                      width: 80,
+                      height: 80,
+                      mx: 'auto',
+                      mb: 2,
+                    }}
+                  >
                     <BusIcon sx={{ fontSize: 40, color: 'grey.400' }} />
                   </Avatar>
                   <Typography variant="h6" color="textSecondary" gutterBottom>
@@ -372,28 +435,68 @@ const ParentPortal: React.FC = () => {
                         </Avatar>
                         <ListItemText
                           primary={
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: 600 }}
+                            >
                               {trip.routeName}
                             </Typography>
                           }
                           secondary={
                             <Box sx={{ mt: 1 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                <Typography variant="body2" color="text.secondary">
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  mb: 0.5,
+                                }}
+                              >
+                                <PersonIcon
+                                  sx={{ fontSize: 16, color: 'text.secondary' }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
                                   Driver: {trip.driverName}
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                <BusIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                <Typography variant="body2" color="text.secondary">
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  mb: 0.5,
+                                }}
+                              >
+                                <BusIcon
+                                  sx={{ fontSize: 16, color: 'text.secondary' }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
                                   Vehicle: {trip.vehiclePlateNumber}
                                 </Typography>
                               </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <ScheduleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                <Typography variant="body2" color="text.secondary">
-                                  {new Date(trip.scheduledStartTime).toLocaleString()}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                }}
+                              >
+                                <ScheduleIcon
+                                  sx={{ fontSize: 16, color: 'text.secondary' }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  {new Date(
+                                    trip.scheduledStartTime
+                                  ).toLocaleString()}
                                 </Typography>
                               </Box>
                             </Box>
@@ -416,27 +519,29 @@ const ParentPortal: React.FC = () => {
 
           {/* Quick Actions */}
           <Grid size={{ xs: 12 }}>
-            <Paper 
-              sx={{ 
-                p: 3, 
+            <Paper
+              sx={{
+                p: 3,
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.05)',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar sx={{ bgcolor: 'info.main', mr: 2, width: 48, height: 48 }}>
+                <Avatar
+                  sx={{ bgcolor: 'info.main', mr: 2, width: 48, height: 48 }}
+                >
                   <SettingsIcon sx={{ fontSize: 24 }} />
                 </Avatar>
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
                   Quick Actions
                 </Typography>
               </Box>
-              
+
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     fullWidth
                     startIcon={<HistoryIcon />}
                     sx={{
@@ -459,8 +564,8 @@ const ParentPortal: React.FC = () => {
                   </Button>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     fullWidth
                     startIcon={<ContactPhoneIcon />}
                     sx={{
@@ -483,8 +588,8 @@ const ParentPortal: React.FC = () => {
                   </Button>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     fullWidth
                     startIcon={<EditIcon />}
                     sx={{

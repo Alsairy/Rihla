@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Rihla.Infrastructure.Data;
-using Rihla.Core.Entities;
-using Rihla.Core.ValueObjects;
-using Rihla.Core.Enums;
+using SchoolTransportationSystem.Infrastructure.Data;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.ValueObjects;
+using SchoolTransportationSystem.Core.Enums;
 
-namespace Rihla.WebAPI.Controllers
+namespace SchoolTransportationSystem.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DriversController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

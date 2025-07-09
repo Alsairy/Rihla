@@ -1,0 +1,8 @@
+// This file has been deprecated in favor of real API integration.
+// See apiClient.ts for the actual implementation.
+
+// This file is kept as a reference but should not be imported or used.
+// All components should use apiClient.ts instead.
+
+export const mockDataService = null;
+export default null;

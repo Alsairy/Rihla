@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Rihla Code Analysis Rules" Description="Code analysis rules for Rihla School Transportation System" ToolsVersion="16.0">
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
+    <!-- Enforce modern C# practices -->
+    <Rule Id="CS8618" Action="Warning" /> <!-- Non-nullable field must contain a non-null value when exiting constructor -->
+    <Rule Id="CS8602" Action="Warning" /> <!-- Dereference of a possibly null reference -->
+    <Rule Id="CS8604" Action="Warning" /> <!-- Possible null reference argument -->
+    <Rule Id="CS8625" Action="Warning" /> <!-- Cannot convert null literal to non-nullable reference type -->
+  </Rules>
+  
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
+    <!-- Performance rules -->
+    <Rule Id="CA1822" Action="Info" /> <!-- Mark members as static -->
+    <Rule Id="CA1825" Action="Warning" /> <!-- Avoid zero-length array allocations -->
+    <Rule Id="CA1826" Action="Warning" /> <!-- Do not use Count() or LongCount() when Any() can be used -->
+    <Rule Id="CA1827" Action="Warning" /> <!-- Do not use Count() or LongCount() when Any() can be used -->
+    <Rule Id="CA1829" Action="Warning" /> <!-- Use Length/Count property instead of Count() when available -->
+    
+    <!-- Security rules -->
+    <Rule Id="CA2100" Action="Warning" /> <!-- Review SQL queries for security vulnerabilities -->
+    <Rule Id="CA2109" Action="Warning" /> <!-- Review visible event handlers -->
+    <Rule Id="CA2119" Action="Warning" /> <!-- Seal methods that satisfy private interfaces -->
+    <Rule Id="CA3001" Action="Warning" /> <!-- Review code for SQL injection vulnerabilities -->
+    <Rule Id="CA3003" Action="Warning" /> <!-- Review code for file path injection vulnerabilities -->
+    <Rule Id="CA3006" Action="Warning" /> <!-- Review code for process command injection vulnerabilities -->
+    
+    <!-- Design rules -->
+    <Rule Id="CA1031" Action="Info" /> <!-- Do not catch general exception types -->
+    <Rule Id="CA1032" Action="Warning" /> <!-- Implement standard exception constructors -->
+    <Rule Id="CA1040" Action="Warning" /> <!-- Avoid empty interfaces -->
+    <Rule Id="CA1041" Action="Warning" /> <!-- Provide ObsoleteAttribute message -->
+    <Rule Id="CA1043" Action="Warning" /> <!-- Use Integral Or String Argument For Indexers -->
+    <Rule Id="CA1044" Action="Warning" /> <!-- Properties should not be write only -->
+    
+    <!-- Naming rules -->
+    <Rule Id="CA1707" Action="Info" /> <!-- Identifiers should not contain underscores -->
+    <Rule Id="CA1708" Action="Warning" /> <!-- Identifiers should differ by more than case -->
+    <Rule Id="CA1710" Action="Info" /> <!-- Identifiers should have correct suffix -->
+    <Rule Id="CA1711" Action="Info" /> <!-- Identifiers should not have incorrect suffix -->
+    
+    <!-- Usage rules -->
+    <Rule Id="CA2200" Action="Warning" /> <!-- Rethrow to preserve stack details -->
+    <Rule Id="CA2201" Action="Warning" /> <!-- Do not raise reserved exception types -->
+    <Rule Id="CA2207" Action="Warning" /> <!-- Initialize value type static fields inline -->
+    <Rule Id="CA2208" Action="Warning" /> <!-- Instantiate argument exceptions correctly -->
+    <Rule Id="CA2211" Action="Warning" /> <!-- Non-constant fields should not be visible -->
+    <Rule Id="CA2213" Action="Warning" /> <!-- Disposable fields should be disposed -->
+    <Rule Id="CA2214" Action="Warning" /> <!-- Do not call overridable methods in constructors -->
+    <Rule Id="CA2215" Action="Warning" /> <!-- Dispose methods should call base class dispose -->
+    <Rule Id="CA2216" Action="Warning" /> <!-- Disposable types should declare finalizer -->
+    <Rule Id="CA2217" Action="Warning" /> <!-- Do not mark enums with FlagsAttribute -->
+  </Rules>
+  
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <!-- Documentation rules -->
+    <Rule Id="SA1600" Action="None" /> <!-- Elements should be documented -->
+    <Rule Id="SA1601" Action="None" /> <!-- Partial elements should be documented -->
+    <Rule Id="SA1602" Action="None" /> <!-- Enumeration items should be documented -->
+    
+    <!-- Layout rules -->
+    <Rule Id="SA1200" Action="None" /> <!-- Using directives should be placed correctly -->
+    <Rule Id="SA1210" Action="Warning" /> <!-- Using directives should be ordered alphabetically by namespace -->
+    <Rule Id="SA1216" Action="Warning" /> <!-- Using static directives should be placed at the correct location -->
+    
+    <!-- Naming rules -->
+    <Rule Id="SA1300" Action="Warning" /> <!-- Element should begin with upper-case letter -->
+    <Rule Id="SA1302" Action="Warning" /> <!-- Interface names should begin with I -->
+    <Rule Id="SA1303" Action="Warning" /> <!-- Const field names should begin with upper-case letter -->
+    <Rule Id="SA1304" Action="Warning" /> <!-- Non-private readonly fields should begin with upper-case letter -->
+    <Rule Id="SA1306" Action="Warning" /> <!-- Field names should begin with lower-case letter -->
+    <Rule Id="SA1307" Action="Warning" /> <!-- Accessible fields should begin with upper-case letter -->
+    <Rule Id="SA1308" Action="Warning" /> <!-- Variable names should not be prefixed -->
+    <Rule Id="SA1309" Action="None" /> <!-- Field names should not begin with underscore -->
+    <Rule Id="SA1310" Action="Warning" /> <!-- Field names should not contain underscore -->
+    <Rule Id="SA1311" Action="Warning" /> <!-- Static readonly fields should begin with upper-case letter -->
+    
+    <!-- Readability rules -->
+    <Rule Id="SA1101" Action="None" /> <!-- Prefix local calls with this -->
+    <Rule Id="SA1116" Action="Warning" /> <!-- Split parameters should start on line after declaration -->
+    <Rule Id="SA1117" Action="Warning" /> <!-- Parameters should be on same line or separate lines -->
+    <Rule Id="SA1118" Action="Warning" /> <!-- Parameter should not span multiple lines -->
+    
+    <!-- Spacing rules -->
+    <Rule Id="SA1000" Action="Warning" /> <!-- Keywords should be spaced correctly -->
+    <Rule Id="SA1001" Action="Warning" /> <!-- Commas should be spaced correctly -->
+    <Rule Id="SA1002" Action="Warning" /> <!-- Semicolons should be spaced correctly -->
+    <Rule Id="SA1003" Action="Warning" /> <!-- Symbols should be spaced correctly -->
+    <Rule Id="SA1008" Action="Warning" /> <!-- Opening parenthesis should be spaced correctly -->
+    <Rule Id="SA1009" Action="Warning" /> <!-- Closing parenthesis should be spaced correctly -->
+    <Rule Id="SA1010" Action="Warning" /> <!-- Opening square brackets should be spaced correctly -->
+    <Rule Id="SA1011" Action="Warning" /> <!-- Closing square brackets should be spaced correctly -->
+  </Rules>
+</RuleSet>

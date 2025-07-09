@@ -1,8 +1,8 @@
-using Rihla.Core.Entities;
-using Rihla.Core.Common;
-using Rihla.Application.DTOs;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.Common;
+using SchoolTransportationSystem.Application.DTOs;
 
-namespace Rihla.Application.Interfaces
+namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface INotificationService
     {

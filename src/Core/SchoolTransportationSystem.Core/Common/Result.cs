@@ -1,4 +1,4 @@
-namespace Rihla.Core.Common
+namespace SchoolTransportationSystem.Core.Common
 {
     public class Result<T>
     {

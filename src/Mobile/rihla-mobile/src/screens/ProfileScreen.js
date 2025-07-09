@@ -64,7 +64,7 @@ export default function ProfileScreen() {
           </View>
         </View>
         <Text style={styles.userName}>{user?.name || 'Admin User'}</Text>
-        <Text style={styles.userEmail}>{user?.email || 'admin@rihla.sa'}</Text>
+        <Text style={styles.userEmail}>{user?.email || 'user@rihla.sa'}</Text>
         <Text style={styles.userRole}>{user?.role || 'Administrator'}</Text>
       </View>
 

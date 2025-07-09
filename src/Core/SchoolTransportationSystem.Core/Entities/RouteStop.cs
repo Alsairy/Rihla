@@ -1,6 +1,6 @@
-using Rihla.Core.ValueObjects;
+using SchoolTransportationSystem.Core.ValueObjects;
 
-namespace Rihla.Core.Entities
+namespace SchoolTransportationSystem.Core.Entities
 {
     public class RouteStop : TenantEntity
     {

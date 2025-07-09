@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Rihla.Infrastructure.Data;
-using Rihla.Core.Entities;
-using Rihla.Core.Enums;
-using Rihla.Core.ValueObjects;
+using SchoolTransportationSystem.Infrastructure.Data;
+using SchoolTransportationSystem.Core.Entities;
+using SchoolTransportationSystem.Core.Enums;
+using SchoolTransportationSystem.Core.ValueObjects;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -52,8 +52,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Super",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow
                     },
                     new User
                     {
@@ -66,8 +65,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Tenant",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow
                     },
                     new User
                     {
@@ -80,8 +78,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "System",
                         LastName = "Administrator",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow
                     },
                     new User
                     {
@@ -94,8 +91,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Main",
                         LastName = "Dispatcher",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow
                     },
                     new User
                     {
@@ -108,8 +104,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = "Fleet",
                         LastName = "Maintenance",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
                 
@@ -134,8 +129,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 95, // 95% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
                 
@@ -158,8 +152,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 98, // 98% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 730)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 730))
                     });
                 }
                 
@@ -182,8 +175,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 97, // 97% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 1095)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 1095))
                     });
                 }
                 
@@ -203,8 +195,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 96, // 96% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
                 
@@ -224,8 +215,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FirstName = firstName,
                         LastName = lastName,
                         IsActive = random.Next(100) < 94, // 94% active
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
 
@@ -257,8 +247,7 @@ namespace SchoolTransportationSystem.WebAPI
                         HireDate = DateTime.UtcNow.AddDays(-random.Next(30, 1825)), // Hired within last 5 years
                         DateOfBirth = DateTime.UtcNow.AddYears(-random.Next(25, 55)), // Age 25-55
                         Status = driverUser.IsActive ? DriverStatus.Active : (DriverStatus)random.Next(2, 5),
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
 
@@ -300,8 +289,7 @@ namespace SchoolTransportationSystem.WebAPI
                         FuelType = fuelType,
                         PurchaseDate = DateTime.UtcNow.AddDays(-random.Next(365, 2555)), // Purchased within last 7 years
                         PurchasePrice = 80000 + random.Next(0, 200000), // 80k-280k SAR
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
 
@@ -309,7 +297,7 @@ namespace SchoolTransportationSystem.WebAPI
                 await context.SaveChangesAsync();
                 Console.WriteLine($"Generated {vehicles.Count} vehicles");
 
-                var routes = new List<Rihla.Core.Entities.Route>();
+                var routes = new List<SchoolTransportationSystem.Core.Entities.Route>();
                 var routeNames = new[] { "North District", "South District", "East District", "West District", "Central Area", "Industrial Area", "Residential Complex", "Villa Compound", "Downtown", "Suburbs" };
                 var schools = new[] { "Al-Noor International School", "King Fahd Academy", "Riyadh International School", "Al-Faisal University", "Princess Nourah School", "Al-Manahil School", "Dar Al-Fikr School", "Al-Rowad School" };
                 
@@ -322,7 +310,7 @@ namespace SchoolTransportationSystem.WebAPI
                     var startHour = 6 + random.Next(0, 3); // Start between 6-8 AM
                     var startMinute = random.Next(0, 4) * 15; // 0, 15, 30, 45 minutes
                     
-                    routes.Add(new Rihla.Core.Entities.Route
+                    routes.Add(new SchoolTransportationSystem.Core.Entities.Route
                     {
                         TenantId = 1,
                         RouteNumber = $"RT{i:D3}",
@@ -335,8 +323,7 @@ namespace SchoolTransportationSystem.WebAPI
                         EstimatedDuration = Math.Max(15, duration), // Minimum 15 minutes
                         StartLocation = $"{routeName} Terminal",
                         EndLocation = $"{school} Main Gate",
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
 
@@ -379,8 +366,7 @@ namespace SchoolTransportationSystem.WebAPI
                         ParentPhone = $"+96655{2000000 + (i % parentUsers.Count):D7}",
                         Status = random.Next(100) < 95 ? StudentStatus.Active : (StudentStatus)random.Next(2, 5), // 95% active
                         RouteId = route.Id,
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(30, 365))
                     });
                 }
 
@@ -419,8 +405,7 @@ namespace SchoolTransportationSystem.WebAPI
                                       baseDate.AddHours(startHour).AddMinutes(duration + random.Next(-15, 15)) : null,
                         Status = status,
                         Notes = random.Next(100) < 20 ? "Traffic delay reported" : null, // 20% have notes
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 60)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 60))
                     });
                 }
 
@@ -461,8 +446,7 @@ namespace SchoolTransportationSystem.WebAPI
                         Description = paymentType == PaymentType.Recurring ? 
                                     $"Monthly transportation fee - {dueDate:MMMM yyyy}" : 
                                     "One-time transportation service",
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 120)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 120))
                     });
                 }
 
@@ -510,8 +494,7 @@ namespace SchoolTransportationSystem.WebAPI
                         IsCompleted = isCompleted,
                         ServiceProvider = random.Next(100) < 70 ? "Al-Rashid Auto Service" : "Quick Fix Garage", // 70% use main provider
                         Notes = random.Next(100) < 30 ? "Additional parts required" : null, // 30% have notes
-                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 200)),
-                        CreatedBy = "System"
+                        CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 200))
                     });
                 }
 
