@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (isAccountLocked && lockoutEndTime) {
       interval = setInterval(() => {

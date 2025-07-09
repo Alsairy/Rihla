@@ -38,7 +38,7 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
     },
     {
       label: 'Contains special character (!@#$%^&*)',
-      test: (pwd: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd),
+      test: (pwd: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pwd),
       met: false,
     },
   ]);
@@ -66,7 +66,7 @@ export const PasswordComplexityIndicator: React.FC<PasswordComplexityIndicatorPr
 
     setStrength(newStrength);
     onValidationChange(allMet);
-  }, [password, onValidationChange]);
+  }, [password, onValidationChange, requirements]);
 
   const getStrengthColor = () => {
     switch (strength) {

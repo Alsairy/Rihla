@@ -3,7 +3,6 @@ import {
   Badge,
   IconButton,
   Menu,
-  MenuItem,
   Typography,
   Box,
   Divider,
@@ -92,7 +91,6 @@ const NotificationCenter: React.FC = () => {
         notifications.filter((n: Notification) => !n.isRead).length
       );
     } catch (error) {
-      console.error('Failed to load notifications:', error);
     }
   };
 
@@ -112,7 +110,6 @@ const NotificationCenter: React.FC = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
     }
   };
 
@@ -122,7 +119,6 @@ const NotificationCenter: React.FC = () => {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
     }
   };
 

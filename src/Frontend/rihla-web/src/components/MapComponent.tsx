@@ -122,7 +122,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   useEffect(() => {
     loadMapData();
-  }, []);
+  }, [showVehicles, showRoutes, showStudents]);
 
   const loadMapData = async () => {
     try {
@@ -158,7 +158,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
         setStudents(results[resultIndex] || []);
       }
     } catch (err) {
-      console.error('Failed to load map data:', err);
       setError('Failed to load map data. Please try again.');
     } finally {
       setLoading(false);
