@@ -66,10 +66,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
+  const login = async (_credentials: LoginRequest): Promise<LoginResponse> => {
     setLoading(true);
     try {
-      const response = await authService.login(credentials);
+      const response = await authService.login(_credentials);
 
       if (response.requiresMfa) {
         setLoading(false);
@@ -91,16 +91,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
       throw authError;
     } finally {
-      if (!credentials.mfaCode) {
+      if (!_credentials.mfaCode) {
         setLoading(false);
       }
     }
   };
 
-  const register = async (data: RegisterRequest) => {
+  const register = async (_data: RegisterRequest) => {
     setLoading(true);
     try {
-      const response = await authService.register(data);
+      const response = await authService.register(_data);
 
       if (response.user && response.token) {
         setUser(response.user);

@@ -17,27 +17,27 @@ export const PasswordComplexityIndicator: React.FC<
   const [requirements, setRequirements] = useState<PasswordRequirement[]>([
     {
       label: 'At least 12 characters',
-      test: (password: string) => password.length >= 12,
+      test: (_password: string) => _password.length >= 12,
       met: false,
     },
     {
       label: 'Contains uppercase letter (A-Z)',
-      test: (password: string) => /[A-Z]/.test(password),
+      test: (_password: string) => /[A-Z]/.test(_password),
       met: false,
     },
     {
       label: 'Contains lowercase letter (a-z)',
-      test: (password: string) => /[a-z]/.test(password),
+      test: (_password: string) => /[a-z]/.test(_password),
       met: false,
     },
     {
       label: 'Contains number (0-9)',
-      test: (password: string) => /[0-9]/.test(password),
+      test: (_password: string) => /[0-9]/.test(_password),
       met: false,
     },
     {
       label: 'Contains special character (!@#$%^&*)',
-      test: (password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+      test: (_password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(_password),
       met: false,
     },
   ]);
