@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 
 interface PasswordComplexityIndicatorProps {
   password: string;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onValidationChange: (isValid: boolean) => void;
+  onValidationChange: (_isValid: boolean) => void;
 }
 
 interface PasswordRequirement {
   label: string;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  test: (password: string) => boolean;
+  test: (_password: string) => boolean;
   met: boolean;
 }
 
