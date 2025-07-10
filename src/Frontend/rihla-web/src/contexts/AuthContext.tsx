@@ -16,8 +16,8 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (_credentials: LoginRequest) => Promise<LoginResponse>;
-  register: (_data: RegisterRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }

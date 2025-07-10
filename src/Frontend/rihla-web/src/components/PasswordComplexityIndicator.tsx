@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 
 interface PasswordComplexityIndicatorProps {
   password: string;
-  onValidationChange: (_isValid: boolean) => void;
+  onValidationChange: (isValid: boolean) => void;
 }
 
 interface PasswordRequirement {
   label: string;
-  test: (_password: string) => boolean;
+  test: (password: string) => boolean;
   met: boolean;
 }
 
