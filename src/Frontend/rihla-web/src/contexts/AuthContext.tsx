@@ -16,8 +16,10 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (_credentials: LoginRequest) => Promise<LoginResponse>;
-  register: (_data: RegisterRequest) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -66,10 +68,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (_credentials: LoginRequest): Promise<LoginResponse> => {
+  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
     setLoading(true);
     try {
-      const response = await authService.login(_credentials);
+      const response = await authService.login(credentials);
 
       if (response.requiresMfa) {
         setLoading(false);
@@ -91,16 +93,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
       throw authError;
     } finally {
-      if (!_credentials.mfaCode) {
+      if (!credentials.mfaCode) {
         setLoading(false);
       }
     }
   };
 
-  const register = async (_data: RegisterRequest) => {
+  const register = async (data: RegisterRequest) => {
     setLoading(true);
     try {
-      const response = await authService.register(_data);
+      const response = await authService.register(data);
 
       if (response.user && response.token) {
         setUser(response.user);

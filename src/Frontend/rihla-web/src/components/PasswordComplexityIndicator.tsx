@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 
 interface PasswordComplexityIndicatorProps {
   password: string;
-  onValidationChange: (_isValid: boolean) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onValidationChange: (isValid: boolean) => void;
 }
 
 interface PasswordRequirement {
   label: string;
-  test: (_password: string) => boolean;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  test: (password: string) => boolean;
   met: boolean;
 }
 
@@ -17,27 +19,27 @@ export const PasswordComplexityIndicator: React.FC<
   const [requirements, setRequirements] = useState<PasswordRequirement[]>([
     {
       label: 'At least 12 characters',
-      test: (_password: string) => _password.length >= 12,
+      test: (password: string) => password.length >= 12,
       met: false,
     },
     {
       label: 'Contains uppercase letter (A-Z)',
-      test: (_password: string) => /[A-Z]/.test(_password),
+      test: (password: string) => /[A-Z]/.test(password),
       met: false,
     },
     {
       label: 'Contains lowercase letter (a-z)',
-      test: (_password: string) => /[a-z]/.test(_password),
+      test: (password: string) => /[a-z]/.test(password),
       met: false,
     },
     {
       label: 'Contains number (0-9)',
-      test: (_password: string) => /[0-9]/.test(_password),
+      test: (password: string) => /[0-9]/.test(password),
       met: false,
     },
     {
       label: 'Contains special character (!@#$%^&*)',
-      test: (_password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(_password),
+      test: (password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
       met: false,
     },
   ]);
