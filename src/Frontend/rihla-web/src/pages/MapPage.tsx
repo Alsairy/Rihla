@@ -128,7 +128,7 @@ const MapPage: React.FC = () => {
         loadMapData();
       });
 
-      signalRService.onNotificationReceived((notification) => {
+      signalRService.onNotificationReceived(notification => {
         if (
           notification.type === 'VehicleLocationUpdate' ||
           notification.type === 'TripStatusChange'

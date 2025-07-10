@@ -59,7 +59,7 @@ const DriverInterface: React.FC = () => {
         console.error('Failed to fetch driver data:', error);
         setTrips([]);
         setVehicle(null);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };

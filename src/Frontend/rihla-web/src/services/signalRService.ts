@@ -69,7 +69,9 @@ class SignalRService {
     }
   }
 
-  onTripStatusUpdated(callback: (_tripId: string, _status: string) => void): void {
+  onTripStatusUpdated(
+    callback: (_tripId: string, _status: string) => void
+  ): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
