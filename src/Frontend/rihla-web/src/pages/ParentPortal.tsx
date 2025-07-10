@@ -29,7 +29,7 @@ import {
   Logout as LogoutIcon,
   History as HistoryIcon,
   ContactPhone as ContactPhoneIcon,
-  Edit as EditIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';

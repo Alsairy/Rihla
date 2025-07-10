@@ -74,31 +74,6 @@ const MapPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  const setupRealTimeUpdates = async () => {
-    if (!realTimeEnabled) return;
-
-    try {
-      await signalRService.startConnection();
-
-      signalRService.onTripStatusUpdated(() => {
-        loadMapData();
-      });
-
-      signalRService.onNotificationReceived(notification => {
-        if (
-          notification.type === 'VehicleLocationUpdate' ||
-          notification.type === 'TripStatusChange'
-        ) {
-          loadMapData();
-        }
-      });
-
-      signalRService.onEmergencyAlert(() => {
-        loadMapData();
-      });
-    } catch (error) {
-    }
-  };
 
   useEffect(() => {
     loadMapData();
@@ -122,6 +97,32 @@ const MapPage: React.FC = () => {
 
       setVehicles(vehiclesData);
       setRoutes(routesData);
+
+  const setupRealTimeUpdates = React.useCallback(async () => {
+    if (!realTimeEnabled) return;
+
+    try {
+      await signalRService.startConnection();
+
+      signalRService.onTripStatusUpdated(() => {
+        loadMapData();
+      });
+
+      signalRService.onNotificationReceived(notification => {
+        if (
+          notification.type === 'VehicleLocationUpdate' ||
+          notification.type === 'TripStatusChange'
+        ) {
+          loadMapData();
+        }
+      });
+
+      signalRService.onEmergencyAlert(() => {
+        loadMapData();
+      });
+    } catch (error) {
+    }
+  }, [realTimeEnabled, loadMapData]);
 
       const activeVehicles = vehiclesData.filter(
         v => v.status === 'Active' || v.status === 'InTransit'
