@@ -16,8 +16,8 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (credentials: LoginRequest) => Promise<LoginResponse>;
-  register: (userData: RegisterRequest) => Promise<void>;
+  login: (loginCredentials: LoginRequest) => Promise<LoginResponse>;
+  register: (registrationData: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem('rihla_user');
           localStorage.removeItem('rihla_token');
         }
-      } catch (error) {
+      } catch {
         setUser(null);
         localStorage.removeItem('rihla_user');
         localStorage.removeItem('rihla_token');
@@ -66,10 +66,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
+  const login = async (loginCredentials: LoginRequest): Promise<LoginResponse> => {
     setLoading(true);
     try {
-      const response = await authService.login(credentials);
+      const response = await authService.login(loginCredentials);
 
       if (response.requiresMfa) {
         setLoading(false);
@@ -84,23 +84,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         throw new Error('Invalid response from authentication service');
       }
-    } catch (error) {
+    } catch (authError) {
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
       setLoading(false);
-      throw error;
+      throw authError;
     } finally {
-      if (!credentials.mfaCode) {
+      if (!loginCredentials.mfaCode) {
         setLoading(false);
       }
     }
   };
 
-  const register = async (userData: RegisterRequest) => {
+  const register = async (registrationData: RegisterRequest) => {
     setLoading(true);
     try {
-      const response = await authService.register(userData);
+      const response = await authService.register(registrationData);
 
       if (response.user && response.token) {
         setUser(response.user);
@@ -109,11 +109,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         throw new Error('Invalid response from registration service');
       }
-    } catch (error) {
+    } catch (registrationError) {
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
-      throw error;
+      throw registrationError;
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
-    } catch (error) {
+    } catch {
       setUser(null);
       localStorage.removeItem('rihla_user');
       localStorage.removeItem('rihla_token');
