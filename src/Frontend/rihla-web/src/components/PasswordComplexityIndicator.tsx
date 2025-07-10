@@ -13,7 +13,7 @@ interface PasswordRequirement {
 
 export const PasswordComplexityIndicator: React.FC<
   PasswordComplexityIndicatorProps
-> = ({ password, onValidationChange }) => {
+> = ({ password: _password, onValidationChange: _onValidationChange }) => {
   const [requirements, setRequirements] = useState<PasswordRequirement[]>([
     {
       label: 'At least 12 characters',
@@ -49,7 +49,7 @@ export const PasswordComplexityIndicator: React.FC<
   useEffect(() => {
     const updatedRequirements = requirements.map(req => ({
       ...req,
-      met: req.test(password),
+      met: req.test(_password),
     }));
 
     setRequirements(updatedRequirements);
@@ -66,8 +66,8 @@ export const PasswordComplexityIndicator: React.FC<
     }
 
     setStrength(newStrength);
-    onValidationChange(allMet);
-  }, [password, onValidationChange, requirements]);
+    _onValidationChange(allMet);
+  }, [_password, _onValidationChange, requirements]);
 
   const getStrengthColor = () => {
     switch (strength) {
@@ -174,7 +174,7 @@ export const PasswordComplexityIndicator: React.FC<
       </div>
 
       {/* Additional Security Tips */}
-      {password.length > 0 && strength !== 'strong' && (
+      {_password.length > 0 && strength !== 'strong' && (
         <div
           style={{
             marginTop: '12px',
