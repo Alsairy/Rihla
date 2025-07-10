@@ -74,6 +74,32 @@ const MapPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
+  const setupRealTimeUpdates = async () => {
+    if (!realTimeEnabled) return;
+
+    try {
+      await signalRService.startConnection();
+
+      signalRService.onTripStatusUpdated(() => {
+        loadMapData();
+      });
+
+      signalRService.onNotificationReceived(notification => {
+        if (
+          notification.type === 'VehicleLocationUpdate' ||
+          notification.type === 'TripStatusChange'
+        ) {
+          loadMapData();
+        }
+      });
+
+      signalRService.onEmergencyAlert(() => {
+        loadMapData();
+      });
+    } catch (error) {
+    }
+  };
+
   useEffect(() => {
     loadMapData();
     setupRealTimeUpdates();
@@ -81,7 +107,7 @@ const MapPage: React.FC = () => {
     return () => {
       signalRService.stopConnection();
     };
-  }, []);
+  }, [setupRealTimeUpdates]);
 
   const loadMapData = async () => {
     try {
@@ -115,32 +141,6 @@ const MapPage: React.FC = () => {
       setError('Failed to load map data. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const setupRealTimeUpdates = async () => {
-    if (!realTimeEnabled) return;
-
-    try {
-      await signalRService.startConnection();
-
-      signalRService.onTripStatusUpdated(() => {
-        loadMapData();
-      });
-
-      signalRService.onNotificationReceived(notification => {
-        if (
-          notification.type === 'VehicleLocationUpdate' ||
-          notification.type === 'TripStatusChange'
-        ) {
-          loadMapData();
-        }
-      });
-
-      signalRService.onEmergencyAlert(() => {
-        loadMapData();
-      });
-    } catch (error) {
     }
   };
 
