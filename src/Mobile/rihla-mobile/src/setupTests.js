@@ -42,4 +42,13 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+jest.mock('react-native/Libraries/Settings/Settings', () => ({
+  get: jest.fn(),
+  set: jest.fn(),
+  watchKeys: jest.fn(),
+  clearWatch: jest.fn(),
+}));
+
+jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+
 global.__DEV__ = true;

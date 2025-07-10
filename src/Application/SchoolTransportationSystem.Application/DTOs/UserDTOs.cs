@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SchoolTransportationSystem.Application.Attributes;
 
 namespace SchoolTransportationSystem.Application.DTOs
 {
@@ -28,7 +29,7 @@ namespace SchoolTransportationSystem.Application.DTOs
         public string Email { get; set; } = string.Empty;
         
         [Required]
-        [MinLength(6)]
+        [PasswordComplexity]
         public string Password { get; set; } = string.Empty;
         
         [Required]
@@ -77,7 +78,7 @@ namespace SchoolTransportationSystem.Application.DTOs
         public string CurrentPassword { get; set; } = string.Empty;
         
         [Required]
-        [MinLength(6)]
+        [PasswordComplexity]
         public string NewPassword { get; set; } = string.Empty;
         
         [Required]

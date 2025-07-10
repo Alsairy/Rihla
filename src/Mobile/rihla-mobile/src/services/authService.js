@@ -14,45 +14,86 @@ class AuthService {
     }
   }
 
-  async login(credentials) {
+  async login(email, password) {
     try {
-      const response = await apiClient.post('/auth/login', credentials);
-      
-      if (response.data && response.data.success && response.data.data.token) {
-        const { token, refreshToken, user } = response.data.data;
-        this.setAuthToken(token);
-        
-        return {
-          success: true,
-          data: {
-            user: user,
-            token: token,
-            refreshToken: refreshToken
-          }
-        };
-      } else {
-        return {
-          success: false,
-          message: response.data?.message || 'Login failed'
-        };
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
       }
+
+      const data = await response.json();
+      this.setAuthToken(data.token);
+      
+      return data;
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Login failed'
-      };
+      throw error;
     }
   }
 
   async logout() {
     try {
-      await apiClient.post('/auth/logout');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       this.setAuthToken(null);
-      return { success: true };
     } catch (error) {
-      console.error('Logout error:', error);
       this.setAuthToken(null);
-      return { success: false };
+      throw error;
+    }
+  }
+
+  async register(userData) {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      this.setAuthToken(data.token);
+      
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCurrentUser() {
+    const AsyncStorage = require('@react-native-async-storage/async-storage');
+    try {
+      const userStr = await AsyncStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async isAuthenticated() {
+    const AsyncStorage = require('@react-native-async-storage/async-storage');
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      return !!token;
+    } catch (error) {
+      return false;
     }
   }
 }

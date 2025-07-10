@@ -103,9 +103,9 @@ dotnet run --urls "http://localhost:5000"
 
 ### **Frontend Setup**
 ```bash
-cd src/Frontend/school-transport-frontend
-npm install
-npm run dev
+cd src/Frontend/rihla-web
+npm install --legacy-peer-deps
+npm start
 ```
 
 ### **Database Migrations**

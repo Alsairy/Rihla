@@ -6,6 +6,7 @@ using System.Text;
 using SchoolTransportationSystem.Application.Interfaces;
 using SchoolTransportationSystem.Application.DTOs;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SchoolTransportationSystem.WebAPI.Controllers
 {
@@ -35,7 +36,9 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 }
 
                 var tenantId = "1"; // Default tenant for now
-                var authResult = await _userService.AuthenticateAsync(loginDto.Email, loginDto.Password, tenantId);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+                var authResult = await _userService.AuthenticateAsync(loginDto.Email, loginDto.Password, tenantId, ipAddress, userAgent);
                 
                 if (!authResult.IsSuccess)
                 {
@@ -173,6 +176,95 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+
+        [HttpPost("setup-mfa")]
+        [Authorize]
+        public async Task<ActionResult<object>> SetupMfa()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid user token" });
+                }
+
+                return Ok(new 
+                { 
+                    success = true, 
+                    message = "MFA setup endpoint ready - implementation pending MfaService",
+                    data = new 
+                    {
+                        qrCodeUrl = "placeholder-qr-code-url",
+                        secret = "placeholder-secret",
+                        backupCodes = new string[] { "backup1", "backup2", "backup3" }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting up MFA");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("verify-mfa")]
+        public async Task<ActionResult<object>> VerifyMfa([FromBody] VerifyMfaDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                return Ok(new 
+                { 
+                    success = true, 
+                    message = "MFA verification endpoint ready - implementation pending MfaService",
+                    data = new 
+                    {
+                        verified = false,
+                        token = "placeholder-token"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying MFA");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("disable-mfa")]
+        [Authorize]
+        public async Task<ActionResult<object>> DisableMfa([FromBody] DisableMfaDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid user token" });
+                }
+
+                return Ok(new 
+                { 
+                    success = true, 
+                    message = "MFA disable endpoint ready - implementation pending MfaService"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error disabling MFA");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
     }
 
     public class LoginDto
@@ -184,6 +276,19 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
     public class RefreshTokenDto
     {
         public string RefreshToken { get; set; } = string.Empty;
+    }
+
+    public class VerifyMfaDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public string? TempToken { get; set; }
+    }
+
+    public class DisableMfaDto
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string MfaCode { get; set; } = string.Empty;
     }
 }
 

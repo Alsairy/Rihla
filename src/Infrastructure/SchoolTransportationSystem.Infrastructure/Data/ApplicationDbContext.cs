@@ -22,6 +22,7 @@ namespace SchoolTransportationSystem.Infrastructure.Data
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,7 @@ namespace SchoolTransportationSystem.Infrastructure.Data
             ConfigureMaintenanceRecord(modelBuilder);
             ConfigureUser(modelBuilder);
             ConfigureNotification(modelBuilder);
+            ConfigureAuditLog(modelBuilder);
 
             // Configure relationships
             ConfigureRelationships(modelBuilder);
@@ -298,6 +300,29 @@ namespace SchoolTransportationSystem.Infrastructure.Data
                 entity.HasIndex(e => new { e.TenantId, e.Type });
                 entity.HasIndex(e => new { e.TenantId, e.Priority });
                 entity.HasIndex(e => e.CreatedAt);
+            });
+        }
+
+        private void ConfigureAuditLog(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId);
+                entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.IpAddress).HasMaxLength(45).IsRequired();
+                entity.Property(e => e.UserAgent).HasMaxLength(500);
+                entity.Property(e => e.Success).IsRequired();
+                entity.Property(e => e.Details);
+                entity.Property(e => e.Timestamp).IsRequired();
+                entity.Property(e => e.TenantId).HasMaxLength(50).IsRequired();
+
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.Action);
+                entity.HasIndex(e => e.Email);
+                entity.HasIndex(e => e.TenantId);
+                entity.HasIndex(e => e.Timestamp);
             });
         }
 

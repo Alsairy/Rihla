@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
@@ -15,6 +16,7 @@ using SchoolTransportationSystem.Core.Enums;
 using SchoolTransportationSystem.Core.ValueObjects;
 using SchoolTransportationSystem.WebAPI.Hubs;
 using SchoolTransportationSystem.WebAPI.Services;
+using SchoolTransportationSystem.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -157,7 +159,7 @@ if (azureAdEnabled && !string.IsNullOrEmpty(azureAdConfig["ClientId"]))
 }
 */
 
-// Configure Authorization with Role-Based Policies
+// Configure Authorization with Role-Based and Permission-Based Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -166,7 +168,48 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("DispatcherOrAbove", policy => policy.RequireRole("Admin", "Manager", "Dispatcher"));
     options.AddPolicy("DriverAccess", policy => policy.RequireRole("Admin", "Manager", "Dispatcher", "Driver"));
     options.AddPolicy("ParentAccess", policy => policy.RequireRole("Admin", "Manager", "Parent"));
+
+    options.AddPolicy("Permission:ManageUsers", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageUsers")));
+    options.AddPolicy("Permission:ViewUsers", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewUsers")));
+    options.AddPolicy("Permission:ManageDrivers", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageDrivers")));
+    options.AddPolicy("Permission:ViewDrivers", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewDrivers")));
+    options.AddPolicy("Permission:ManageVehicles", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageVehicles")));
+    options.AddPolicy("Permission:ViewVehicles", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewVehicles")));
+    options.AddPolicy("Permission:ManageRoutes", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageRoutes")));
+    options.AddPolicy("Permission:ViewRoutes", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewRoutes")));
+    options.AddPolicy("Permission:ManageTrips", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageTrips")));
+    options.AddPolicy("Permission:ViewTrips", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewTrips")));
+    options.AddPolicy("Permission:ManageAttendance", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageAttendance")));
+    options.AddPolicy("Permission:ViewAttendance", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewAttendance")));
+    options.AddPolicy("Permission:ManagePayments", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManagePayments")));
+    options.AddPolicy("Permission:ViewPayments", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewPayments")));
+    options.AddPolicy("Permission:ManageMaintenance", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageMaintenance")));
+    options.AddPolicy("Permission:ViewMaintenance", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewMaintenance")));
+    options.AddPolicy("Permission:ViewReports", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewReports")));
+    options.AddPolicy("Permission:ViewStudents", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ViewStudents")));
+    options.AddPolicy("Permission:ManageStudents", policy => 
+        policy.Requirements.Add(new SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirement("ManageStudents")));
 });
+
+builder.Services.AddScoped<IAuthorizationHandler, SchoolTransportationSystem.WebAPI.Attributes.PermissionRequirementHandler>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -207,9 +250,12 @@ builder.Services.AddHsts(options =>
     options.MaxAge = TimeSpan.FromDays(365);
 });
 
-// Configure Entity Framework
+// Configure Entity Framework with SQL Server for all environments
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=rihla.db"));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(connectionString);
+});
 
 
 builder.Services.AddScoped<IRouteService, RouteService>();
@@ -223,6 +269,9 @@ builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<SchoolTransportationSystem.Application.Interfaces.IAuditLogService, SchoolTransportationSystem.Application.Services.AuditLogService>();
+builder.Services.AddScoped<SchoolTransportationSystem.Application.Services.MfaService>();
+builder.Services.AddScoped<SchoolTransportationSystem.Application.Services.PasswordPolicyService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
@@ -279,6 +328,7 @@ app.UseRouting();
 app.UseRequestLocalization();
 
 app.UseAuthentication();
+app.UseMiddleware<SchoolTransportationSystem.WebAPI.Middleware.PermissionAuthorizationMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
@@ -296,6 +346,19 @@ app.MapGet("/test-db", async (ApplicationDbContext context) =>
     catch (Exception ex)
     {
         return $"Database error: {ex.Message}";
+    }
+});
+
+app.MapPost("/seed-db", async (ApplicationDbContext context) =>
+{
+    try
+    {
+        await DatabaseSeeder.SeedAsync(context);
+        return "Database seeded successfully!";
+    }
+    catch (Exception ex)
+    {
+        return $"Seeding error: {ex.Message}";
     }
 });
 

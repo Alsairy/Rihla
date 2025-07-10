@@ -57,15 +57,15 @@ dotnet run
 ```bash
 # Open a new terminal/command prompt
 # Navigate to frontend directory
-cd src/Frontend/school-transport-frontend
+cd src/Frontend/rihla-web
 
-# Install npm dependencies
-npm install
+# Install npm dependencies (use legacy peer deps for compatibility)
+npm install --legacy-peer-deps
 
 # Start the development server
-npm run dev
+npm start
 
-# Frontend will be available at: http://localhost:5173
+# Frontend will be available at: http://localhost:3000
 ```
 
 ### Step 4: Mobile App Installation & Setup (Optional)
@@ -112,11 +112,11 @@ Edit `src/WebAPI/SchoolTransportationSystem.WebAPI/appsettings.json`:
 ```
 
 ### Frontend Configuration
-Edit `src/Frontend/school-transport-frontend/.env`:
+Edit `src/Frontend/rihla-web/.env`:
 ```env
-VITE_API_BASE_URL=http://localhost:5078/api
-VITE_APP_NAME=Rihla School Transportation
-VITE_APP_VERSION=1.0.0
+REACT_APP_API_URL=http://localhost:5078/api
+REACT_APP_NAME=Rihla School Transportation
+REACT_APP_VERSION=1.0.0
 ```
 
 ### Mobile App Configuration
@@ -194,13 +194,13 @@ builder.Services.AddCors(options =>
 
 ### Frontend Production Build
 ```bash
-cd src/Frontend/school-transport-frontend
+cd src/Frontend/rihla-web
 
 # Create production build
 npm run build
 
 # The build folder will contain the production-ready files
-# Deploy the 'dist' folder to your web server
+# Deploy the 'build' folder to your web server
 ```
 
 ### Backend Production Deployment
@@ -287,7 +287,7 @@ curl http://localhost:5078/api/health
 ### 2. Frontend Verification
 ```bash
 # Check if frontend is accessible
-# Open browser: http://localhost:5173
+# Open browser: http://localhost:3000
 
 # Login with demo credentials:
 # Email: admin@rihla.sa

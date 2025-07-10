@@ -277,6 +277,66 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("my-children")]
+        public async Task<ActionResult<List<StudentDto>>> GetMyChildren()
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                if (!int.TryParse(userId, out int parentIdInt))
+                    return BadRequest("Invalid user ID format");
+
+                var students = await _context.Students
+                    .Where(s => !s.IsDeleted && s.ParentId == parentIdInt)
+                    .Select(s => new StudentDto
+                    {
+                        Id = s.Id,
+                        TenantId = s.TenantId,
+                        StudentNumber = s.StudentNumber,
+                        FirstName = s.FullName.FirstName,
+                        LastName = s.FullName.LastName,
+                        MiddleName = s.FullName.MiddleName,
+                        DateOfBirth = s.DateOfBirth,
+                        Grade = s.Grade,
+                        School = s.School,
+                        Street = s.Address.Street,
+                        City = s.Address.City,
+                        State = s.Address.State,
+                        ZipCode = s.Address.ZipCode,
+                        Country = s.Address.Country,
+                        Phone = s.Phone,
+                        Email = s.Email,
+                        ParentName = s.ParentName ?? "",
+                        ParentPhone = s.ParentPhone ?? "",
+                        ParentEmail = s.ParentEmail,
+                        EmergencyContact = s.EmergencyContact,
+                        EmergencyPhone = s.EmergencyPhone,
+                        Status = s.Status,
+                        EnrollmentDate = s.EnrollmentDate,
+                        SpecialNeeds = s.SpecialNeeds,
+                        MedicalConditions = s.MedicalConditions,
+                        Allergies = s.Allergies,
+                        Notes = s.Notes,
+                        RouteId = s.RouteId,
+                        CreatedAt = s.CreatedAt,
+                        UpdatedAt = s.UpdatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                _logger.LogError(ex, "Error retrieving children for parent {UserId}", currentUserId);
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
 

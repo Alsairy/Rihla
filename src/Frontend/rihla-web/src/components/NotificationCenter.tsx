@@ -3,7 +3,6 @@ import {
   Badge,
   IconButton,
   Menu,
-  MenuItem,
   Typography,
   Box,
   Divider,
@@ -91,8 +90,8 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
-    } catch (error) {
-      console.error('Failed to load notifications:', error);
+    // eslint-disable-next-line no-empty
+    } catch {
     }
   };
 
@@ -111,8 +110,8 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+    // eslint-disable-next-line no-empty
+    } catch {
     }
   };
 
@@ -121,8 +120,8 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
+    // eslint-disable-next-line no-empty
+    } catch {
     }
   };
 

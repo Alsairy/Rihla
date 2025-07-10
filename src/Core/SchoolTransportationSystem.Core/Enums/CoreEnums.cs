@@ -9,7 +9,8 @@ namespace SchoolTransportationSystem.Core.Enums
         Parent = 5,
         Student = 6,
         Dispatcher = 7,
-        Maintenance = 8
+        Maintenance = 8,
+        SafetyOfficer = 9
     }
 
     public enum StudentStatus

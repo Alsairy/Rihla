@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using SchoolTransportationSystem.Application.Interfaces;
 using SchoolTransportationSystem.Application.DTOs;
+using SchoolTransportationSystem.Infrastructure.Data;
+using SchoolTransportationSystem.Core.Enums;
 
 namespace SchoolTransportationSystem.WebAPI.Controllers
 {
@@ -11,10 +14,14 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
     public class TripsController : ControllerBase
     {
         private readonly ITripService _tripService;
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<TripsController> _logger;
 
-        public TripsController(ITripService tripService)
+        public TripsController(ITripService tripService, ApplicationDbContext context, ILogger<TripsController> logger)
         {
             _tripService = tripService;
+            _context = context;
+            _logger = logger;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TripDto>>> GetTrips([FromQuery] TripSearchDto searchDto)
@@ -138,6 +145,147 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error retrieving trip statistics", error = ex.Message });
+            }
+        }
+
+        [HttpGet("my-trips")]
+        public async Task<ActionResult<IEnumerable<TripDto>>> GetMyTrips()
+        {
+            try
+            {
+                var tenantId = "1";
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                if (!int.TryParse(userId, out int driverIdInt))
+                    return BadRequest("Invalid user ID format");
+
+                var trips = await _context.Trips
+                    .Where(t => !t.IsDeleted && t.TenantId == int.Parse(tenantId) && t.DriverId == driverIdInt)
+                    .Include(t => t.Route)
+                    .Include(t => t.Vehicle)
+                    .Select(t => new TripDto
+                    {
+                        Id = t.Id,
+                        RouteId = t.RouteId,
+                        VehicleId = t.VehicleId,
+                        DriverId = t.DriverId,
+                        Status = t.Status,
+                        ScheduledStartTime = t.ScheduledStartTime,
+                        ScheduledEndTime = t.ScheduledEndTime,
+                        ActualStartTime = t.ActualStartTime,
+                        ActualEndTime = t.ActualEndTime,
+                        Notes = t.Notes,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        TenantId = t.TenantId.ToString()
+                    })
+                    .ToListAsync();
+
+                return Ok(trips);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving driver trips for user {UserId}", User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                return StatusCode(500, new { message = "Error retrieving trips", error = ex.Message });
+            }
+        }
+
+        [HttpGet("my-children")]
+        public async Task<ActionResult<IEnumerable<TripDto>>> GetMyChildrenTrips()
+        {
+            try
+            {
+                var tenantId = "1";
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                if (!int.TryParse(userId, out int parentIdInt))
+                    return BadRequest("Invalid user ID format");
+
+                var trips = await _context.Trips
+                    .Where(t => !t.IsDeleted && t.TenantId == int.Parse(tenantId) && 
+                               t.Route.Students.Any(s => s.ParentId == parentIdInt))
+                    .Include(t => t.Route)
+                    .Include(t => t.Vehicle)
+                    .Select(t => new TripDto
+                    {
+                        Id = t.Id,
+                        RouteId = t.RouteId,
+                        VehicleId = t.VehicleId,
+                        DriverId = t.DriverId,
+                        Status = t.Status,
+                        ScheduledStartTime = t.ScheduledStartTime,
+                        ScheduledEndTime = t.ScheduledEndTime,
+                        ActualStartTime = t.ActualStartTime,
+                        ActualEndTime = t.ActualEndTime,
+                        Notes = t.Notes,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        TenantId = t.TenantId.ToString()
+                    })
+                    .ToListAsync();
+
+                return Ok(trips);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving children trips for parent {UserId}", User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                return StatusCode(500, new { message = "Error retrieving children trips", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/start")]
+        public async Task<IActionResult> StartTrip(int id)
+        {
+            try
+            {
+                var tenantId = "1";
+                var trip = await _context.Trips
+                    .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted && t.TenantId == int.Parse(tenantId));
+
+                if (trip == null)
+                    return NotFound();
+
+                trip.Status = TripStatus.InProgress;
+                trip.ActualStartTime = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Trip started successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting trip {TripId}", id);
+                return StatusCode(500, new { message = "Error starting trip", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/complete")]
+        public async Task<IActionResult> CompleteTrip(int id)
+        {
+            try
+            {
+                var tenantId = "1";
+                var trip = await _context.Trips
+                    .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted && t.TenantId == int.Parse(tenantId));
+
+                if (trip == null)
+                    return NotFound();
+
+                trip.Status = TripStatus.Completed;
+                trip.ActualEndTime = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Trip completed successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing trip {TripId}", id);
+                return StatusCode(500, new { message = "Error completing trip", error = ex.Message });
             }
         }
     }
