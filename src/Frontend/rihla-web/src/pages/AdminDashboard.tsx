@@ -26,7 +26,6 @@ import {
   People as PeopleIcon,
   DirectionsCar as CarIcon,
   Route as RouteIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   School as SchoolIcon,
