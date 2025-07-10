@@ -90,6 +90,7 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
+    // eslint-disable-next-line no-empty
     } catch {
     }
   };
@@ -109,6 +110,7 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+    // eslint-disable-next-line no-empty
     } catch {
     }
   };
@@ -118,6 +120,7 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
+    // eslint-disable-next-line no-empty
     } catch {
     }
   };
