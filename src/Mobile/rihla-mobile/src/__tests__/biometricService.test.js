@@ -1,15 +1,5 @@
 import { biometricService } from '../services/biometricService';
 
-jest.mock('expo-local-authentication', () => ({
-  hasHardwareAsync: jest.fn(),
-  isEnrolledAsync: jest.fn(),
-  authenticateAsync: jest.fn(),
-  AuthenticationType: {
-    FINGERPRINT: 1,
-    FACIAL_RECOGNITION: 2,
-  },
-}));
-
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),

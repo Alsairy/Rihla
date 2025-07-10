@@ -141,7 +141,6 @@ const MapPage: React.FC = () => {
         loadMapData();
       });
     } catch (error) {
-      console.error('Failed to setup real-time updates:', error);
     }
   };
 

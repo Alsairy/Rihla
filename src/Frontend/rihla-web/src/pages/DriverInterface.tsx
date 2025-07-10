@@ -56,10 +56,9 @@ const DriverInterface: React.FC = () => {
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
         setVehicle(vehicleResponse);
       } catch (error) {
-        console.error('Failed to fetch driver data:', error);
         setTrips([]);
         setVehicle(null);
-      } finally {
+      }finally {
         setLoading(false);
       }
     };
@@ -77,7 +76,6 @@ const DriverInterface: React.FC = () => {
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
-      console.error('Failed to start trip:', error);
     }
   };
 
@@ -87,7 +85,6 @@ const DriverInterface: React.FC = () => {
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
-      console.error('Failed to complete trip:', error);
     }
   };
 
