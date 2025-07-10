@@ -75,15 +75,6 @@ const MapPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
 
-  useEffect(() => {
-    loadMapData();
-    setupRealTimeUpdates();
-
-    return () => {
-      signalRService.stopConnection();
-    };
-  }, [setupRealTimeUpdates]);
-
   const loadMapData = async () => {
     try {
       setLoading(true);
@@ -97,6 +88,27 @@ const MapPage: React.FC = () => {
 
       setVehicles(vehiclesData);
       setRoutes(routesData);
+
+      const activeVehicles = vehiclesData.filter(
+        v => v.status === 'Active' || v.status === 'InTransit'
+      ).length;
+      const activeRoutes = routesData.filter(r => r.vehicleId).length;
+
+      setMapStats({
+        totalVehicles: vehiclesData.length,
+        activeVehicles,
+        totalRoutes: routesData.length,
+        activeRoutes,
+        totalStudents: dashboardData.totalStudents || 0,
+      });
+
+      setLastUpdate(new Date());
+    } catch {
+      setError('Failed to load map data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const setupRealTimeUpdates = React.useCallback(async () => {
     if (!realTimeEnabled) return;
@@ -124,26 +136,16 @@ const MapPage: React.FC = () => {
     }
   }, [realTimeEnabled, loadMapData]);
 
-      const activeVehicles = vehiclesData.filter(
-        v => v.status === 'Active' || v.status === 'InTransit'
-      ).length;
-      const activeRoutes = routesData.filter(r => r.vehicleId).length;
+  useEffect(() => {
+    loadMapData();
+    setupRealTimeUpdates();
 
-      setMapStats({
-        totalVehicles: vehiclesData.length,
-        activeVehicles,
-        totalRoutes: routesData.length,
-        activeRoutes,
-        totalStudents: dashboardData.totalStudents || 0,
-      });
+    return () => {
+      signalRService.stopConnection();
+    };
+  }, [setupRealTimeUpdates]);
 
-      setLastUpdate(new Date());
-    } catch {
-      setError('Failed to load map data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleRefresh = () => {
     loadMapData();
