@@ -66,7 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (loginCredentials: LoginRequest): Promise<LoginResponse> => {
+  const login = async (
+    loginCredentials: LoginRequest
+  ): Promise<LoginResponse> => {
     setLoading(true);
     try {
       const response = await authService.login(loginCredentials);
