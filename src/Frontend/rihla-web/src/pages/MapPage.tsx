@@ -74,7 +74,6 @@ const MapPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-
   const loadMapData = async () => {
     try {
       setLoading(true);
@@ -132,8 +131,7 @@ const MapPage: React.FC = () => {
       signalRService.onEmergencyAlert(() => {
         loadMapData();
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   }, [realTimeEnabled, loadMapData]);
 
   useEffect(() => {
@@ -144,8 +142,6 @@ const MapPage: React.FC = () => {
       signalRService.stopConnection();
     };
   }, [setupRealTimeUpdates]);
-
-
 
   const handleRefresh = () => {
     loadMapData();

@@ -66,7 +66,7 @@ class AuthService {
     try {
       await apiClient.post('/api/auth/logout');
     } catch (error) {
-          } finally {
+    } finally {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
