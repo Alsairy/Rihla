@@ -90,8 +90,7 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
-    } catch {
-    }
+    } catch {}
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -109,8 +108,7 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch {
-    }
+    } catch {}
   };
 
   const markAllAsRead = async () => {
@@ -118,8 +116,7 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch {
-    }
+    } catch {}
   };
 
   const getNotificationIcon = (type: string) => {
