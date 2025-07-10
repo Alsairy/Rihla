@@ -131,7 +131,8 @@ const MapPage: React.FC = () => {
       signalRService.onEmergencyAlert(() => {
         loadMapData();
       });
-    } catch (error) {}
+    } catch {
+    }
   }, [realTimeEnabled, loadMapData]);
 
   useEffect(() => {

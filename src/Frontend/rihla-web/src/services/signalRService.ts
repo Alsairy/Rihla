@@ -39,7 +39,7 @@ class SignalRService {
           );
         }
       }
-    } catch (error) {
+    } catch {
       this.isConnected = false;
       this.connection = null;
     }
@@ -49,7 +49,7 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
-      } catch (error) {
+      } catch {
       } finally {
         this.isConnected = false;
         this.connection = null;
@@ -57,29 +57,32 @@ class SignalRService {
     }
   }
 
-  onNotificationReceived(callback: (_notification: any) => void): void {
+  onNotificationReceived(callback: (notification: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('ReceiveNotification', callback);
-      } catch (error) {}
+      } catch {
+      }
     }
   }
 
   onTripStatusUpdated(
-    callback: (_tripId: string, _status: string) => void
+    callback: (tripId: string, status: string) => void
   ): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
-      } catch (error) {}
+      } catch {
+      }
     }
   }
 
-  onEmergencyAlert(callback: (_alert: any) => void): void {
+  onEmergencyAlert(callback: (alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('EmergencyAlert', callback);
-      } catch (error) {}
+      } catch {
+      }
     }
   }
 
@@ -87,7 +90,8 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('JoinTripGroup', tripId);
-      } catch (error) {}
+      } catch {
+      }
     }
   }
 
@@ -95,7 +99,8 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
-      } catch (error) {}
+      } catch {
+      }
     }
   }
 

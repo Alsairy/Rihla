@@ -55,7 +55,7 @@ const DriverInterface: React.FC = () => {
 
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
         setVehicle(vehicleResponse);
-      } catch (error) {
+      } catch {
         setTrips([]);
         setVehicle(null);
       } finally {
@@ -75,7 +75,8 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/start`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
-    } catch (error) {}
+    } catch {
+    }
   };
 
   const handleCompleteTrip = async (tripId: number) => {
@@ -83,7 +84,8 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/complete`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
-    } catch (error) {}
+    } catch {
+    }
   };
 
   const getStatusColor = (status: string) => {
