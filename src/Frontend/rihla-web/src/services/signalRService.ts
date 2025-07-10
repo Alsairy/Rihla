@@ -40,8 +40,7 @@ class SignalRService {
         }
       }
     } catch (error) {
-      console.error('Failed to start SignalR connection:', error);
-      this.isConnected = false;
+            this.isConnected = false;
       this.connection = null;
     }
   }
@@ -51,8 +50,7 @@ class SignalRService {
       try {
         await this.connection.stop();
       } catch (error) {
-        console.error('Failed to stop SignalR connection:', error);
-      } finally {
+              } finally {
         this.isConnected = false;
         this.connection = null;
       }
@@ -64,8 +62,7 @@ class SignalRService {
       try {
         this.connection.on('ReceiveNotification', callback);
       } catch (error) {
-        console.error('Failed to register notification callback:', error);
-      }
+              }
     }
   }
 
@@ -76,8 +73,7 @@ class SignalRService {
       try {
         this.connection.on('TripStatusUpdated', callback);
       } catch (error) {
-        console.error('Failed to register trip status callback:', error);
-      }
+              }
     }
   }
 
@@ -86,8 +82,7 @@ class SignalRService {
       try {
         this.connection.on('EmergencyAlert', callback);
       } catch (error) {
-        console.error('Failed to register emergency alert callback:', error);
-      }
+              }
     }
   }
 
@@ -96,8 +91,7 @@ class SignalRService {
       try {
         await this.connection.invoke('JoinTripGroup', tripId);
       } catch (error) {
-        console.error('Failed to join trip group:', error);
-      }
+              }
     }
   }
 
@@ -106,8 +100,7 @@ class SignalRService {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
       } catch (error) {
-        console.error('Failed to leave trip group:', error);
-      }
+              }
     }
   }
 

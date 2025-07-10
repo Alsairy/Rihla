@@ -25,7 +25,6 @@ import {
   LocationOn as LocationIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   History as HistoryIcon,
@@ -53,9 +52,7 @@ const ParentPortal: React.FC = () => {
 
         setStudents(Array.isArray(studentsResponse) ? studentsResponse : []);
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
-      } catch (error) {
-        console.error('Error fetching parent data:', error);
-
+      } catch {
         setStudents([]);
 
         setTrips([]);

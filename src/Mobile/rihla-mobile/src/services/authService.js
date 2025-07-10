@@ -50,7 +50,6 @@ class AuthService {
       this.setAuthToken(null);
       return { success: true };
     } catch (error) {
-      console.error('Logout error:', error);
       this.setAuthToken(null);
       return { success: false };
     }
