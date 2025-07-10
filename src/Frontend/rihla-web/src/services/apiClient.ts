@@ -31,7 +31,9 @@ class ApiClient {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
-      } catch {}
+      } catch (error) {
+        console.error('Failed to parse error response:', error);
+      }
 
       throw new Error(errorMessage);
     }

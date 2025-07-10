@@ -437,7 +437,7 @@ class MockDataService {
     });
   }
 
-  deleteStudent(id: number): Promise<void> {
+  deleteStudent(_id: number): Promise<void> {
     return Promise.resolve();
   }
 
@@ -464,7 +464,7 @@ class MockDataService {
 
   login(
     email: string,
-    password: string
+    _password: string
   ): Promise<{ user: User; token: string }> {
     const mockUsers = [
       {
@@ -502,7 +502,7 @@ class MockDataService {
   }
 
   getVehicleLocation(
-    vehicleId: number
+    _vehicleId: number
   ): Promise<{ lat: number; lng: number; timestamp: string }> {
     return Promise.resolve({
       lat: 24.7136 + (Math.random() - 0.5) * 0.1,

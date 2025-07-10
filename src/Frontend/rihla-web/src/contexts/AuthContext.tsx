@@ -16,8 +16,8 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (loginCredentials: LoginRequest) => Promise<LoginResponse>;
-  register: (registrationData: RegisterRequest) => Promise<void>;
+  login: (_credentials: LoginRequest) => Promise<LoginResponse>;
+  register: (_data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -67,11 +67,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (
-    loginCredentials: LoginRequest
+    credentials: LoginRequest
   ): Promise<LoginResponse> => {
     setLoading(true);
     try {
-      const response = await authService.login(loginCredentials);
+      const response = await authService.login(credentials);
 
       if (response.requiresMfa) {
         setLoading(false);
@@ -93,16 +93,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
       throw authError;
     } finally {
-      if (!loginCredentials.mfaCode) {
+      if (!credentials.mfaCode) {
         setLoading(false);
       }
     }
   };
 
-  const register = async (registrationData: RegisterRequest) => {
+  const register = async (data: RegisterRequest) => {
     setLoading(true);
     try {
-      const response = await authService.register(registrationData);
+      const response = await authService.register(data);
 
       if (response.user && response.token) {
         setUser(response.user);

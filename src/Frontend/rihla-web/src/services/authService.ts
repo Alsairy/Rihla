@@ -66,7 +66,7 @@ class AuthService {
     try {
       await apiClient.post('/api/auth/logout');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Failed to logout from server:', error);
     } finally {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');

@@ -111,8 +111,7 @@ const MapPage: React.FC = () => {
       });
 
       setLastUpdate(new Date());
-    } catch (err) {
-      console.error('Failed to load map data:', err);
+    } catch {
       setError('Failed to load map data. Please try again.');
     } finally {
       setLoading(false);
@@ -125,12 +124,11 @@ const MapPage: React.FC = () => {
     try {
       await signalRService.startConnection();
 
-      signalRService.onTripStatusUpdated((tripId: string, status: string) => {
-        console.log('Trip status updated:', tripId, status);
+      signalRService.onTripStatusUpdated(() => {
         loadMapData();
       });
 
-      signalRService.onNotificationReceived((notification: any) => {
+      signalRService.onNotificationReceived((notification) => {
         if (
           notification.type === 'VehicleLocationUpdate' ||
           notification.type === 'TripStatusChange'
@@ -139,12 +137,11 @@ const MapPage: React.FC = () => {
         }
       });
 
-      signalRService.onEmergencyAlert((alert: any) => {
-        console.log('Emergency alert received:', alert);
+      signalRService.onEmergencyAlert(() => {
         loadMapData();
       });
-    } catch (err) {
-      console.error('Failed to setup real-time updates:', err);
+    } catch (error) {
+      console.error('Failed to setup real-time updates:', error);
     }
   };
 

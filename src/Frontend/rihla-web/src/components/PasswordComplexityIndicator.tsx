@@ -7,7 +7,7 @@ interface PasswordComplexityIndicatorProps {
 
 interface PasswordRequirement {
   label: string;
-  test: (_password: string) => boolean;
+  test: (_pwd: string) => boolean;
   met: boolean;
 }
 

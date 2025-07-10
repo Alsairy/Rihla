@@ -19,7 +19,6 @@ import {
   Divider,
   CircularProgress,
   Tooltip,
-  Badge,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -27,7 +26,6 @@ import {
   DirectionsCar as CarIcon,
   DirectionsBus as BusIcon,
   Schedule as ScheduleIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   Today as TodayIcon,
@@ -46,7 +44,6 @@ const DriverInterface: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState(0);
 
   useEffect(() => {
     const fetchDriverData = async () => {
@@ -59,11 +56,10 @@ const DriverInterface: React.FC = () => {
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
         setVehicle(vehicleResponse);
       } catch (error) {
-        console.error('Error fetching driver data:', error);
-
+        console.error('Failed to fetch driver data:', error);
         setTrips([]);
         setVehicle(null);
-      } finally {
+      }finally {
         setLoading(false);
       }
     };
@@ -81,7 +77,7 @@ const DriverInterface: React.FC = () => {
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
-      console.error('Error starting trip:', error);
+      console.error('Failed to start trip:', error);
     }
   };
 
@@ -91,7 +87,7 @@ const DriverInterface: React.FC = () => {
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
     } catch (error) {
-      console.error('Error completing trip:', error);
+      console.error('Failed to complete trip:', error);
     }
   };
 

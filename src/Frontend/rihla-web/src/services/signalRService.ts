@@ -39,7 +39,8 @@ class SignalRService {
           );
         }
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to start SignalR connection:', error);
       this.isConnected = false;
       this.connection = null;
     }
@@ -49,7 +50,8 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
-      } catch (err) {
+      } catch (error) {
+        console.error('Failed to stop SignalR connection:', error);
       } finally {
         this.isConnected = false;
         this.connection = null;
@@ -57,29 +59,33 @@ class SignalRService {
     }
   }
 
-  onNotificationReceived(callback: (notification: any) => void): void {
+  onNotificationReceived(callback: (_notification: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('ReceiveNotification', callback);
-      } catch (err) {}
+      } catch (error) {
+        console.error('Failed to register notification callback:', error);
+      }
     }
   }
 
-  onTripStatusUpdated(
-    callback: (tripId: string, status: string) => void
-  ): void {
+  onTripStatusUpdated(callback: (_tripId: string, _status: string) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
-      } catch (err) {}
+      } catch (error) {
+        console.error('Failed to register trip status callback:', error);
+      }
     }
   }
 
-  onEmergencyAlert(callback: (alert: any) => void): void {
+  onEmergencyAlert(callback: (_alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('EmergencyAlert', callback);
-      } catch (err) {}
+      } catch (error) {
+        console.error('Failed to register emergency alert callback:', error);
+      }
     }
   }
 
@@ -87,7 +93,9 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('JoinTripGroup', tripId);
-      } catch (err) {}
+      } catch (error) {
+        console.error('Failed to join trip group:', error);
+      }
     }
   }
 
@@ -95,7 +103,9 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
-      } catch (err) {}
+      } catch (error) {
+        console.error('Failed to leave trip group:', error);
+      }
     }
   }
 
