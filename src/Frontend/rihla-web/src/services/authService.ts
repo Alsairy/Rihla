@@ -4,12 +4,16 @@ import { User } from '../types';
 export interface LoginRequest {
   email: string;
   password: string;
+  mfaCode?: string;
+  mfaToken?: string;
 }
 
 export interface LoginResponse {
   token: string;
   refreshToken: string;
   user: User;
+  requiresMfa?: boolean;
+  mfaToken?: string;
 }
 
 export interface RegisterRequest {
@@ -27,11 +31,17 @@ class AuthService {
       message: string;
     }>('/api/auth/login', credentials);
 
-    if (response.success && response.data && response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      return response.data;
+    if (response.success && response.data) {
+      if (response.data.requiresMfa) {
+        return response.data;
+      }
+
+      if (response.data.token) {
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        return response.data;
+      }
     }
 
     throw new Error(response.message || 'Login failed');
@@ -55,8 +65,7 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       await apiClient.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
     } finally {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');

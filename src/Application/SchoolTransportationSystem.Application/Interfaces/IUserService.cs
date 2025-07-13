@@ -6,7 +6,7 @@ namespace SchoolTransportationSystem.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<Result<User>> AuthenticateAsync(string email, string password, string tenantId);
+        Task<Result<User>> AuthenticateAsync(string email, string password, string tenantId, string ipAddress, string userAgent);
         Task<Result<User>> GetByIdAsync(int id, string tenantId);
         Task<Result<User>> GetByEmailAsync(string email, string tenantId);
         Task<Result<User>> CreateAsync(CreateUserDto createDto, string tenantId);

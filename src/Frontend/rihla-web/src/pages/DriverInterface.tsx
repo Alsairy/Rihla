@@ -19,7 +19,6 @@ import {
   Divider,
   CircularProgress,
   Tooltip,
-  Badge,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -27,7 +26,6 @@ import {
   DirectionsCar as CarIcon,
   DirectionsBus as BusIcon,
   Schedule as ScheduleIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   Today as TodayIcon,
@@ -46,7 +44,6 @@ const DriverInterface: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState(0);
 
   useEffect(() => {
     const fetchDriverData = async () => {
@@ -58,9 +55,7 @@ const DriverInterface: React.FC = () => {
 
         setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
         setVehicle(vehicleResponse);
-      } catch (error) {
-        console.error('Error fetching driver data:', error);
-
+      } catch {
         setTrips([]);
         setVehicle(null);
       } finally {
@@ -80,20 +75,7 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/start`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
-    } catch (error) {
-      console.error('Error starting trip:', error);
-      setTrips(prevTrips =>
-        prevTrips.map(trip =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                status: 'In Progress',
-                actualStartTime: new Date().toISOString(),
-              }
-            : trip
-        )
-      );
-    }
+    } catch {}
   };
 
   const handleCompleteTrip = async (tripId: number) => {
@@ -101,20 +83,7 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/complete`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
-    } catch (error) {
-      console.error('Error completing trip:', error);
-      setTrips(prevTrips =>
-        prevTrips.map(trip =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                status: 'Completed',
-                actualEndTime: new Date().toISOString(),
-              }
-            : trip
-        )
-      );
-    }
+    } catch {}
   };
 
   const getStatusColor = (status: string) => {

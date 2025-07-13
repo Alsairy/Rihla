@@ -18,30 +18,47 @@ namespace SchoolTransportationSystem.Application.Services
             _context = context;
         }
 
-        public async Task<Result<User>> AuthenticateAsync(string email, string password, string tenantId)
+        public async Task<Result<User>> AuthenticateAsync(string email, string password, string tenantId, string ipAddress, string userAgent)
         {
             try
             {
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId && u.IsActive);
+                    .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId);
 
-                if (user == null)
+                if (user?.AccountLockedUntil.HasValue == true && user.AccountLockedUntil > DateTime.UtcNow)
                 {
+                    await LogAuditEvent(user.Id, email, "Login", ipAddress, userAgent, false, "Account locked");
+                    return Result<User>.Failure("Account is locked. Please try again later or contact administrator.");
+                }
+
+                if (user == null || !user.IsActive || !VerifyPassword(password, user.PasswordHash, user.Salt))
+                {
+                    if (user != null)
+                    {
+                        user.FailedLoginAttempts++;
+                        if (user.FailedLoginAttempts >= 5)
+                        {
+                            user.AccountLockedUntil = DateTime.UtcNow.AddMinutes(30);
+                        }
+                        await _context.SaveChangesAsync();
+                    }
+                    
+                    await LogAuditEvent(user?.Id, email, "Login", ipAddress, userAgent, false, "Invalid credentials");
                     return Result<User>.Failure("Invalid email or password");
                 }
 
-                if (!VerifyPassword(password, user.PasswordHash, user.Salt))
-                {
-                    return Result<User>.Failure("Invalid email or password");
-                }
-
+                user.FailedLoginAttempts = 0;
+                user.AccountLockedUntil = null;
                 user.LastLoginAt = DateTime.UtcNow;
+                
+                await LogAuditEvent(user.Id, email, "Login", ipAddress, userAgent, true, "Successful login");
                 await _context.SaveChangesAsync();
 
                 return Result<User>.Success(user);
             }
             catch (Exception ex)
             {
+                await LogAuditEvent(null, email, "Login", ipAddress, userAgent, false, $"Authentication error: {ex.Message}");
                 return Result<User>.Failure($"Authentication failed: {ex.Message}");
             }
         }
@@ -308,6 +325,32 @@ namespace SchoolTransportationSystem.Application.Services
             var computedHash = Convert.ToBase64String(pbkdf2.GetBytes(32));
 
             return computedHash == hash;
+        }
+
+        private async Task LogAuditEvent(int? userId, string email, string action, string ipAddress, string userAgent, bool success, string details)
+        {
+            try
+            {
+                var auditLog = new SchoolTransportationSystem.Core.Entities.AuditLog
+                {
+                    UserId = userId,
+                    Email = email,
+                    Action = action,
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Success = success,
+                    Details = details,
+                    Timestamp = DateTime.UtcNow,
+                    TenantId = "default" // TODO: Get from context
+                };
+
+                _context.Set<SchoolTransportationSystem.Core.Entities.AuditLog>().Add(auditLog);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Audit logging failed: {ex.Message}");
+            }
         }
     }
 }

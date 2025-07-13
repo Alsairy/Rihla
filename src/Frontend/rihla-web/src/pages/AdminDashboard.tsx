@@ -26,7 +26,6 @@ import {
   People as PeopleIcon,
   DirectionsCar as CarIcon,
   Route as RouteIcon,
-  Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   School as SchoolIcon,
@@ -75,9 +74,7 @@ const AdminDashboard: React.FC = () => {
         setVehicles(
           Array.isArray(vehiclesResponse?.data) ? vehiclesResponse.data : []
         );
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-
+      } catch {
         setStats(null);
         setStudents([]);
         setDrivers([]);
