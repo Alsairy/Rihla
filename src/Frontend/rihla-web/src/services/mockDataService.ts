@@ -12,7 +12,6 @@ import {
   DashboardStats,
 } from '../types';
 
- 
 // eslint-disable-next-line no-unused-vars
 class MockDataService {
   private generateId(): number {
@@ -464,9 +463,7 @@ class MockDataService {
     return Promise.resolve(newDriver);
   }
 
-  login(
-    email: string
-  ): Promise<{ user: User; token: string }> {
+  login(email: string): Promise<{ user: User; token: string }> {
     const mockUsers = [
       {
         id: 1,
@@ -502,7 +499,11 @@ class MockDataService {
     return Promise.reject(new Error('Invalid credentials'));
   }
 
-  getVehicleLocation(): Promise<{ lat: number; lng: number; timestamp: string }> {
+  getVehicleLocation(): Promise<{
+    lat: number;
+    lng: number;
+    timestamp: string;
+  }> {
     return Promise.resolve({
       lat: 24.7136 + (Math.random() - 0.5) * 0.1,
       lng: 46.6753 + (Math.random() - 0.5) * 0.1,

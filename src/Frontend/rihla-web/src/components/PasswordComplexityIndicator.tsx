@@ -39,7 +39,8 @@ export const PasswordComplexityIndicator: React.FC<
     },
     {
       label: 'Contains special character (!@#$%^&*)',
-      test: (password: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+      test: (password: string) =>
+        /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
       met: false,
     },
   ]);
