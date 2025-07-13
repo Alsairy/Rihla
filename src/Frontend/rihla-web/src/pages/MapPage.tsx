@@ -74,7 +74,7 @@ const MapPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  const loadMapData = async () => {
+  const loadMapData = React.useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -107,7 +107,7 @@ const MapPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const setupRealTimeUpdates = React.useCallback(async () => {
     if (!realTimeEnabled) return;
