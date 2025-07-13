@@ -141,7 +141,7 @@ const MapPage: React.FC = () => {
     return () => {
       signalRService.stopConnection();
     };
-  }, [setupRealTimeUpdates]);
+  }, [loadMapData, setupRealTimeUpdates]);
 
   const handleRefresh = () => {
     loadMapData();
