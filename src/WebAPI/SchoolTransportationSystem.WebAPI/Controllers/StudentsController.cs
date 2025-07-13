@@ -5,6 +5,7 @@ using SchoolTransportationSystem.Core.Entities;
 using SchoolTransportationSystem.Application.DTOs;
 using SchoolTransportationSystem.Core.ValueObjects;
 using SchoolTransportationSystem.Core.Enums;
+using SchoolTransportationSystem.Application.Interfaces;
 
 namespace SchoolTransportationSystem.WebAPI.Controllers
 {
@@ -14,11 +15,13 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<StudentsController> _logger;
+        private readonly IStudentService _studentService;
 
-        public StudentsController(ApplicationDbContext context, ILogger<StudentsController> logger)
+        public StudentsController(ApplicationDbContext context, ILogger<StudentsController> logger, IStudentService studentService)
         {
             _context = context;
             _logger = logger;
+            _studentService = studentService;
         }
 
         [HttpGet]
@@ -133,70 +136,15 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
         {
             try
             {
-                var student = new Student
+                var tenantId = "1"; // Use default tenant ID for now
+                var result = await _studentService.CreateAsync(createDto, tenantId);
+
+                if (!result.IsSuccess)
                 {
-                    TenantId = 1, // Use default tenant ID for now
-                    StudentNumber = createDto.StudentNumber,
-                    FullName = new FullName(createDto.FirstName, createDto.LastName, createDto.MiddleName),
-                    DateOfBirth = createDto.DateOfBirth,
-                    Grade = createDto.Grade,
-                    School = createDto.School,
-                    Address = new Address(createDto.Street, createDto.City, createDto.State, createDto.ZipCode, createDto.Country),
-                    Phone = createDto.Phone ?? "",
-                    Email = createDto.Email ?? "",
-                    ParentName = createDto.ParentName,
-                    ParentPhone = createDto.ParentPhone,
-                    ParentEmail = createDto.ParentEmail,
-                    EmergencyContact = createDto.EmergencyContact,
-                    EmergencyPhone = createDto.EmergencyPhone,
-                    Status = createDto.Status,
-                    EnrollmentDate = createDto.EnrollmentDate,
-                    SpecialNeeds = createDto.SpecialNeeds,
-                    MedicalConditions = createDto.MedicalConditions,
-                    Allergies = createDto.Allergies,
-                    Notes = createDto.Notes,
-                    RouteId = createDto.RouteId,
-                    CreatedAt = DateTime.UtcNow
-                };
+                    return BadRequest(result.Error);
+                }
 
-                _context.Students.Add(student);
-                await _context.SaveChangesAsync();
-
-                var studentDto = new StudentDto
-                {
-                    Id = student.Id,
-                    TenantId = student.TenantId,
-                    StudentNumber = student.StudentNumber,
-                    FirstName = student.FullName.FirstName,
-                    LastName = student.FullName.LastName,
-                    MiddleName = student.FullName.MiddleName,
-                    DateOfBirth = student.DateOfBirth,
-                    Grade = student.Grade,
-                    School = student.School,
-                    Street = student.Address.Street,
-                    City = student.Address.City,
-                    State = student.Address.State,
-                    ZipCode = student.Address.ZipCode,
-                    Country = student.Address.Country,
-                    Phone = student.Phone,
-                    Email = student.Email,
-                    ParentName = student.ParentName ?? "",
-                    ParentPhone = student.ParentPhone ?? "",
-                    ParentEmail = student.ParentEmail,
-                    EmergencyContact = student.EmergencyContact,
-                    EmergencyPhone = student.EmergencyPhone,
-                    Status = student.Status,
-                    EnrollmentDate = student.EnrollmentDate,
-                    SpecialNeeds = student.SpecialNeeds,
-                    MedicalConditions = student.MedicalConditions,
-                    Allergies = student.Allergies,
-                    Notes = student.Notes,
-                    RouteId = student.RouteId,
-                    CreatedAt = student.CreatedAt,
-                    UpdatedAt = student.UpdatedAt
-                };
-
-                return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, studentDto);
+                return CreatedAtAction(nameof(GetStudent), new { id = result.Value.Id }, result.Value);
             }
             catch (Exception ex)
             {

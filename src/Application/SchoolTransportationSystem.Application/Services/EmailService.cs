@@ -122,6 +122,61 @@ namespace SchoolTransportationSystem.Application.Services
             await SendEmailAsync(driverEmail, subject, body, true);
         }
 
+        public async Task SendParentAccountCreatedAsync(string parentEmail, string parentName, string studentName, string tempPassword)
+        {
+            var subject = "Welcome to Rihla Transportation System - Account Created";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #667eea;'>Welcome to Rihla Transportation System</h2>
+                    <p>Dear {parentName},</p>
+                    <p>A parent account has been created for you to access your child's transportation information.</p>
+                    
+                    <div style='background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='color: #4a5568; margin-top: 0;'>Student Information:</h3>
+                        <p><strong>Student:</strong> {studentName}</p>
+                    </div>
+                    
+                    <div style='background-color: #e6fffa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='color: #2d3748; margin-top: 0;'>Account Details:</h3>
+                        <p><strong>Email:</strong> {parentEmail}</p>
+                        <p><strong>Temporary Password:</strong> <code style='background-color: #f7fafc; padding: 4px 8px; border-radius: 4px;'>{tempPassword}</code></p>
+                    </div>
+                    
+                    <div style='background-color: #fff5f5; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='color: #c53030; margin-top: 0;'>Important: Account Activation Required</h3>
+                        <ol>
+                            <li>Visit the parent portal</li>
+                            <li>Log in with your email and temporary password</li>
+                            <li>Change your password immediately</li>
+                            <li>Complete your profile setup</li>
+                        </ol>
+                    </div>
+                    
+                    <p>If you have any questions, please contact the school administration.</p>
+                    <p>Best regards,<br><strong>Rihla Transportation Team</strong></p>
+                </div>
+            ";
+
+            await SendEmailAsync(parentEmail, subject, body, true);
+        }
+
+        public async Task SendParentAccountActivationReminderAsync(string parentEmail, string parentName, string studentName)
+        {
+            var subject = "Reminder: Activate Your Rihla Parent Account";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #f56565;'>Account Activation Reminder</h2>
+                    <p>Dear {parentName},</p>
+                    <p>Your parent account for {studentName} has not been activated yet.</p>
+                    <p>Please log in to the parent portal and complete your account setup to access your child's transportation information.</p>
+                    <p>If you need assistance, please contact the school administration.</p>
+                    <p>Best regards,<br><strong>Rihla Transportation Team</strong></p>
+                </div>
+            ";
+
+            await SendEmailAsync(parentEmail, subject, body, true);
+        }
+
         public void Dispose()
         {
             _smtpClient?.Dispose();

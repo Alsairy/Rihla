@@ -93,4 +93,20 @@ namespace SchoolTransportationSystem.Application.DTOs
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime TokenExpiry { get; set; }
     }
+
+    public class ActivateParentAccountDto
+    {
+        [Required]
+        [EmailAddress]
+        [MaxLength(255)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string TempPassword { get; set; } = string.Empty;
+
+        [Required]
+        [PasswordComplexity]
+        [MinLength(8)]
+        public string NewPassword { get; set; } = string.Empty;
+    }
 }
