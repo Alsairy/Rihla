@@ -8,6 +8,8 @@ using SchoolTransportationSystem.Core.Enums;
 using SchoolTransportationSystem.Core.ValueObjects;
 using SchoolTransportationSystem.Infrastructure.Data;
 using System.Linq.Expressions;
+using BCrypt.Net;
+using System.Security.Cryptography;
 
 namespace SchoolTransportationSystem.Application.Services
 {
@@ -15,11 +17,13 @@ namespace SchoolTransportationSystem.Application.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<StudentService> _logger;
+        private readonly IEmailService _emailService;
 
-        public StudentService(ApplicationDbContext context, ILogger<StudentService> logger)
+        public StudentService(ApplicationDbContext context, ILogger<StudentService> logger, IEmailService emailService)
         {
             _context = context;
             _logger = logger;
+            _emailService = emailService;
         }
 
         // Basic CRUD Operations
@@ -159,6 +163,9 @@ namespace SchoolTransportationSystem.Application.Services
 
         public async Task<Result<StudentDto>> CreateAsync(CreateStudentDto createDto, string tenantId)
         {
+            var useTransaction = _context.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
+            var transaction = useTransaction ? await _context.Database.BeginTransactionAsync() : null;
+            
             try
             {
                 // Check if student number already exists
@@ -169,6 +176,61 @@ namespace SchoolTransportationSystem.Application.Services
                 if (existingStudent != null)
                 {
                     return Result<StudentDto>.Failure("Student number already exists");
+                }
+
+                User? parentUser = null;
+                if (!string.IsNullOrEmpty(createDto.ParentEmail))
+                {
+                    // Check if parent account already exists
+                    var existingParent = await _context.Users
+                        .FirstOrDefaultAsync(u => u.Email == createDto.ParentEmail && u.TenantId == tenantId);
+
+                    if (existingParent == null)
+                    {
+                        var tempPassword = Guid.NewGuid().ToString("N")[..12] + "!A1";
+                        
+                        var passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+
+                        var nameParts = createDto.ParentName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                        var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+                        var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+
+                        parentUser = new User
+                        {
+                            Username = createDto.ParentEmail,
+                            Email = createDto.ParentEmail,
+                            PasswordHash = passwordHash,
+                            Salt = "", // Will be properly implemented in step 003
+                            Role = "Parent",
+                            TenantId = tenantId,
+                            FirstName = firstName,
+                            LastName = lastName,
+                            IsActive = false, // Requires activation
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        _context.Users.Add(parentUser);
+                        await _context.SaveChangesAsync();
+
+                        try
+                        {
+                            await _emailService.SendParentAccountCreatedAsync(
+                                createDto.ParentEmail,
+                                createDto.ParentName ?? "",
+                                $"{createDto.FirstName} {createDto.LastName}",
+                                tempPassword);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            _logger.LogWarning(emailEx, "Failed to send parent welcome email to {Email}. Parent account created successfully but email notification failed.", createDto.ParentEmail);
+                        }
+
+                        _logger.LogInformation("Parent account created for email {Email} with temporary password", createDto.ParentEmail);
+                    }
+                    else
+                    {
+                        parentUser = existingParent;
+                    }
                 }
 
                 var student = new Student
@@ -185,6 +247,7 @@ namespace SchoolTransportationSystem.Application.Services
                     ParentName = createDto.ParentName,
                     ParentPhone = createDto.ParentPhone,
                     ParentEmail = createDto.ParentEmail,
+                    ParentId = parentUser?.Id, // Link to parent User account
                     EmergencyContact = createDto.EmergencyContact,
                     EmergencyPhone = createDto.EmergencyPhone,
                     Status = createDto.Status,
@@ -200,16 +263,30 @@ namespace SchoolTransportationSystem.Application.Services
 
                 _context.Students.Add(student);
                 await _context.SaveChangesAsync();
+                
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
 
                 var studentDto = MapToDto(student);
-                _logger.LogInformation("Student created successfully with ID {StudentId}", student.Id);
+                _logger.LogInformation("Student created successfully with ID {StudentId}. Parent account created: {ParentCreated}", 
+                    student.Id, parentUser != null);
                 
                 return Result<StudentDto>.Success(studentDto);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating student");
-                return Result<StudentDto>.Failure("An error occurred while creating the student");
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
+                _logger.LogError(ex, "Error creating student: {ErrorMessage}", ex.Message);
+                return Result<StudentDto>.Failure($"An error occurred while creating the student: {ex.Message}");
+            }
+            finally
+            {
+                transaction?.Dispose();
             }
         }
 
@@ -561,6 +638,72 @@ namespace SchoolTransportationSystem.Application.Services
                 CreatedAt = student.CreatedAt,
                 UpdatedAt = student.UpdatedAt
             };
+        }
+
+        // Helper methods for parent account creation
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private (string hash, string salt) HashPassword(string password)
+        {
+            using var rng = RandomNumberGenerator.Create();
+            var saltBytes = new byte[32];
+            rng.GetBytes(saltBytes);
+            var salt = Convert.ToBase64String(saltBytes);
+
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, 10000, HashAlgorithmName.SHA256);
+            var hash = Convert.ToBase64String(pbkdf2.GetBytes(32));
+
+            return (hash, salt);
+        }
+
+        private string ExtractFirstName(string fullName)
+        {
+            var parts = fullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+            return parts.Length > 0 ? parts[0] : "";
+        }
+
+        private string ExtractLastName(string fullName)
+        {
+            var parts = fullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+            return parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "";
+        }
+
+        private async Task SendParentWelcomeEmail(User parentUser, string tempPassword, CreateStudentDto studentDto)
+        {
+            var subject = "Welcome to Rihla Transportation System - Account Activation Required";
+            var body = $@"
+                <h2>Welcome to Rihla Transportation System</h2>
+                <p>Dear {parentUser.FirstName} {parentUser.LastName},</p>
+                <p>A parent account has been created for you to access your child's transportation information.</p>
+                
+                <h3>Student Information:</h3>
+                <p><strong>Student:</strong> {studentDto.FirstName} {studentDto.LastName}</p>
+                <p><strong>Grade:</strong> {studentDto.Grade}</p>
+                <p><strong>School:</strong> {studentDto.School}</p>
+                
+                <h3>Account Details:</h3>
+                <p><strong>Email:</strong> {parentUser.Email}</p>
+                <p><strong>Temporary Password:</strong> {tempPassword}</p>
+                
+                <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Visit the parent portal at: <a href=""http://localhost:3000/parent"">Parent Portal</a></li>
+                    <li>Log in with your email and temporary password</li>
+                    <li>You will be prompted to change your password on first login</li>
+                    <li>Complete your profile setup</li>
+                </ol>
+                
+                <p>If you have any questions, please contact the school administration.</p>
+                <p>Best regards,<br>Rihla Transportation Team</p>
+            ";
+
+            _logger.LogInformation("Parent welcome email prepared for {Email}. Email service integration pending.", parentUser.Email);
         }
     }
 }

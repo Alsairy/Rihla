@@ -9,6 +9,7 @@ using SchoolTransportationSystem.Core.Enums;
 using SchoolTransportationSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SchoolTransportationSystem.Application.Interfaces;
 
 namespace SchoolTransportationSystem.Application.Tests.Services
 {
@@ -16,6 +17,7 @@ namespace SchoolTransportationSystem.Application.Tests.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly Mock<ILogger<StudentService>> _mockLogger;
+        private readonly Mock<IEmailService> _mockEmailService;
         private readonly StudentService _studentService;
         private const string TestTenantId = "1";
 
@@ -27,7 +29,8 @@ namespace SchoolTransportationSystem.Application.Tests.Services
 
             _context = new ApplicationDbContext(options);
             _mockLogger = new Mock<ILogger<StudentService>>();
-            _studentService = new StudentService(_context, _mockLogger.Object);
+            _mockEmailService = new Mock<IEmailService>();
+            _studentService = new StudentService(_context, _mockLogger.Object, _mockEmailService.Object);
         }
 
         [Fact]
@@ -284,6 +287,64 @@ namespace SchoolTransportationSystem.Application.Tests.Services
             result.Value.Should().NotBeNull();
             result.Value.Items.Should().HaveCount(2);
             result.Value.Items.Should().OnlyContain(s => s.Status == StudentStatus.Active);
+        }
+
+        [Fact]
+        public async Task CreateAsync_CreatesParentAccount_WhenParentEmailProvided()
+        {
+            var createStudentDto = new CreateStudentDto
+            {
+                StudentNumber = "STU004",
+                FirstName = "Alexander",
+                LastName = "Thompson",
+                DateOfBirth = new DateTime(2015, 3, 15),
+                Grade = "3rd Grade",
+                School = "Springfield Elementary",
+                Street = "1234 Maple Street",
+                City = "Springfield",
+                State = "Illinois",
+                ZipCode = "62701",
+                Country = "USA",
+                Email = "alexander.thompson@student.email.com",
+                Phone = "+1555987654",
+                ParentName = "Jennifer Thompson",
+                ParentPhone = "+1555123456",
+                ParentEmail = "jennifer.thompson@email.com",
+                EnrollmentDate = DateTime.UtcNow
+            };
+
+            var result = await _studentService.CreateAsync(createStudentDto, TestTenantId);
+
+            result.Should().NotBeNull();
+            if (!result.IsSuccess)
+            {
+                throw new Exception($"Student creation failed with error: {result.Error}");
+            }
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().NotBeNull();
+            result.Value.FirstName.Should().Be("Alexander");
+            result.Value.LastName.Should().Be("Thompson");
+
+            var parentUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == "jennifer.thompson@email.com");
+
+            parentUser.Should().NotBeNull();
+            parentUser.Role.Should().Be("Parent");
+            parentUser.IsActive.Should().BeFalse(); // Requires activation
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.StudentNumber == "STU004");
+
+            student.Should().NotBeNull();
+            student.ParentId.Should().Be(parentUser.Id);
+
+            _mockEmailService.Verify(
+                x => x.SendParentAccountCreatedAsync(
+                    "jennifer.thompson@email.com",
+                    "Jennifer Thompson",
+                    "Alexander Thompson",
+                    It.IsAny<string>()),
+                Times.Once);
         }
 
         public void Dispose()

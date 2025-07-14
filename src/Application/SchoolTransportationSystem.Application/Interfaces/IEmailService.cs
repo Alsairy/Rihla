@@ -8,5 +8,7 @@ namespace SchoolTransportationSystem.Application.Interfaces
         Task SendEmergencyAlertAsync(List<string> recipients, string message);
         Task SendTripUpdateAsync(string parentEmail, string studentName, string tripStatus, string estimatedTime);
         Task SendMaintenanceReminderAsync(string driverEmail, string vehicleNumber, string maintenanceType, DateTime scheduledDate);
+        Task SendParentAccountCreatedAsync(string parentEmail, string parentName, string studentName, string tempPassword);
+        Task SendParentAccountActivationReminderAsync(string parentEmail, string parentName, string studentName);
     }
 }

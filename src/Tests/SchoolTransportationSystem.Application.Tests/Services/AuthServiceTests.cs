@@ -43,7 +43,7 @@ namespace SchoolTransportationSystem.Application.Tests.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var result = await _userService.AuthenticateAsync("test@example.com", "password123", TestTenantId);
+            var result = await _userService.AuthenticateAsync("test@example.com", "password123", TestTenantId, "127.0.0.1", "Test User Agent");
 
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
@@ -55,7 +55,7 @@ namespace SchoolTransportationSystem.Application.Tests.Services
         [Fact]
         public async Task AuthenticateAsync_ReturnsFailure_WhenInvalidEmail()
         {
-            var result = await _userService.AuthenticateAsync("nonexistent@example.com", "password123", TestTenantId);
+            var result = await _userService.AuthenticateAsync("nonexistent@example.com", "password123", TestTenantId, "127.0.0.1", "Test User Agent");
 
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();
@@ -81,7 +81,7 @@ namespace SchoolTransportationSystem.Application.Tests.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var result = await _userService.AuthenticateAsync("admin@rihla.sa", "wrongpassword", TestTenantId);
+            var result = await _userService.AuthenticateAsync("admin@rihla.sa", "wrongpassword", TestTenantId, "127.0.0.1", "Test User Agent");
 
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();
@@ -107,7 +107,7 @@ namespace SchoolTransportationSystem.Application.Tests.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var result = await _userService.AuthenticateAsync("inactive@rihla.sa", "password123", TestTenantId);
+            var result = await _userService.AuthenticateAsync("inactive@rihla.sa", "password123", TestTenantId, "127.0.0.1", "Test User Agent");
 
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();

@@ -265,6 +265,88 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
+
+        [HttpPost("activate-parent-account")]
+        public async Task<ActionResult<object>> ActivateParentAccount([FromBody] ActivateParentAccountDto activateDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var tenantId = "1"; // Default tenant for now
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+                var userResult = await _userService.GetByEmailAsync(activateDto.Email, tenantId);
+                if (!userResult.IsSuccess)
+                {
+                    return BadRequest(new { message = "Invalid activation request" });
+                }
+
+                var user = userResult.Value;
+
+                if (user.Role != "Parent")
+                {
+                    return BadRequest(new { message = "Invalid activation request" });
+                }
+
+                if (user.IsActive)
+                {
+                    return BadRequest(new { message = "Account is already activated" });
+                }
+
+                var authResult = await _userService.AuthenticateAsync(activateDto.Email, activateDto.TempPassword, tenantId, ipAddress, userAgent);
+                if (!authResult.IsSuccess)
+                {
+                    return BadRequest(new { message = "Invalid temporary password" });
+                }
+
+                var passwordResult = await _userService.ChangePasswordAsync(user.Id, activateDto.TempPassword, activateDto.NewPassword, tenantId);
+                if (!passwordResult.IsSuccess)
+                {
+                    return BadRequest(new { message = passwordResult.Error });
+                }
+
+                var updateDto = new UpdateUserDto
+                {
+                    Username = user.Username,
+                    Email = user.Email,
+                    Role = user.Role,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    IsActive = true
+                };
+
+                var updateResult = await _userService.UpdateAsync(user.Id, updateDto, tenantId);
+                if (!updateResult.IsSuccess)
+                {
+                    return BadRequest(new { message = updateResult.Error });
+                }
+
+                _logger.LogInformation("Parent account activated successfully for email {Email}", activateDto.Email);
+
+                return Ok(new 
+                { 
+                    success = true, 
+                    message = "Parent account activated successfully",
+                    data = new
+                    {
+                        email = user.Email,
+                        firstName = user.FirstName,
+                        lastName = user.LastName,
+                        activatedAt = DateTime.UtcNow
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error activating parent account for email {Email}", activateDto?.Email);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
     }
 
     public class LoginDto
@@ -289,6 +371,13 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
     {
         public string CurrentPassword { get; set; } = string.Empty;
         public string MfaCode { get; set; } = string.Empty;
+    }
+
+    public class ActivateParentAccountDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string TempPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 }
 

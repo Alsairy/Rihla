@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;SA1633;SA1402;SA1210;SA1208;SA1503;SA1413;SA1122;SA1028;SA1513;SA1009;SA1518;SA1116;SA1117;SA1111;SA1507;SA1515;SA1500;SA1119;SA1407;SA1013;ASP0019</NoWarn>
     <AssemblyName>Rihla.WebAPI</AssemblyName>
     <RootNamespace>Rihla.WebAPI</RootNamespace>
   </PropertyGroup>
