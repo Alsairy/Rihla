@@ -11,11 +11,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
   Alert,
-  Divider,
   Paper,
-  Chip,
   IconButton,
   LinearProgress,
 } from '@mui/material';
@@ -28,7 +25,6 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
 import { apiClient } from '../../services/apiClient';
 
 interface DriverRegistrationFormProps {
@@ -47,11 +43,12 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [uploadProgress, setUploadProgress] = useState<{
+    [key: string]: number;
+  }>({});
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -88,7 +85,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
     notes: '',
   });
 
-  const [documents, setDocuments] = useState<{ [key: string]: DocumentUpload }>({});
+  const [documents, setDocuments] = useState<{ [key: string]: DocumentUpload }>(
+    {}
+  );
 
   const documentTypes = [
     { key: 'license', label: 'Driver License Copy', required: true },
@@ -114,7 +113,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
     if (!file) return;
 
     setUploadProgress(prev => ({ ...prev, [documentType]: 0 }));
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -151,9 +150,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
           return newProgress;
         });
       }, 2000);
-
     } catch (error) {
-      console.error('File upload error:', error);
       setError(`Failed to upload ${documentType} document`);
       setUploadProgress(prev => {
         const newProgress = { ...prev };
@@ -176,9 +173,19 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
 
   const validateForm = (): string | null => {
     const requiredFields = [
-      'firstName', 'lastName', 'employeeId', 'dateOfBirth', 'phone', 'email',
-      'address', 'licenseNumber', 'licenseClass', 'licenseExpiry', 'hireDate',
-      'emergencyContactName', 'emergencyContactPhone'
+      'firstName',
+      'lastName',
+      'employeeId',
+      'dateOfBirth',
+      'phone',
+      'email',
+      'address',
+      'licenseNumber',
+      'licenseClass',
+      'licenseExpiry',
+      'hireDate',
+      'emergencyContactName',
+      'emergencyContactPhone',
     ];
 
     for (const field of requiredFields) {
@@ -215,7 +222,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -258,7 +265,10 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
         isActive: true,
       };
 
-      const createdDriver = await apiClient.post<any>('/api/drivers', driverData);
+      const createdDriver = await apiClient.post<any>(
+        '/api/drivers',
+        driverData
+      );
 
       for (const [docType, docData] of Object.entries(documents)) {
         if (docData.file) {
@@ -274,24 +284,47 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       }
 
       setSuccess('Driver registered successfully!');
-      
+
       if (onSuccess) {
         onSuccess(createdDriver);
       }
 
       setFormData({
-        firstName: '', lastName: '', middleName: '', employeeId: '', dateOfBirth: '',
-        phone: '', email: '', address: '', city: '', state: '', zipCode: '', country: 'Saudi Arabia',
-        licenseNumber: '', licenseClass: '', licenseExpiry: '', endorsements: '',
-        medicalCertExpiry: '', medicalRestrictions: '', hireDate: '', department: 'Transportation',
-        position: 'School Bus Driver', salary: '', emergencyContactName: '', emergencyContactPhone: '',
-        emergencyContactRelation: '', yearsOfExperience: '', previousEmployer: '', notes: '',
+        firstName: '',
+        lastName: '',
+        middleName: '',
+        employeeId: '',
+        dateOfBirth: '',
+        phone: '',
+        email: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'Saudi Arabia',
+        licenseNumber: '',
+        licenseClass: '',
+        licenseExpiry: '',
+        endorsements: '',
+        medicalCertExpiry: '',
+        medicalRestrictions: '',
+        hireDate: '',
+        department: 'Transportation',
+        position: 'School Bus Driver',
+        salary: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        emergencyContactRelation: '',
+        yearsOfExperience: '',
+        previousEmployer: '',
+        notes: '',
       });
       setDocuments({});
-
     } catch (error: any) {
-      console.error('Driver registration error:', error);
-      setError(error.response?.data?.message || 'Failed to register driver. Please try again.');
+      setError(
+        error.response?.data?.message ||
+          'Failed to register driver. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -334,7 +367,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="First Name"
                   value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  onChange={e => handleInputChange('firstName', e.target.value)}
                   required
                 />
               </Grid>
@@ -343,7 +376,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Middle Name"
                   value={formData.middleName}
-                  onChange={(e) => handleInputChange('middleName', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('middleName', e.target.value)
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
@@ -351,7 +386,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Last Name"
                   value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  onChange={e => handleInputChange('lastName', e.target.value)}
                   required
                 />
               </Grid>
@@ -360,7 +395,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Employee ID"
                   value={formData.employeeId}
-                  onChange={(e) => handleInputChange('employeeId', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('employeeId', e.target.value)
+                  }
                   required
                 />
               </Grid>
@@ -370,7 +407,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Date of Birth"
                   type="date"
                   value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('dateOfBirth', e.target.value)
+                  }
                   InputLabelProps={{ shrink: true }}
                   required
                 />
@@ -380,7 +419,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Phone"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={e => handleInputChange('phone', e.target.value)}
                   required
                 />
               </Grid>
@@ -390,7 +429,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={e => handleInputChange('email', e.target.value)}
                   required
                 />
               </Grid>
@@ -399,7 +438,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Address"
                   value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  onChange={e => handleInputChange('address', e.target.value)}
                   required
                 />
               </Grid>
@@ -408,7 +447,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="City"
                   value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  onChange={e => handleInputChange('city', e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
@@ -416,7 +455,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="State/Province"
                   value={formData.state}
-                  onChange={(e) => handleInputChange('state', e.target.value)}
+                  onChange={e => handleInputChange('state', e.target.value)}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
@@ -424,7 +463,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="ZIP Code"
                   value={formData.zipCode}
-                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                  onChange={e => handleInputChange('zipCode', e.target.value)}
                 />
               </Grid>
             </Grid>
@@ -444,7 +483,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="License Number"
                   value={formData.licenseNumber}
-                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('licenseNumber', e.target.value)
+                  }
                   required
                 />
               </Grid>
@@ -453,10 +494,12 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   <InputLabel>License Class</InputLabel>
                   <Select
                     value={formData.licenseClass}
-                    onChange={(e) => handleInputChange('licenseClass', e.target.value)}
+                    onChange={e =>
+                      handleInputChange('licenseClass', e.target.value)
+                    }
                     label="License Class"
                   >
-                    {licenseClasses.map((cls) => (
+                    {licenseClasses.map(cls => (
                       <MenuItem key={cls} value={cls}>
                         {cls}
                       </MenuItem>
@@ -470,7 +513,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="License Expiry"
                   type="date"
                   value={formData.licenseExpiry}
-                  onChange={(e) => handleInputChange('licenseExpiry', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('licenseExpiry', e.target.value)
+                  }
                   InputLabelProps={{ shrink: true }}
                   required
                 />
@@ -481,7 +526,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Medical Certificate Expiry"
                   type="date"
                   value={formData.medicalCertExpiry}
-                  onChange={(e) => handleInputChange('medicalCertExpiry', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('medicalCertExpiry', e.target.value)
+                  }
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
@@ -490,7 +537,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Endorsements"
                   value={formData.endorsements}
-                  onChange={(e) => handleInputChange('endorsements', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endorsements', e.target.value)
+                  }
                   placeholder="e.g., Passenger, School Bus, Hazmat"
                 />
               </Grid>
@@ -499,7 +548,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Medical Restrictions"
                   value={formData.medicalRestrictions}
-                  onChange={(e) => handleInputChange('medicalRestrictions', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('medicalRestrictions', e.target.value)
+                  }
                   multiline
                   rows={2}
                 />
@@ -522,7 +573,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Hire Date"
                   type="date"
                   value={formData.hireDate}
-                  onChange={(e) => handleInputChange('hireDate', e.target.value)}
+                  onChange={e => handleInputChange('hireDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
                   required
                 />
@@ -533,7 +584,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Salary"
                   type="number"
                   value={formData.salary}
-                  onChange={(e) => handleInputChange('salary', e.target.value)}
+                  onChange={e => handleInputChange('salary', e.target.value)}
                   InputProps={{ startAdornment: 'SAR ' }}
                 />
               </Grid>
@@ -543,7 +594,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   label="Years of Experience"
                   type="number"
                   value={formData.yearsOfExperience}
-                  onChange={(e) => handleInputChange('yearsOfExperience', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('yearsOfExperience', e.target.value)
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 8 }}>
@@ -551,7 +604,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Previous Employer"
                   value={formData.previousEmployer}
-                  onChange={(e) => handleInputChange('previousEmployer', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('previousEmployer', e.target.value)
+                  }
                 />
               </Grid>
             </Grid>
@@ -571,7 +626,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Contact Name"
                   value={formData.emergencyContactName}
-                  onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('emergencyContactName', e.target.value)
+                  }
                   required
                 />
               </Grid>
@@ -580,7 +637,9 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Contact Phone"
                   value={formData.emergencyContactPhone}
-                  onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('emergencyContactPhone', e.target.value)
+                  }
                   required
                 />
               </Grid>
@@ -589,7 +648,12 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   fullWidth
                   label="Relationship"
                   value={formData.emergencyContactRelation}
-                  onChange={(e) => handleInputChange('emergencyContactRelation', e.target.value)}
+                  onChange={e =>
+                    handleInputChange(
+                      'emergencyContactRelation',
+                      e.target.value
+                    )
+                  }
                   placeholder="e.g., Spouse, Parent, Sibling"
                 />
               </Grid>
@@ -605,17 +669,25 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
               </Typography>
             </Box>
             <Grid container spacing={3}>
-              {documentTypes.map((docType) => (
+              {documentTypes.map(docType => (
                 <Grid size={{ xs: 12, sm: 6 }} key={docType.key}>
-                  <Box sx={{ border: '1px dashed #ccc', borderRadius: 2, p: 2 }}>
+                  <Box
+                    sx={{ border: '1px dashed #ccc', borderRadius: 2, p: 2 }}
+                  >
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       {docType.label}
-                      {docType.required && <span style={{ color: 'red' }}> *</span>}
+                      {docType.required && (
+                        <span style={{ color: 'red' }}> *</span>
+                      )}
                     </Typography>
-                    
+
                     {documents[docType.key] ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        <CheckCircleIcon
+                          sx={{ color: 'success.main', fontSize: 20 }}
+                        />
                         <Typography variant="body2" sx={{ flex: 1 }}>
                           {documents[docType.key].file.name}
                         </Typography>
@@ -640,7 +712,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                           type="file"
                           hidden
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                          onChange={(e) => {
+                          onChange={e => {
                             const file = e.target.files?.[0];
                             if (file) {
                               handleFileUpload(docType.key, file);
@@ -649,14 +721,17 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                         />
                       </Button>
                     )}
-                    
+
                     {uploadProgress[docType.key] !== undefined && (
                       <Box sx={{ mt: 1 }}>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={uploadProgress[docType.key]} 
+                        <LinearProgress
+                          variant="determinate"
+                          value={uploadProgress[docType.key]}
                         />
-                        <Typography variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ mt: 0.5, display: 'block' }}
+                        >
                           Uploading... {uploadProgress[docType.key]}%
                         </Typography>
                       </Box>
@@ -676,7 +751,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
               fullWidth
               label="Notes"
               value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
+              onChange={e => handleInputChange('notes', e.target.value)}
               multiline
               rows={3}
               placeholder="Any additional information about the driver..."

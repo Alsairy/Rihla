@@ -23,7 +23,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Alert,
   Fab,
 } from '@mui/material';
@@ -35,7 +34,6 @@ import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   School as SchoolIcon,
-  Add as AddIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,9 +41,7 @@ import { apiClient } from '../services/apiClient';
 import { DashboardStats, Student, Driver, Vehicle } from '../types';
 import NotificationCenter from '../components/NotificationCenter';
 import DriverRegistrationForm from '../components/forms/DriverRegistrationForm';
-import DriverCertificationDashboard from '../components/DriverCertificationDashboard';
 import VehicleRegistrationForm from '../components/forms/VehicleRegistrationForm';
-import VehicleManagementDashboard from '../components/VehicleManagementDashboard';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -56,7 +52,9 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showDriverForm, setShowDriverForm] = useState(false);
   const [showVehicleForm, setShowVehicleForm] = useState(false);
-  const [expiringCertifications, setExpiringCertifications] = useState<any[]>([]);
+  const [expiringCertifications, setExpiringCertifications] = useState<any[]>(
+    []
+  );
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -91,10 +89,13 @@ const AdminDashboard: React.FC = () => {
         );
 
         try {
-          const certificationsResponse = await apiClient.get('/api/drivers/certifications/expiring');
-          setExpiringCertifications(Array.isArray(certificationsResponse) ? certificationsResponse : []);
+          const certificationsResponse = await apiClient.get(
+            '/api/drivers/certifications/expiring'
+          );
+          setExpiringCertifications(
+            Array.isArray(certificationsResponse) ? certificationsResponse : []
+          );
         } catch (certError) {
-          console.warn('Error fetching expiring certifications:', certError);
           setExpiringCertifications([]);
         }
       } catch {
@@ -616,19 +617,29 @@ const AdminDashboard: React.FC = () => {
                   Driver Certification Alerts
                 </Typography>
               </Box>
-              
+
               {expiringCertifications.length > 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {expiringCertifications.slice(0, 5).map((alert, index) => (
-                    <Alert key={index} severity="warning" sx={{ borderRadius: 2 }}>
+                    <Alert
+                      key={index}
+                      severity="warning"
+                      sx={{ borderRadius: 2 }}
+                    >
                       <Typography variant="body2">
-                        <strong>{alert.driverName}</strong> - {alert.certificationType} expires on {alert.expiryDate}
+                        <strong>{alert.driverName}</strong> -{' '}
+                        {alert.certificationType} expires on {alert.expiryDate}
                       </Typography>
                     </Alert>
                   ))}
                   {expiringCertifications.length > 5 && (
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
-                      +{expiringCertifications.length - 5} more certifications expiring soon
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: 'center', mt: 1 }}
+                    >
+                      +{expiringCertifications.length - 5} more certifications
+                      expiring soon
                     </Typography>
                   )}
                 </Box>
@@ -703,7 +714,6 @@ const AdminDashboard: React.FC = () => {
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
                 } catch (error) {
-                  console.error('Error fetching dashboard data:', error);
                 }
               };
               fetchDashboardData();
@@ -754,7 +764,6 @@ const AdminDashboard: React.FC = () => {
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
                 } catch (error) {
-                  console.error('Error fetching dashboard data:', error);
                 }
               };
               fetchDashboardData();

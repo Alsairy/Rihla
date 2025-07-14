@@ -11,10 +11,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
   Alert,
   LinearProgress,
-  Divider,
   FormControlLabel,
   Checkbox,
   Paper,
@@ -28,7 +26,6 @@ import {
   DirectionsCar as CarIcon,
   CloudUpload as UploadIcon,
   CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
   Delete as DeleteIcon,
   Description as DocumentIcon,
 } from '@mui/icons-material';
@@ -100,7 +97,10 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
     }));
   };
 
-  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleDocumentUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -118,21 +118,18 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
       formData.append('file', file);
       formData.append('documentType', type);
 
-      const response = await apiClient.post('/api/files/upload', formData, {
+      await apiClient.post('/api/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      setDocuments(prev => 
-        prev.map(doc => 
-          doc.file === file 
-            ? { ...doc, uploaded: true, progress: 100 }
-            : doc
+      setDocuments(prev =>
+        prev.map(doc =>
+          doc.file === file ? { ...doc, uploaded: true, progress: 100 } : doc
         )
       );
     } catch (error) {
-      console.error('Document upload failed:', error);
       setDocuments(prev => prev.filter(doc => doc.file !== file));
       setError('Failed to upload document. Please try again.');
     }
@@ -175,8 +172,10 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
       await apiClient.post('/api/vehicles', vehicleData);
       onSuccess();
     } catch (error: any) {
-      console.error('Vehicle registration failed:', error);
-      setError(error.response?.data?.message || 'Failed to register vehicle. Please try again.');
+      setError(
+        error.response?.data?.message ||
+          'Failed to register vehicle. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -201,7 +200,11 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
   ];
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{ maxWidth: 800, mx: 'auto', p: 2 }}
+    >
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -226,7 +229,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Vehicle ID"
                 value={vehicleId}
-                onChange={(e) => setVehicleId(e.target.value)}
+                onChange={e => setVehicleId(e.target.value)}
                 required
                 placeholder="VEH-001"
               />
@@ -236,7 +239,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="VIN Number"
                 value={vin}
-                onChange={(e) => setVin(e.target.value)}
+                onChange={e => setVin(e.target.value)}
                 required
                 placeholder="1HGBH41JXMN109186"
               />
@@ -246,7 +249,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Make"
                 value={make}
-                onChange={(e) => setMake(e.target.value)}
+                onChange={e => setMake(e.target.value)}
                 required
                 placeholder="Toyota"
               />
@@ -256,7 +259,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Model"
                 value={model}
-                onChange={(e) => setModel(e.target.value)}
+                onChange={e => setModel(e.target.value)}
                 required
                 placeholder="Hiace"
               />
@@ -267,7 +270,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Year"
                 type="number"
                 value={year}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={e => setYear(e.target.value)}
                 required
                 inputProps={{ min: 1990, max: new Date().getFullYear() + 1 }}
               />
@@ -277,7 +280,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="License Plate"
                 value={licensePlate}
-                onChange={(e) => setLicensePlate(e.target.value)}
+                onChange={e => setLicensePlate(e.target.value)}
                 required
                 placeholder="ABC-123"
               />
@@ -287,7 +290,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Color"
                 value={color}
-                onChange={(e) => setColor(e.target.value)}
+                onChange={e => setColor(e.target.value)}
                 placeholder="Yellow"
               />
             </Grid>
@@ -309,7 +312,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Passenger Capacity"
                 type="number"
                 value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
+                onChange={e => setCapacity(e.target.value)}
                 required
                 inputProps={{ min: 1, max: 100 }}
               />
@@ -319,10 +322,10 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 <InputLabel>Fuel Type</InputLabel>
                 <Select
                   value={fuelType}
-                  onChange={(e) => setFuelType(e.target.value)}
+                  onChange={e => setFuelType(e.target.value)}
                   label="Fuel Type"
                 >
-                  {fuelTypes.map((type) => (
+                  {fuelTypes.map(type => (
                     <MenuItem key={type} value={type}>
                       {type}
                     </MenuItem>
@@ -336,7 +339,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Current Mileage (km)"
                 type="number"
                 value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
+                onChange={e => setMileage(e.target.value)}
                 inputProps={{ min: 0 }}
               />
             </Grid>
@@ -345,7 +348,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Engine Size (L)"
                 value={engineSize}
-                onChange={(e) => setEngineSize(e.target.value)}
+                onChange={e => setEngineSize(e.target.value)}
                 placeholder="2.4L"
               />
             </Grid>
@@ -366,7 +369,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Insurance Provider"
                 value={insuranceProvider}
-                onChange={(e) => setInsuranceProvider(e.target.value)}
+                onChange={e => setInsuranceProvider(e.target.value)}
                 required
               />
             </Grid>
@@ -375,7 +378,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Policy Number"
                 value={insurancePolicyNumber}
-                onChange={(e) => setInsurancePolicyNumber(e.target.value)}
+                onChange={e => setInsurancePolicyNumber(e.target.value)}
                 required
               />
             </Grid>
@@ -385,7 +388,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Expiry Date"
                 type="date"
                 value={insuranceExpiryDate}
-                onChange={(e) => setInsuranceExpiryDate(e.target.value)}
+                onChange={e => setInsuranceExpiryDate(e.target.value)}
                 required
                 InputLabelProps={{ shrink: true }}
               />
@@ -395,7 +398,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 fullWidth
                 label="Coverage Amount"
                 value={insuranceCoverage}
-                onChange={(e) => setInsuranceCoverage(e.target.value)}
+                onChange={e => setInsuranceCoverage(e.target.value)}
                 placeholder="$100,000"
               />
             </Grid>
@@ -417,7 +420,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Last Maintenance Date"
                 type="date"
                 value={lastMaintenanceDate}
-                onChange={(e) => setLastMaintenanceDate(e.target.value)}
+                onChange={e => setLastMaintenanceDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -427,7 +430,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 label="Next Maintenance Date"
                 type="date"
                 value={nextMaintenanceDate}
-                onChange={(e) => setNextMaintenanceDate(e.target.value)}
+                onChange={e => setNextMaintenanceDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -436,10 +439,10 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                 <InputLabel>Maintenance Interval</InputLabel>
                 <Select
                   value={maintenanceInterval}
-                  onChange={(e) => setMaintenanceInterval(e.target.value)}
+                  onChange={e => setMaintenanceInterval(e.target.value)}
                   label="Maintenance Interval"
                 >
-                  {maintenanceIntervals.map((interval) => (
+                  {maintenanceIntervals.map(interval => (
                     <MenuItem key={interval.value} value={interval.value}>
                       {interval.label}
                     </MenuItem>
@@ -469,7 +472,9 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                       color="primary"
                     />
                   }
-                  label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  label={key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())}
                 />
               </Grid>
             ))}
@@ -485,7 +490,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
           </Typography>
 
           <Grid container spacing={2}>
-            {documentTypes.map((docType) => (
+            {documentTypes.map(docType => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={docType}>
                 <Paper
                   sx={{
@@ -505,7 +510,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                     type="file"
                     hidden
                     accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    onChange={(e) => handleDocumentUpload(e, docType)}
+                    onChange={e => handleDocumentUpload(e, docType)}
                   />
                   <UploadIcon sx={{ fontSize: 40, color: 'grey.400', mb: 1 }} />
                   <Typography variant="body2" color="text.secondary">
@@ -530,7 +535,9 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
                     <ListItemText
                       primary={doc.file.name}
                       secondary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', mt: 1 }}
+                        >
                           <LinearProgress
                             variant="determinate"
                             value={doc.progress}
@@ -573,7 +580,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
             rows={4}
             label="Notes"
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={e => setNotes(e.target.value)}
             placeholder="Any additional information about the vehicle..."
           />
         </CardContent>
