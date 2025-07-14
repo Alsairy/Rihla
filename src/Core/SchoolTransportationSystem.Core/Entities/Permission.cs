@@ -32,5 +32,8 @@ namespace SchoolTransportationSystem.Core.Entities
         [Required]
         [MaxLength(50)]
         public string TenantId { get; set; } = string.Empty;
+        
+        // Navigation properties
+        public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }
 }

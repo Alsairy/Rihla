@@ -83,6 +83,66 @@ class SignalRService {
     }
   }
 
+  onDriverCertificationUpdated(
+    callback: (driverId: string, certificationType: string, status: string) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('DriverCertificationUpdated', callback);
+      } catch {}
+    }
+  }
+
+  onVehicleMaintenanceUpdated(
+    callback: (vehicleId: string, maintenanceType: string, status: string) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('VehicleMaintenanceUpdated', callback);
+      } catch {}
+    }
+  }
+
+  onVehicleStatusChanged(
+    callback: (vehicleId: string, oldStatus: string, newStatus: string) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('VehicleStatusChanged', callback);
+      } catch {}
+    }
+  }
+
+  onDriverStatusChanged(
+    callback: (driverId: string, oldStatus: string, newStatus: string) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('DriverStatusChanged', callback);
+      } catch {}
+    }
+  }
+
+  onMaintenanceAlertCreated(
+    callback: (alert: any) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('MaintenanceAlertCreated', callback);
+      } catch {}
+    }
+  }
+
+  onInsuranceExpirationAlert(
+    callback: (alert: any) => void
+  ): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('InsuranceExpirationAlert', callback);
+      } catch {}
+    }
+  }
+
   async joinTripGroup(tripId: string): Promise<void> {
     if (this.connection && this.isConnected) {
       try {
@@ -95,6 +155,54 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
+      } catch {}
+    }
+  }
+
+  async joinDriverGroup(driverId: string): Promise<void> {
+    if (this.connection && this.isConnected) {
+      try {
+        await this.connection.invoke('JoinDriverGroup', driverId);
+      } catch {}
+    }
+  }
+
+  async leaveDriverGroup(driverId: string): Promise<void> {
+    if (this.connection && this.isConnected) {
+      try {
+        await this.connection.invoke('LeaveDriverGroup', driverId);
+      } catch {}
+    }
+  }
+
+  async joinVehicleGroup(vehicleId: string): Promise<void> {
+    if (this.connection && this.isConnected) {
+      try {
+        await this.connection.invoke('JoinVehicleGroup', vehicleId);
+      } catch {}
+    }
+  }
+
+  async leaveVehicleGroup(vehicleId: string): Promise<void> {
+    if (this.connection && this.isConnected) {
+      try {
+        await this.connection.invoke('LeaveVehicleGroup', vehicleId);
+      } catch {}
+    }
+  }
+
+  removeAllListeners(): void {
+    if (this.connection) {
+      try {
+        this.connection.off('ReceiveNotification');
+        this.connection.off('TripStatusUpdated');
+        this.connection.off('EmergencyAlert');
+        this.connection.off('DriverCertificationUpdated');
+        this.connection.off('VehicleMaintenanceUpdated');
+        this.connection.off('VehicleStatusChanged');
+        this.connection.off('DriverStatusChanged');
+        this.connection.off('MaintenanceAlertCreated');
+        this.connection.off('InsuranceExpirationAlert');
       } catch {}
     }
   }

@@ -21,6 +21,8 @@ namespace SchoolTransportationSystem.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<MaintenanceRecord> MaintenanceRecords { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
@@ -42,6 +44,8 @@ namespace SchoolTransportationSystem.Infrastructure.Data
             ConfigurePayment(modelBuilder);
             ConfigureMaintenanceRecord(modelBuilder);
             ConfigureUser(modelBuilder);
+            ConfigurePermission(modelBuilder);
+            ConfigureRolePermission(modelBuilder);
             ConfigureNotification(modelBuilder);
             ConfigureAuditLog(modelBuilder);
 
@@ -281,6 +285,32 @@ namespace SchoolTransportationSystem.Infrastructure.Data
             });
         }
 
+        private void ConfigurePermission(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Permission>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Resource).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(500);
+
+                entity.HasIndex(e => new { e.Resource, e.Action }).IsUnique();
+            });
+        }
+
+        private void ConfigureRolePermission(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.TenantId).HasMaxLength(50).IsRequired();
+
+                entity.HasIndex(e => new { e.Role, e.PermissionId, e.TenantId }).IsUnique();
+            });
+        }
+
         private void ConfigureNotification(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Notification>(entity =>
@@ -410,6 +440,13 @@ namespace SchoolTransportationSystem.Infrastructure.Data
                 .HasOne(mr => mr.Vehicle)
                 .WithMany(v => v.MaintenanceRecords)
                 .HasForeignKey(mr => mr.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // RolePermission -> Permission (Many-to-One)
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(rp => rp.PermissionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Notification -> User (Many-to-One)
