@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   Chip,
   Avatar,
   Table,
@@ -45,7 +44,6 @@ import {
   DriveEta as LicenseIcon,
   School as TrainingIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';
 import { signalRService } from '../services/signalRService';
 
@@ -86,9 +84,10 @@ interface CertificationStatus {
 }
 
 const DriverCertificationDashboard: React.FC = () => {
-  const { user } = useAuth();
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [documents, setDocuments] = useState<{ [driverId: number]: DriverDocument[] }>({});
+  const [documents, setDocuments] = useState<{
+    [driverId: number]: DriverDocument[];
+  }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
@@ -100,13 +99,11 @@ const DriverCertificationDashboard: React.FC = () => {
 
     signalRService.startConnection();
 
-    signalRService.onDriverCertificationUpdated((driverId, certificationType, status) => {
-      console.log(`Driver ${driverId} certification ${certificationType} updated to ${status}`);
+    signalRService.onDriverCertificationUpdated(() => {
       fetchDriversAndCertifications(); // Refresh driver data
     });
 
-    signalRService.onDriverStatusChanged((driverId, oldStatus, newStatus) => {
-      console.log(`Driver ${driverId} status changed from ${oldStatus} to ${newStatus}`);
+    signalRService.onDriverStatusChanged(() => {
       fetchDriversAndCertifications(); // Refresh driver data
     });
 
@@ -120,25 +117,29 @@ const DriverCertificationDashboard: React.FC = () => {
     setError(null);
 
     try {
-      const driversResponse = await apiClient.get('/api/drivers') as any;
-      const driversData = Array.isArray(driversResponse) ? driversResponse : driversResponse.items || [];
+      const driversResponse = (await apiClient.get('/api/drivers')) as any;
+      const driversData = Array.isArray(driversResponse)
+        ? driversResponse
+        : driversResponse.items || [];
       setDrivers(driversData);
 
       const documentsData: { [driverId: number]: DriverDocument[] } = {};
-      
+
       for (const driver of driversData) {
         try {
-          const docsResponse = await apiClient.get(`/api/files/driver/${driver.id}/documents`) as any;
-          documentsData[driver.id] = Array.isArray(docsResponse) ? docsResponse : [];
-        } catch (docError) {
-          console.warn(`Failed to fetch documents for driver ${driver.id}:`, docError);
+          const docsResponse = (await apiClient.get(
+            `/api/files/driver/${driver.id}/documents`
+          )) as any;
+          documentsData[driver.id] = Array.isArray(docsResponse)
+            ? docsResponse
+            : [];
+        } catch {
           documentsData[driver.id] = [];
         }
       }
-      
+
       setDocuments(documentsData);
-    } catch (error: any) {
-      console.error('Error fetching drivers and certifications:', error);
+    } catch {
       setError('Failed to load driver certification data. Please try again.');
     } finally {
       setLoading(false);
@@ -163,54 +164,88 @@ const DriverCertificationDashboard: React.FC = () => {
     const statuses: CertificationStatus[] = [];
 
     const licenseExpiry = driver.licenseExpiry;
-    const licenseDays = licenseExpiry ? calculateDaysUntilExpiry(licenseExpiry) : -999;
+    const licenseDays = licenseExpiry
+      ? calculateDaysUntilExpiry(licenseExpiry)
+      : -999;
     const licenseDoc = driverDocs.find(doc => doc.documentType === 'license');
-    
+
     statuses.push({
       type: 'license',
       label: 'Driver License',
       expiryDate: licenseExpiry,
       daysUntilExpiry: licenseDays,
-      status: !licenseDoc ? 'missing' : licenseDays < 0 ? 'expired' : licenseDays <= 30 ? 'warning' : 'valid',
+      status: !licenseDoc
+        ? 'missing'
+        : licenseDays < 0
+          ? 'expired'
+          : licenseDays <= 30
+            ? 'warning'
+            : 'valid',
       document: licenseDoc,
     });
 
     const medicalExpiry = driver.medicalCertExpiry;
-    const medicalDays = medicalExpiry ? calculateDaysUntilExpiry(medicalExpiry) : -999;
+    const medicalDays = medicalExpiry
+      ? calculateDaysUntilExpiry(medicalExpiry)
+      : -999;
     const medicalDoc = driverDocs.find(doc => doc.documentType === 'medical');
-    
+
     statuses.push({
       type: 'medical',
       label: 'Medical Certificate',
       expiryDate: medicalExpiry,
       daysUntilExpiry: medicalDays,
-      status: !medicalDoc ? 'missing' : medicalDays < 0 ? 'expired' : medicalDays <= 30 ? 'warning' : 'valid',
+      status: !medicalDoc
+        ? 'missing'
+        : medicalDays < 0
+          ? 'expired'
+          : medicalDays <= 30
+            ? 'warning'
+            : 'valid',
       document: medicalDoc,
     });
 
     const trainingDoc = driverDocs.find(doc => doc.documentType === 'training');
     const trainingExpiry = trainingDoc?.expiryDate;
-    const trainingDays = trainingExpiry ? calculateDaysUntilExpiry(trainingExpiry) : -999;
-    
+    const trainingDays = trainingExpiry
+      ? calculateDaysUntilExpiry(trainingExpiry)
+      : -999;
+
     statuses.push({
       type: 'training',
       label: 'Training Certificate',
       expiryDate: trainingExpiry,
       daysUntilExpiry: trainingDays,
-      status: !trainingDoc ? 'missing' : trainingDays < 0 ? 'expired' : trainingDays <= 90 ? 'warning' : 'valid',
+      status: !trainingDoc
+        ? 'missing'
+        : trainingDays < 0
+          ? 'expired'
+          : trainingDays <= 90
+            ? 'warning'
+            : 'valid',
       document: trainingDoc,
     });
 
-    const backgroundDoc = driverDocs.find(doc => doc.documentType === 'background');
+    const backgroundDoc = driverDocs.find(
+      doc => doc.documentType === 'background'
+    );
     const backgroundExpiry = backgroundDoc?.expiryDate;
-    const backgroundDays = backgroundExpiry ? calculateDaysUntilExpiry(backgroundExpiry) : -999;
-    
+    const backgroundDays = backgroundExpiry
+      ? calculateDaysUntilExpiry(backgroundExpiry)
+      : -999;
+
     statuses.push({
       type: 'background',
       label: 'Background Check',
       expiryDate: backgroundExpiry,
       daysUntilExpiry: backgroundDays,
-      status: !backgroundDoc ? 'missing' : backgroundDays < 0 ? 'expired' : backgroundDays <= 365 ? 'warning' : 'valid',
+      status: !backgroundDoc
+        ? 'missing'
+        : backgroundDays < 0
+          ? 'expired'
+          : backgroundDays <= 365
+            ? 'warning'
+            : 'valid',
       document: backgroundDoc,
     });
 
@@ -219,31 +254,46 @@ const DriverCertificationDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'valid': return 'success';
-      case 'warning': return 'warning';
-      case 'expired': return 'error';
-      case 'missing': return 'default';
-      default: return 'default';
+      case 'valid':
+        return 'success';
+      case 'warning':
+        return 'warning';
+      case 'expired':
+        return 'error';
+      case 'missing':
+        return 'default';
+      default:
+        return 'default';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'valid': return <CheckCircleIcon />;
-      case 'warning': return <WarningIcon />;
-      case 'expired': return <ErrorIcon />;
-      case 'missing': return <ScheduleIcon />;
-      default: return <ScheduleIcon />;
+      case 'valid':
+        return <CheckCircleIcon />;
+      case 'warning':
+        return <WarningIcon />;
+      case 'expired':
+        return <ErrorIcon />;
+      case 'missing':
+        return <ScheduleIcon />;
+      default:
+        return <ScheduleIcon />;
     }
   };
 
   const getCertificationTypeIcon = (type: string) => {
     switch (type) {
-      case 'license': return <LicenseIcon />;
-      case 'medical': return <MedicalIcon />;
-      case 'training': return <TrainingIcon />;
-      case 'background': return <AssignmentIcon />;
-      default: return <DescriptionIcon />;
+      case 'license':
+        return <LicenseIcon />;
+      case 'medical':
+        return <MedicalIcon />;
+      case 'training':
+        return <TrainingIcon />;
+      case 'background':
+        return <AssignmentIcon />;
+      default:
+        return <DescriptionIcon />;
     }
   };
 
@@ -260,9 +310,8 @@ const DriverCertificationDashboard: React.FC = () => {
   const handleViewDocument = async (document: DriverDocument) => {
     try {
       window.open(document.fileUrl, '_blank');
-    } catch (error) {
-      console.error('Error viewing document:', error);
-    }
+      // eslint-disable-next-line no-empty
+    } catch {}
   };
 
   const handleDownloadDocument = async (document: DriverDocument) => {
@@ -277,9 +326,8 @@ const DriverCertificationDashboard: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       window.document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading document:', error);
-    }
+      // eslint-disable-next-line no-empty
+    } catch {}
   };
 
   const handleDriverClick = (driver: Driver) => {
@@ -292,7 +340,11 @@ const DriverCertificationDashboard: React.FC = () => {
     drivers.forEach(driver => {
       const certifications = getCertificationStatus(driver);
       certifications.forEach(cert => {
-        if (cert.status === 'warning' || cert.status === 'expired' || cert.status === 'missing') {
+        if (
+          cert.status === 'warning' ||
+          cert.status === 'expired' ||
+          cert.status === 'missing'
+        ) {
           count++;
         }
       });
@@ -317,7 +369,11 @@ const DriverCertificationDashboard: React.FC = () => {
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
-        <Button variant="contained" onClick={handleRefresh} startIcon={<RefreshIcon />}>
+        <Button
+          variant="contained"
+          onClick={handleRefresh}
+          startIcon={<RefreshIcon />}
+        >
           Retry
         </Button>
       </Box>
@@ -329,7 +385,14 @@ const DriverCertificationDashboard: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <PersonIcon sx={{ fontSize: 32, mr: 2, color: 'primary.main' }} />
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
@@ -359,7 +422,12 @@ const DriverCertificationDashboard: React.FC = () => {
           </Card>
         </Box>
         <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
-          <Card sx={{ bgcolor: expiringCount > 0 ? 'warning.main' : 'success.main', color: 'white' }}>
+          <Card
+            sx={{
+              bgcolor: expiringCount > 0 ? 'warning.main' : 'success.main',
+              color: 'white',
+            }}
+          >
             <CardContent>
               <Typography variant="h6">Expiring/Missing</Typography>
               <Typography variant="h3" sx={{ fontWeight: 700 }}>
@@ -407,10 +475,10 @@ const DriverCertificationDashboard: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {drivers.map((driver) => {
+              {drivers.map(driver => {
                 const certifications = getCertificationStatus(driver);
                 const overallStatus = getOverallDriverStatus(certifications);
-                
+
                 return (
                   <TableRow
                     key={driver.id}
@@ -429,7 +497,10 @@ const DriverCertificationDashboard: React.FC = () => {
                           {driver.firstName.charAt(0)}
                         </Avatar>
                         <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 600 }}
+                          >
                             {driver.firstName} {driver.lastName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
@@ -439,7 +510,7 @@ const DriverCertificationDashboard: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell>{driver.employeeId}</TableCell>
-                    {certifications.map((cert) => (
+                    {certifications.map(cert => (
                       <TableCell key={cert.type}>
                         <Tooltip
                           title={
@@ -450,10 +521,16 @@ const DriverCertificationDashboard: React.FC = () => {
                         >
                           <Chip
                             icon={getStatusIcon(cert.status)}
-                            label={cert.daysUntilExpiry > 0 ? `${cert.daysUntilExpiry}d` : cert.status}
+                            label={
+                              cert.daysUntilExpiry > 0
+                                ? `${cert.daysUntilExpiry}d`
+                                : cert.status
+                            }
                             color={getStatusColor(cert.status) as any}
                             size="small"
-                            variant={cert.status === 'missing' ? 'outlined' : 'filled'}
+                            variant={
+                              cert.status === 'missing' ? 'outlined' : 'filled'
+                            }
                           />
                         </Tooltip>
                       </TableCell>
@@ -462,8 +539,11 @@ const DriverCertificationDashboard: React.FC = () => {
                       <Chip
                         label={overallStatus}
                         color={
-                          overallStatus === 'good' ? 'success' :
-                          overallStatus === 'warning' ? 'warning' : 'error'
+                          overallStatus === 'good'
+                            ? 'success'
+                            : overallStatus === 'warning'
+                              ? 'warning'
+                              : 'error'
                         }
                         variant="filled"
                       />
@@ -472,7 +552,7 @@ const DriverCertificationDashboard: React.FC = () => {
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleDriverClick(driver);
                         }}
@@ -522,25 +602,33 @@ const DriverCertificationDashboard: React.FC = () => {
                   <Typography variant="subtitle2" color="text.secondary">
                     Email
                   </Typography>
-                  <Typography variant="body1">{selectedDriver.email}</Typography>
+                  <Typography variant="body1">
+                    {selectedDriver.email}
+                  </Typography>
                 </Box>
                 <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Phone
                   </Typography>
-                  <Typography variant="body1">{selectedDriver.phone}</Typography>
+                  <Typography variant="body1">
+                    {selectedDriver.phone}
+                  </Typography>
                 </Box>
                 <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     License Number
                   </Typography>
-                  <Typography variant="body1">{selectedDriver.licenseNumber}</Typography>
+                  <Typography variant="body1">
+                    {selectedDriver.licenseNumber}
+                  </Typography>
                 </Box>
                 <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     License Class
                   </Typography>
-                  <Typography variant="body1">{selectedDriver.licenseClass}</Typography>
+                  <Typography variant="body1">
+                    {selectedDriver.licenseClass}
+                  </Typography>
                 </Box>
               </Box>
 
@@ -551,7 +639,7 @@ const DriverCertificationDashboard: React.FC = () => {
                 Certifications & Documents
               </Typography>
               <List>
-                {getCertificationStatus(selectedDriver).map((cert) => (
+                {getCertificationStatus(selectedDriver).map(cert => (
                   <ListItem key={cert.type} sx={{ px: 0 }}>
                     <ListItemIcon>
                       <Badge

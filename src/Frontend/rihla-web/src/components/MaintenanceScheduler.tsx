@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -30,7 +29,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   IconButton,
   Tooltip,
 } from '@mui/material';
@@ -39,7 +37,6 @@ import {
   Schedule as ScheduleIcon,
   Warning as WarningIcon,
   CheckCircle as CheckIcon,
-  Error as ErrorIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -96,17 +93,28 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(vehicleId || null);
-  const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
-  const [maintenanceIntervals, setMaintenanceIntervals] = useState<MaintenanceInterval[]>([]);
-  const [overdueMaintenances, setOverdueMaintenances] = useState<MaintenanceRecord[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
+    vehicleId || null
+  );
+  const [maintenanceRecords, setMaintenanceRecords] = useState<
+    MaintenanceRecord[]
+  >([]);
+  const [maintenanceIntervals, setMaintenanceIntervals] = useState<
+    MaintenanceInterval[]
+  >([]);
+  const [overdueMaintenances, setOverdueMaintenances] = useState<
+    MaintenanceRecord[]
+  >([]);
 
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [showIntervalDialog, setShowIntervalDialog] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(null);
-  const [editingInterval, setEditingInterval] = useState<MaintenanceInterval | null>(null);
+  const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(
+    null
+  );
+  const [editingInterval, setEditingInterval] =
+    useState<MaintenanceInterval | null>(null);
 
   const [maintenanceType, setMaintenanceType] = useState('');
   const [description, setDescription] = useState('');
@@ -141,15 +149,17 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
     if (selectedVehicleId) {
       fetchMaintenanceData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVehicleId]);
 
   const fetchVehicles = async () => {
     try {
       const response = await apiClient.get('/api/vehicles');
-      const vehiclesData = Array.isArray(response) ? response : (response as any)?.data || [];
+      const vehiclesData = Array.isArray(response)
+        ? response
+        : (response as any)?.data || [];
       setVehicles(vehiclesData);
-    } catch (error) {
-      console.error('Error fetching vehicles:', error);
+    } catch {
       setError('Failed to load vehicles');
     }
   };
@@ -159,17 +169,23 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
 
     setLoading(true);
     try {
-      const [recordsResponse, intervalsResponse, overdueResponse] = await Promise.all([
-        apiClient.get(`/api/maintenance/vehicle/${selectedVehicleId}`),
-        apiClient.get(`/api/maintenance/intervals/${selectedVehicleId}`),
-        apiClient.get(`/api/maintenance/overdue/${selectedVehicleId}`),
-      ]);
+      const [recordsResponse, intervalsResponse, overdueResponse] =
+        await Promise.all([
+          apiClient.get(`/api/maintenance/vehicle/${selectedVehicleId}`),
+          apiClient.get(`/api/maintenance/intervals/${selectedVehicleId}`),
+          apiClient.get(`/api/maintenance/overdue/${selectedVehicleId}`),
+        ]);
 
-      setMaintenanceRecords(Array.isArray(recordsResponse) ? recordsResponse : []);
-      setMaintenanceIntervals(Array.isArray(intervalsResponse) ? intervalsResponse : []);
-      setOverdueMaintenances(Array.isArray(overdueResponse) ? overdueResponse : []);
-    } catch (error) {
-      console.error('Error fetching maintenance data:', error);
+      setMaintenanceRecords(
+        Array.isArray(recordsResponse) ? recordsResponse : []
+      );
+      setMaintenanceIntervals(
+        Array.isArray(intervalsResponse) ? intervalsResponse : []
+      );
+      setOverdueMaintenances(
+        Array.isArray(overdueResponse) ? overdueResponse : []
+      );
+    } catch {
       setError('Failed to load maintenance data');
     } finally {
       setLoading(false);
@@ -192,7 +208,10 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
       };
 
       if (editingRecord) {
-        await apiClient.put(`/api/maintenance/${editingRecord.id}`, maintenanceData);
+        await apiClient.put(
+          `/api/maintenance/${editingRecord.id}`,
+          maintenanceData
+        );
       } else {
         await apiClient.post('/api/maintenance', maintenanceData);
       }
@@ -200,8 +219,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
       setShowScheduleDialog(false);
       resetScheduleForm();
       fetchMaintenanceData();
-    } catch (error) {
-      console.error('Error scheduling maintenance:', error);
+    } catch {
       setError('Failed to schedule maintenance');
     }
   };
@@ -214,13 +232,18 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
         vehicleId: selectedVehicleId,
         maintenanceType: intervalType,
         intervalDays: parseInt(intervalDays),
-        intervalMileage: intervalMileage ? parseInt(intervalMileage) : undefined,
+        intervalMileage: intervalMileage
+          ? parseInt(intervalMileage)
+          : undefined,
         isActive: true,
         tenantId: user?.tenantId,
       };
 
       if (editingInterval) {
-        await apiClient.put(`/api/maintenance/intervals/${editingInterval.id}`, intervalData);
+        await apiClient.put(
+          `/api/maintenance/intervals/${editingInterval.id}`,
+          intervalData
+        );
       } else {
         await apiClient.post('/api/maintenance/intervals', intervalData);
       }
@@ -228,8 +251,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
       setShowIntervalDialog(false);
       resetIntervalForm();
       fetchMaintenanceData();
-    } catch (error) {
-      console.error('Error setting maintenance interval:', error);
+    } catch {
       setError('Failed to set maintenance interval');
     }
   };
@@ -241,8 +263,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
         status: 'Completed',
       });
       fetchMaintenanceData();
-    } catch (error) {
-      console.error('Error completing maintenance:', error);
+    } catch {
       setError('Failed to complete maintenance');
     }
   };
@@ -251,8 +272,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
     try {
       await apiClient.delete(`/api/maintenance/${recordId}`);
       fetchMaintenanceData();
-    } catch (error) {
-      console.error('Error deleting maintenance record:', error);
+    } catch {
       setError('Failed to delete maintenance record');
     }
   };
@@ -293,11 +313,16 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Completed': return 'success';
-      case 'InProgress': return 'info';
-      case 'Scheduled': return 'default';
-      case 'Overdue': return 'error';
-      default: return 'default';
+      case 'Completed':
+        return 'success';
+      case 'InProgress':
+        return 'info';
+      case 'Scheduled':
+        return 'default';
+      case 'Overdue':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -305,14 +330,6 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
     const maintenanceType = maintenanceTypes.find(mt => mt.value === type);
     return maintenanceType?.icon || <BuildIcon />;
   };
-
-  const calculateNextServiceDate = (lastServiceDate: string, intervalDays: number) => {
-    const lastDate = new Date(lastServiceDate);
-    const nextDate = new Date(lastDate.getTime() + (intervalDays * 24 * 60 * 60 * 1000));
-    return nextDate.toISOString().split('T')[0];
-  };
-
-  const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -336,17 +353,18 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 Maintenance Scheduler
               </Typography>
             </Box>
-            
+
             <FormControl fullWidth>
               <InputLabel>Select Vehicle</InputLabel>
               <Select
                 value={selectedVehicleId || ''}
-                onChange={(e) => setSelectedVehicleId(Number(e.target.value))}
+                onChange={e => setSelectedVehicleId(Number(e.target.value))}
                 label="Select Vehicle"
               >
-                {vehicles.map((vehicle) => (
+                {vehicles.map(vehicle => (
                   <MenuItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.vehicleId} - {vehicle.make} {vehicle.model} ({vehicle.licensePlate})
+                    {vehicle.vehicleId} - {vehicle.make} {vehicle.model} (
+                    {vehicle.licensePlate})
                   </MenuItem>
                 ))}
               </Select>
@@ -359,19 +377,29 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
         <>
           {/* Overdue Maintenance Alerts */}
           {overdueMaintenances.length > 0 && (
-            <Card sx={{ mb: 3, borderRadius: 3, border: '2px solid', borderColor: 'error.main' }}>
+            <Card
+              sx={{
+                mb: 3,
+                borderRadius: 3,
+                border: '2px solid',
+                borderColor: 'error.main',
+              }}
+            >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Avatar sx={{ bgcolor: 'error.main', mr: 2 }}>
                     <WarningIcon />
                   </Avatar>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'error.main' }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, color: 'error.main' }}
+                  >
                     Overdue Maintenance ({overdueMaintenances.length})
                   </Typography>
                 </Box>
-                
+
                 <List>
-                  {overdueMaintenances.map((maintenance, index) => (
+                  {overdueMaintenances.map(maintenance => (
                     <ListItem key={maintenance.id} sx={{ px: 0 }}>
                       <ListItemIcon>
                         {getMaintenanceTypeIcon(maintenance.maintenanceType)}
@@ -401,7 +429,9 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setShowScheduleDialog(true)}
-              sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              }}
             >
               Schedule Maintenance
             </Button>
@@ -420,11 +450,14 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
                 Maintenance Intervals
               </Typography>
-              
+
               {maintenanceIntervals.length > 0 ? (
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  {maintenanceIntervals.map((interval) => (
-                    <Box key={interval.id} sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                  {maintenanceIntervals.map(interval => (
+                    <Box
+                      key={interval.id}
+                      sx={{ flex: '1 1 300px', minWidth: '250px' }}
+                    >
                       <Paper
                         sx={{
                           p: 2,
@@ -433,18 +466,27 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                           borderColor: 'grey.200',
                         }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+                        >
                           {getMaintenanceTypeIcon(interval.maintenanceType)}
-                          <Typography variant="subtitle2" sx={{ ml: 1, fontWeight: 600 }}>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          >
                             {interval.maintenanceType}
                           </Typography>
                         </Box>
                         <Typography variant="body2" color="text.secondary">
                           Every {interval.intervalDays} days
-                          {interval.intervalMileage && ` or ${interval.intervalMileage} km`}
+                          {interval.intervalMileage &&
+                            ` or ${interval.intervalMileage} km`}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Next: {new Date(interval.nextServiceDate).toLocaleDateString()}
+                          Next:{' '}
+                          {new Date(
+                            interval.nextServiceDate
+                          ).toLocaleDateString()}
                         </Typography>
                         <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                           <IconButton
@@ -460,7 +502,8 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 </Box>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No maintenance intervals configured. Click "Set Interval" to add one.
+                  No maintenance intervals configured. Click "Set Interval" to
+                  add one.
                 </Typography>
               )}
             </CardContent>
@@ -472,7 +515,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
                 Maintenance History
               </Typography>
-              
+
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -486,7 +529,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {maintenanceRecords.map((record) => (
+                    {maintenanceRecords.map(record => (
                       <TableRow key={record.id}>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -517,7 +560,9 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                                 <IconButton
                                   size="small"
                                   color="success"
-                                  onClick={() => handleCompleteMaintenace(record.id)}
+                                  onClick={() =>
+                                    handleCompleteMaintenace(record.id)
+                                  }
                                 >
                                   <CheckIcon fontSize="small" />
                                 </IconButton>
@@ -549,8 +594,13 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
               </TableContainer>
 
               {maintenanceRecords.length === 0 && (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                  No maintenance records found. Schedule your first maintenance above.
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: 'center', py: 4 }}
+                >
+                  No maintenance records found. Schedule your first maintenance
+                  above.
                 </Typography>
               )}
             </CardContent>
@@ -578,10 +628,10 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 <InputLabel>Maintenance Type</InputLabel>
                 <Select
                   value={maintenanceType}
-                  onChange={(e) => setMaintenanceType(e.target.value)}
+                  onChange={e => setMaintenanceType(e.target.value)}
                   label="Maintenance Type"
                 >
-                  {maintenanceTypes.map((type) => (
+                  {maintenanceTypes.map(type => (
                     <MenuItem key={type.value} value={type.value}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         {type.icon}
@@ -595,7 +645,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 fullWidth
                 label="Description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={e => setDescription(e.target.value)}
                 multiline
                 rows={2}
               />
@@ -606,7 +656,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                     label="Scheduled Date"
                     type="date"
                     value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
+                    onChange={e => setScheduledDate(e.target.value)}
                     required
                     InputLabelProps={{ shrink: true }}
                   />
@@ -617,7 +667,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                     label="Estimated Cost"
                     type="number"
                     value={estimatedCost}
-                    onChange={(e) => setEstimatedCost(e.target.value)}
+                    onChange={e => setEstimatedCost(e.target.value)}
                     InputProps={{ startAdornment: '$' }}
                   />
                 </Box>
@@ -626,7 +676,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 fullWidth
                 label="Notes"
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 multiline
                 rows={3}
               />
@@ -663,7 +713,9 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
         fullWidth
       >
         <DialogTitle>
-          {editingInterval ? 'Edit Maintenance Interval' : 'Set Maintenance Interval'}
+          {editingInterval
+            ? 'Edit Maintenance Interval'
+            : 'Set Maintenance Interval'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -672,10 +724,10 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                 <InputLabel>Maintenance Type</InputLabel>
                 <Select
                   value={intervalType}
-                  onChange={(e) => setIntervalType(e.target.value)}
+                  onChange={e => setIntervalType(e.target.value)}
                   label="Maintenance Type"
                 >
-                  {maintenanceTypes.map((type) => (
+                  {maintenanceTypes.map(type => (
                     <MenuItem key={type.value} value={type.value}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         {type.icon}
@@ -692,7 +744,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                     label="Interval (Days)"
                     type="number"
                     value={intervalDays}
-                    onChange={(e) => setIntervalDays(e.target.value)}
+                    onChange={e => setIntervalDays(e.target.value)}
                     required
                     inputProps={{ min: 1 }}
                   />
@@ -703,7 +755,7 @@ const MaintenanceScheduler: React.FC<MaintenanceSchedulerProps> = ({
                     label="Interval (Mileage)"
                     type="number"
                     value={intervalMileage}
-                    onChange={(e) => setIntervalMileage(e.target.value)}
+                    onChange={e => setIntervalMileage(e.target.value)}
                     placeholder="Optional"
                     inputProps={{ min: 1 }}
                   />

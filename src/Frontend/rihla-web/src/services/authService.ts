@@ -65,6 +65,7 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       await apiClient.post('/api/auth/logout');
+      // eslint-disable-next-line no-empty
     } catch {
     } finally {
       localStorage.removeItem('authToken');

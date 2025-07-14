@@ -49,6 +49,7 @@ class SignalRService {
     if (this.connection) {
       try {
         await this.connection.stop();
+        // eslint-disable-next-line no-empty
       } catch {
       } finally {
         this.isConnected = false;
@@ -57,88 +58,83 @@ class SignalRService {
     }
   }
 
-  onNotificationReceived(callback: (notification: any) => void): void {
+  onNotificationReceived(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('ReceiveNotification', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onTripStatusUpdated(
-    callback: (tripId: string, status: string) => void
-  ): void {
+  onTripStatusUpdated(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onEmergencyAlert(callback: (alert: any) => void): void {
+  onEmergencyAlert(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('EmergencyAlert', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onDriverCertificationUpdated(
-    callback: (driverId: string, certificationType: string, status: string) => void
-  ): void {
+  onDriverCertificationUpdated(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverCertificationUpdated', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onVehicleMaintenanceUpdated(
-    callback: (vehicleId: string, maintenanceType: string, status: string) => void
-  ): void {
+  onVehicleMaintenanceUpdated(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleMaintenanceUpdated', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onVehicleStatusChanged(
-    callback: (vehicleId: string, oldStatus: string, newStatus: string) => void
-  ): void {
+  onVehicleStatusChanged(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleStatusChanged', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onDriverStatusChanged(
-    callback: (driverId: string, oldStatus: string, newStatus: string) => void
-  ): void {
+  onDriverStatusChanged(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverStatusChanged', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onMaintenanceAlertCreated(
-    callback: (alert: any) => void
-  ): void {
+  onMaintenanceAlertCreated(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('MaintenanceAlertCreated', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
 
-  onInsuranceExpirationAlert(
-    callback: (alert: any) => void
-  ): void {
+  onInsuranceExpirationAlert(callback: () => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('InsuranceExpirationAlert', callback);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -147,6 +143,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('JoinTripGroup', tripId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -155,6 +152,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveTripGroup', tripId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -163,6 +161,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('JoinDriverGroup', driverId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -171,6 +170,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveDriverGroup', driverId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -179,6 +179,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('JoinVehicleGroup', vehicleId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -187,6 +188,7 @@ class SignalRService {
     if (this.connection && this.isConnected) {
       try {
         await this.connection.invoke('LeaveVehicleGroup', vehicleId);
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
@@ -203,6 +205,7 @@ class SignalRService {
         this.connection.off('DriverStatusChanged');
         this.connection.off('MaintenanceAlertCreated');
         this.connection.off('InsuranceExpirationAlert');
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }

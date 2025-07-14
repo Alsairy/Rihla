@@ -39,8 +39,8 @@ interface DocumentUploadProps {
   maxFiles?: number;
   maxSizeBytes?: number;
   allowedTypes?: string[];
-  onUploadComplete?: (files?: UploadedFile[]) => void;
-  onUploadError?: (error?: string) => void;
+  onUploadComplete?: () => void;
+  onUploadError?: () => void;
   existingFiles?: UploadedFile[];
   disabled?: boolean;
 }
@@ -237,15 +237,15 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             result => result.reason.message
           );
           setError(`Some uploads failed: ${errorMessages.join(', ')}`);
-          onUploadError?.(errorMessages.join(', '));
+          onUploadError?.();
         }
 
         if (successfulUploads.length > 0) {
-          onUploadComplete?.(successfulUploads);
+          onUploadComplete?.();
         }
       } catch (uploadError: any) {
         setError('Upload failed: ' + uploadError.message);
-        onUploadError?.(uploadError.message);
+        onUploadError?.();
       } finally {
         setUploading(false);
       }
@@ -300,7 +300,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (fileToDelete.id) {
       try {
         await apiClient.delete(`/api/files/${fileToDelete.id}`);
-      } catch (deleteError) {}
+        // eslint-disable-next-line no-empty
+      } catch {}
     }
 
     setFiles(prev => prev.filter(f => f !== fileToDelete));
