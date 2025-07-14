@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Grid,
   Tooltip,
 } from '@mui/material';
 import {
@@ -110,7 +109,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     return typeMap[fileType] || 'Unknown';
   };
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     if (file.size > maxSizeBytes) {
       return `File size exceeds ${Math.round(maxSizeBytes / (1024 * 1024))}MB limit`;
     }
@@ -124,9 +123,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
 
     return null;
-  };
+  }, [maxSizeBytes, allowedTypes, files.length, maxFiles]);
 
-  const uploadFile = async (file: File): Promise<UploadedFile> => {
+  const uploadFile = useCallback(async (file: File): Promise<UploadedFile> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('entityType', entityType);
@@ -149,7 +148,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Upload failed');
     }
-  };
+  }, [entityType, entityId, documentType]);
 
   const handleFilesSelected = useCallback(
     async (acceptedFiles: File[]) => {
@@ -231,14 +230,14 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         if (successfulUploads.length > 0) {
           onUploadComplete?.(successfulUploads);
         }
-      } catch (error: any) {
-        setError('Upload failed: ' + error.message);
-        onUploadError?.(error.message);
+      } catch (uploadError: any) {
+        setError('Upload failed: ' + uploadError.message);
+        onUploadError?.(uploadError.message);
       } finally {
         setUploading(false);
       }
     },
-    [disabled, entityType, entityId, documentType, maxFiles, maxSizeBytes, allowedTypes, onUploadComplete, onUploadError, uploadFile, validateFile]
+    [disabled, onUploadComplete, onUploadError, uploadFile, validateFile]
   );
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -288,7 +287,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (fileToDelete.id) {
       try {
         await apiClient.delete(`/api/files/${fileToDelete.id}`);
-      } catch (error) {
+      } catch {
+        console.warn('Failed to delete file from server');
       }
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -15,7 +15,6 @@ import {
   Badge,
   Tabs,
   Tab,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -41,7 +40,6 @@ import {
   Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
-import signalRService from '../services/signalRService';
 
 interface AlertItem {
   id: number;
@@ -112,7 +110,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
     },
   };
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -199,12 +197,12 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
 
       setAlerts(allAlerts);
       setLastRefresh(new Date());
-    } catch (error: any) {
+    } catch {
       setError('Failed to load alerts. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [maxItems]);
 
   useEffect(() => {
     fetchAlerts();
@@ -213,7 +211,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
       const interval = setInterval(fetchAlerts, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval, maxItems, fetchAlerts]);
+  }, [autoRefresh, refreshInterval, fetchAlerts]);
 
   const getAlertIcon = (alert: AlertItem) => {
     switch (alert.type) {
