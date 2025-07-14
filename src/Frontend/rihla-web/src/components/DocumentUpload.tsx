@@ -39,8 +39,8 @@ interface DocumentUploadProps {
   maxFiles?: number;
   maxSizeBytes?: number;
   allowedTypes?: string[];
-  onUploadComplete?: (files: UploadedFile[]) => void;
-  onUploadError?: (error: string) => void;
+  onUploadComplete?: (files?: UploadedFile[]) => void;
+  onUploadError?: (error?: string) => void;
   existingFiles?: UploadedFile[];
   disabled?: boolean;
 }
@@ -100,7 +100,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     const typeMap: { [key: string]: string } = {
       'application/pdf': 'PDF',
       'application/msword': 'DOC',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        'DOCX',
       'image/jpeg': 'JPEG',
       'image/png': 'PNG',
       'image/gif': 'GIF',
@@ -109,46 +110,55 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     return typeMap[fileType] || 'Unknown';
   };
 
-  const validateFile = useCallback((file: File): string | null => {
-    if (file.size > maxSizeBytes) {
-      return `File size exceeds ${Math.round(maxSizeBytes / (1024 * 1024))}MB limit`;
-    }
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      if (file.size > maxSizeBytes) {
+        return `File size exceeds ${Math.round(maxSizeBytes / (1024 * 1024))}MB limit`;
+      }
 
-    if (!allowedTypes.includes(file.type)) {
-      return `File type ${file.type} is not allowed`;
-    }
+      if (!allowedTypes.includes(file.type)) {
+        return `File type ${file.type} is not allowed`;
+      }
 
-    if (files.length >= maxFiles) {
-      return `Maximum ${maxFiles} files allowed`;
-    }
+      if (files.length >= maxFiles) {
+        return `Maximum ${maxFiles} files allowed`;
+      }
 
-    return null;
-  }, [maxSizeBytes, allowedTypes, files.length, maxFiles]);
+      return null;
+    },
+    [maxSizeBytes, allowedTypes, files.length, maxFiles]
+  );
 
-  const uploadFile = useCallback(async (file: File): Promise<UploadedFile> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('entityType', entityType);
-    if (entityId) formData.append('entityId', entityId.toString());
-    if (documentType) formData.append('documentType', documentType);
+  const uploadFile = useCallback(
+    async (file: File): Promise<UploadedFile> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('entityType', entityType);
+      if (entityId) formData.append('entityId', entityId.toString());
+      if (documentType) formData.append('documentType', documentType);
 
-    try {
-      const response = await apiClient.post('/api/files/upload', formData) as any;
+      try {
+        const response = (await apiClient.post(
+          '/api/files/upload',
+          formData
+        )) as any;
 
-      return {
-        id: response.id,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: response.url,
-        status: 'completed',
-        documentType: response.documentType,
-        uploadedAt: response.uploadedAt,
-      };
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Upload failed');
-    }
-  }, [entityType, entityId, documentType]);
+        return {
+          id: response.id,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: response.url,
+          status: 'completed',
+          documentType: response.documentType,
+          uploadedAt: response.uploadedAt,
+        };
+      } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Upload failed');
+      }
+    },
+    [entityType, entityId, documentType]
+  );
 
   const handleFilesSelected = useCallback(
     async (acceptedFiles: File[]) => {
@@ -185,7 +195,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
       setFiles(prev => [...prev, ...newFiles]);
 
-      const uploadPromises = validFiles.map(async (file) => {
+      const uploadPromises = validFiles.map(async file => {
         try {
           const uploadedFile = await uploadFile(file);
           setFiles(prev =>
@@ -211,18 +221,21 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       try {
         const uploadedFiles = await Promise.allSettled(uploadPromises);
         const successfulUploads = uploadedFiles
-          .filter((result): result is PromiseFulfilledResult<UploadedFile> => 
-            result.status === 'fulfilled'
+          .filter(
+            (result): result is PromiseFulfilledResult<UploadedFile> =>
+              result.status === 'fulfilled'
           )
           .map(result => result.value);
 
-        const failedUploads = uploadedFiles
-          .filter((result): result is PromiseRejectedResult => 
+        const failedUploads = uploadedFiles.filter(
+          (result): result is PromiseRejectedResult =>
             result.status === 'rejected'
-          );
+        );
 
         if (failedUploads.length > 0) {
-          const errorMessages = failedUploads.map(result => result.reason.message);
+          const errorMessages = failedUploads.map(
+            result => result.reason.message
+          );
           setError(`Some uploads failed: ${errorMessages.join(', ')}`);
           onUploadError?.(errorMessages.join(', '));
         }
@@ -258,9 +271,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (disabled || uploading) return;
-    
+
     const droppedFiles = e.dataTransfer.files;
     if (droppedFiles.length > 0) {
       handleFilesSelected(Array.from(droppedFiles));
@@ -287,9 +300,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     if (fileToDelete.id) {
       try {
         await apiClient.delete(`/api/files/${fileToDelete.id}`);
-      } catch {
-        console.warn('Failed to delete file from server');
-      }
+      } catch (deleteError) {}
     }
 
     setFiles(prev => prev.filter(f => f !== fileToDelete));
@@ -342,7 +353,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           p: 3,
           border: '2px dashed',
           borderColor: dragActive ? 'primary.main' : 'grey.300',
-          bgcolor: dragActive ? 'primary.50' : disabled ? 'grey.100' : 'background.paper',
+          bgcolor: dragActive
+            ? 'primary.50'
+            : disabled
+              ? 'grey.100'
+              : 'background.paper',
           cursor: disabled || uploading ? 'not-allowed' : 'pointer',
           textAlign: 'center',
           transition: 'all 0.2s ease-in-out',
@@ -372,16 +387,18 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
           {dragActive
             ? 'Drop files here...'
             : disabled
-            ? 'Upload disabled'
-            : uploading
-            ? 'Uploading...'
-            : 'Drag & drop files here, or click to select'}
+              ? 'Upload disabled'
+              : uploading
+                ? 'Uploading...'
+                : 'Drag & drop files here, or click to select'}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Supported formats: {allowedTypes.map(type => getFileTypeLabel(type)).join(', ')}
+          Supported formats:{' '}
+          {allowedTypes.map(type => getFileTypeLabel(type)).join(', ')}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Max file size: {Math.round(maxSizeBytes / (1024 * 1024))}MB • Max files: {maxFiles}
+          Max file size: {Math.round(maxSizeBytes / (1024 * 1024))}MB • Max
+          files: {maxFiles}
         </Typography>
         {uploading && <LinearProgress sx={{ mt: 2 }} />}
       </Paper>
@@ -404,9 +421,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                   bgcolor: 'background.paper',
                 }}
               >
-                <ListItemIcon>
-                  {getFileIcon(file.type)}
-                </ListItemIcon>
+                <ListItemIcon>{getFileIcon(file.type)}</ListItemIcon>
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -426,15 +441,17 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
                       <Typography variant="caption" color="text.secondary">
                         {formatFileSize(file.size)}
                         {file.documentType && ` • ${file.documentType}`}
-                        {file.uploadedAt && ` • ${new Date(file.uploadedAt).toLocaleDateString()}`}
+                        {file.uploadedAt &&
+                          ` • ${new Date(file.uploadedAt).toLocaleDateString()}`}
                       </Typography>
-                      {file.status === 'uploading' && file.uploadProgress !== undefined && (
-                        <LinearProgress
-                          variant="determinate"
-                          value={file.uploadProgress}
-                          sx={{ mt: 1 }}
-                        />
-                      )}
+                      {file.status === 'uploading' &&
+                        file.uploadProgress !== undefined && (
+                          <LinearProgress
+                            variant="determinate"
+                            value={file.uploadProgress}
+                            sx={{ mt: 1 }}
+                          />
+                        )}
                       {file.status === 'error' && file.errorMessage && (
                         <Typography variant="caption" color="error">
                           Error: {file.errorMessage}
@@ -483,9 +500,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         fullWidth
       >
         <DialogTitle>
-          <Typography variant="h6">
-            {previewDialog?.file.name}
-          </Typography>
+          <Typography variant="h6">{previewDialog?.file.name}</Typography>
         </DialogTitle>
         <DialogContent>
           {previewDialog?.previewUrl && (
