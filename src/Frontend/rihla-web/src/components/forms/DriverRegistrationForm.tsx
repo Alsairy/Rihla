@@ -192,7 +192,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       return 'Please enter a valid email address';
     }
 
-    const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
+    const phoneRegex = /^\+?[\d\s\-()]+$/;
     if (!phoneRegex.test(formData.phone)) {
       return 'Please enter a valid phone number';
     }

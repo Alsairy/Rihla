@@ -200,7 +200,6 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
       setAlerts(allAlerts);
       setLastRefresh(new Date());
     } catch (error: any) {
-      console.error('Failed to fetch alerts:', error);
       setError('Failed to load alerts. Please try again.');
     } finally {
       setLoading(false);
@@ -214,7 +213,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
       const interval = setInterval(fetchAlerts, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval, maxItems]);
+  }, [autoRefresh, refreshInterval, maxItems, fetchAlerts]);
 
   const getAlertIcon = (alert: AlertItem) => {
     switch (alert.type) {

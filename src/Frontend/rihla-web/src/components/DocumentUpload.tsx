@@ -238,7 +238,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         setUploading(false);
       }
     },
-    [disabled, entityType, entityId, documentType, maxFiles, maxSizeBytes, allowedTypes, onUploadComplete, onUploadError]
+    [disabled, entityType, entityId, documentType, maxFiles, maxSizeBytes, allowedTypes, onUploadComplete, onUploadError, uploadFile, validateFile]
   );
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -289,7 +289,6 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       try {
         await apiClient.delete(`/api/files/${fileToDelete.id}`);
       } catch (error) {
-        console.error('Failed to delete file from server:', error);
       }
     }
 
