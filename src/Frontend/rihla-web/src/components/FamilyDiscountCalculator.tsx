@@ -51,12 +51,8 @@ import {
   Delete as DeleteIcon,
   Settings as SettingsIcon,
   Preview as PreviewIcon,
-  School as SchoolIcon,
-  DirectionsBus as BusIcon,
-  AttachMoney as DollarIcon,
   TrendingDown as DiscountIcon,
   Assessment as ReportIcon,
-  Schedule as ScheduleIcon,
   Group as GroupIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
@@ -179,7 +175,7 @@ const FamilyDiscountCalculator: React.FC = () => {
       };
       setDiscountRules(response.data || []);
     } catch (err) {
-      console.error('Error loading discount rules:', err);
+      setError('Failed to load discount rules');
     }
   };
 
@@ -201,7 +197,6 @@ const FamilyDiscountCalculator: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to calculate family discount');
-      console.error('Error calculating discount:', err);
     } finally {
       setLoading(false);
     }
@@ -229,7 +224,6 @@ const FamilyDiscountCalculator: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to save discount rule');
-      console.error('Error saving rule:', err);
     } finally {
       setLoading(false);
     }
@@ -248,7 +242,6 @@ const FamilyDiscountCalculator: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to delete discount rule');
-      console.error('Error deleting rule:', err);
     } finally {
       setLoading(false);
     }
@@ -265,7 +258,6 @@ const FamilyDiscountCalculator: React.FC = () => {
       setSimulationDialogOpen(true);
     } catch (err) {
       setError('Failed to run discount simulation');
-      console.error('Error running simulation:', err);
     } finally {
       setLoading(false);
     }
@@ -286,7 +278,6 @@ const FamilyDiscountCalculator: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to apply bulk discounts');
-      console.error('Error applying bulk discounts:', err);
     } finally {
       setLoading(false);
     }
