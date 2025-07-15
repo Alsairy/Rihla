@@ -4,6 +4,7 @@ export interface User {
   username: string;
   role: string;
   tenantId: number;
+  isActive: boolean;
 }
 
 export interface Student {

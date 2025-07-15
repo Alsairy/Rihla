@@ -20,6 +20,11 @@ import {
   Chip,
   IconButton,
   LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Alert,
+  Fab,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -29,11 +34,14 @@ import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   School as SchoolIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/apiClient';
 import { DashboardStats, Student, Driver, Vehicle } from '../types';
 import NotificationCenter from '../components/NotificationCenter';
+import DriverRegistrationForm from '../components/forms/DriverRegistrationForm';
+import VehicleRegistrationForm from '../components/forms/VehicleRegistrationForm';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -42,6 +50,11 @@ const AdminDashboard: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDriverForm, setShowDriverForm] = useState(false);
+  const [showVehicleForm, setShowVehicleForm] = useState(false);
+  const [expiringCertifications, setExpiringCertifications] = useState<any[]>(
+    []
+  );
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -74,6 +87,17 @@ const AdminDashboard: React.FC = () => {
         setVehicles(
           Array.isArray(vehiclesResponse?.data) ? vehiclesResponse.data : []
         );
+
+        try {
+          const certificationsResponse = await apiClient.get(
+            '/api/drivers/certifications/expiring'
+          );
+          setExpiringCertifications(
+            Array.isArray(certificationsResponse) ? certificationsResponse : []
+          );
+        } catch {
+          setExpiringCertifications([]);
+        }
       } catch {
         setStats(null);
         setStudents([]);
@@ -574,8 +598,180 @@ const AdminDashboard: React.FC = () => {
               </TableContainer>
             </Paper>
           </Grid>
+
+          {/* Driver Certification Alerts */}
+          <Grid size={{ xs: 12 }}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                border: '1px solid rgba(0,0,0,0.05)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
+                  <WarningIcon />
+                </Avatar>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Driver Certification Alerts
+                </Typography>
+              </Box>
+
+              {expiringCertifications.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {expiringCertifications.slice(0, 5).map((alert, index) => (
+                    <Alert
+                      key={index}
+                      severity="warning"
+                      sx={{ borderRadius: 2 }}
+                    >
+                      <Typography variant="body2">
+                        <strong>{alert.driverName}</strong> -{' '}
+                        {alert.certificationType} expires on {alert.expiryDate}
+                      </Typography>
+                    </Alert>
+                  ))}
+                  {expiringCertifications.length > 5 && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: 'center', mt: 1 }}
+                    >
+                      +{expiringCertifications.length - 5} more certifications
+                      expiring soon
+                    </Typography>
+                  )}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No certifications expiring in the next 30 days
+                </Typography>
+              )}
+            </Paper>
+          </Grid>
         </Grid>
       </Container>
+
+      {/* Floating Action Buttons */}
+      <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}>
+        <Fab
+          color="primary"
+          aria-label="add driver"
+          sx={{ mb: 2 }}
+          onClick={() => setShowDriverForm(true)}
+        >
+          <PeopleIcon />
+        </Fab>
+        <br />
+        <Fab
+          color="secondary"
+          aria-label="add vehicle"
+          onClick={() => setShowVehicleForm(true)}
+        >
+          <CarIcon />
+        </Fab>
+      </Box>
+
+      {/* Driver Registration Modal */}
+      <Dialog
+        open={showDriverForm}
+        onClose={() => setShowDriverForm(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: '90vh',
+          },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            Add New Driver
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          <DriverRegistrationForm
+            onSuccess={() => {
+              setShowDriverForm(false);
+              const fetchDashboardData = async () => {
+                try {
+                  const [
+                    statsResponse,
+                    studentsResponse,
+                    driversResponse,
+                    vehiclesResponse,
+                  ] = await Promise.all([
+                    apiClient.get('/api/dashboard/stats'),
+                    apiClient.get('/api/students'),
+                    apiClient.get('/api/drivers'),
+                    apiClient.get('/api/vehicles'),
+                  ]);
+
+                  setStats(statsResponse as DashboardStats);
+                  setStudents(studentsResponse as Student[]);
+                  setDrivers(driversResponse as Driver[]);
+                  setVehicles(vehiclesResponse as Vehicle[]);
+                  // eslint-disable-next-line no-empty
+                } catch {}
+              };
+              fetchDashboardData();
+            }}
+            onCancel={() => setShowDriverForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Registration Modal */}
+      <Dialog
+        open={showVehicleForm}
+        onClose={() => setShowVehicleForm(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: '90vh',
+          },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            Add New Vehicle
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          <VehicleRegistrationForm
+            onSuccess={() => {
+              setShowVehicleForm(false);
+              const fetchDashboardData = async () => {
+                try {
+                  const [
+                    statsResponse,
+                    studentsResponse,
+                    driversResponse,
+                    vehiclesResponse,
+                  ] = await Promise.all([
+                    apiClient.get('/api/dashboard/stats'),
+                    apiClient.get('/api/students'),
+                    apiClient.get('/api/drivers'),
+                    apiClient.get('/api/vehicles'),
+                  ]);
+
+                  setStats(statsResponse as DashboardStats);
+                  setStudents(studentsResponse as Student[]);
+                  setDrivers(driversResponse as Driver[]);
+                  setVehicles(vehiclesResponse as Vehicle[]);
+                  // eslint-disable-next-line no-empty
+                } catch {}
+              };
+              fetchDashboardData();
+            }}
+            onCancel={() => setShowVehicleForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

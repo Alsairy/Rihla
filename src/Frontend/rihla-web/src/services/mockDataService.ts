@@ -471,6 +471,7 @@ class MockDataService {
         username: 'admin',
         role: 'Admin',
         tenantId: 1,
+        isActive: true,
       },
       {
         id: 2,
@@ -478,6 +479,7 @@ class MockDataService {
         username: 'parent',
         role: 'Parent',
         tenantId: 1,
+        isActive: false,
       },
       {
         id: 3,
@@ -485,6 +487,7 @@ class MockDataService {
         username: 'driver',
         role: 'Driver',
         tenantId: 1,
+        isActive: true,
       },
     ];
 

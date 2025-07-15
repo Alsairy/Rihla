@@ -31,6 +31,7 @@ class ApiClient {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
+        // eslint-disable-next-line no-empty
       } catch {}
 
       throw new Error(errorMessage);
@@ -53,11 +54,34 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
+  async post<T>(
+    url: string,
+    data?: any,
+    options?: { headers?: HeadersInit }
+  ): Promise<T> {
+    const isFormData = data instanceof FormData;
+    let headers: Record<string, string>;
+
+    if (isFormData) {
+      const authHeaders = this.getAuthHeaders() as Record<string, string>;
+      headers = {};
+      if (authHeaders.Authorization) {
+        headers.Authorization = authHeaders.Authorization;
+      }
+      if (options?.headers) {
+        Object.assign(headers, options.headers);
+      }
+    } else {
+      headers = {
+        ...this.getAuthHeaders(),
+        ...options?.headers,
+      } as Record<string, string>;
+    }
+
     const response = await fetch(`${this.baseURL}${url}`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body: isFormData ? data : data ? JSON.stringify(data) : undefined,
     });
 
     return this.handleResponse<T>(response);
