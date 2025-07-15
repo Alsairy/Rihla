@@ -288,6 +288,115 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, new { message = "Error completing trip", error = ex.Message });
             }
         }
+
+        [HttpPost("generate-daily-schedule")]
+        public async Task<ActionResult<IEnumerable<TripDto>>> GenerateDailyTripSchedule([FromBody] DailyScheduleRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _tripService.GenerateDailyTripScheduleAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error generating daily trip schedule", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating daily trip schedule");
+                return StatusCode(500, new { message = "Error generating daily trip schedule", error = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/reschedule")]
+        public async Task<ActionResult<TripDto>> RescheduleTrip(int id, [FromBody] RescheduleTripDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _tripService.RescheduleTripAsync(id, request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error rescheduling trip", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rescheduling trip {TripId}", id);
+                return StatusCode(500, new { message = "Error rescheduling trip", error = ex.Message });
+            }
+        }
+
+        [HttpGet("schedule-conflicts")]
+        public async Task<ActionResult<IEnumerable<ScheduleConflictDto>>> GetScheduleConflicts([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _tripService.GetScheduleConflictsAsync(startDate, endDate, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving schedule conflicts", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving schedule conflicts");
+                return StatusCode(500, new { message = "Error retrieving schedule conflicts", error = ex.Message });
+            }
+        }
+
+        [HttpPost("optimize-schedule")]
+        public async Task<ActionResult<ScheduleOptimizationResultDto>> OptimizeSchedule([FromBody] ScheduleOptimizationRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _tripService.OptimizeScheduleAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error optimizing schedule", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error optimizing schedule");
+                return StatusCode(500, new { message = "Error optimizing schedule", error = ex.Message });
+            }
+        }
+
+        [HttpGet("schedule-analytics")]
+        public async Task<ActionResult<ScheduleAnalyticsDto>> GetScheduleAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _tripService.GetScheduleAnalyticsAsync(startDate, endDate, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving schedule analytics", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving schedule analytics");
+                return StatusCode(500, new { message = "Error retrieving schedule analytics", error = ex.Message });
+            }
+        }
     }
 }
 

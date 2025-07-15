@@ -139,6 +139,132 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, new { message = "Error retrieving attendance statistics", error = ex.Message });
             }
         }
+
+        [HttpPost("rfid")]
+        public async Task<ActionResult<AttendanceDto>> RecordRFIDAttendance([FromBody] RFIDAttendanceDto rfidAttendanceDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _attendanceService.RecordRFIDAttendanceAsync(rfidAttendanceDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error recording RFID attendance", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error recording RFID attendance", error = ex.Message });
+            }
+        }
+
+        [HttpPost("photo")]
+        public async Task<ActionResult<AttendanceDto>> RecordPhotoAttendance([FromBody] PhotoAttendanceDto photoAttendanceDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _attendanceService.RecordPhotoAttendanceAsync(photoAttendanceDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error recording photo attendance", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error recording photo attendance", error = ex.Message });
+            }
+        }
+
+        [HttpPost("biometric")]
+        public async Task<ActionResult<AttendanceDto>> RecordBiometricAttendance([FromBody] BiometricAttendanceDto biometricAttendanceDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _attendanceService.RecordBiometricAttendanceAsync(biometricAttendanceDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error recording biometric attendance", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error recording biometric attendance", error = ex.Message });
+            }
+        }
+
+        [HttpPost("sync-offline")]
+        public async Task<ActionResult<OfflineAttendanceSyncResultDto>> SyncOfflineAttendance([FromBody] OfflineAttendanceSyncDto syncDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _attendanceService.SyncOfflineAttendanceAsync(syncDto, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error syncing offline attendance", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error syncing offline attendance", error = ex.Message });
+            }
+        }
+
+        [HttpGet("methods")]
+        public async Task<ActionResult<IEnumerable<AttendanceMethodDto>>> GetAttendanceMethods()
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _attendanceService.GetAttendanceMethodsAsync(tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving attendance methods", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving attendance methods", error = ex.Message });
+            }
+        }
+
+        [HttpGet("analytics")]
+        public async Task<ActionResult<AttendanceAnalyticsDto>> GetAttendanceAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _attendanceService.GetAttendanceAnalyticsAsync(startDate, endDate, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving attendance analytics", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving attendance analytics", error = ex.Message });
+            }
+        }
     }
 }
 
