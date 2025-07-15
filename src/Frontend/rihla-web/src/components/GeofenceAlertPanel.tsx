@@ -123,9 +123,8 @@ const GeofenceAlertPanel: React.FC = () => {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         await loadAlertsForTrip((tripsResponse as any).data.items[0].id);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load initial data');
-      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -135,8 +134,8 @@ const GeofenceAlertPanel: React.FC = () => {
     try {
       const response = await apiClient.get(`/api/geofence/alerts/${tripId}`);
       setAlerts((response as any).data || []);
-    } catch (err) {
-      console.error('Error loading alerts:', err);
+    } catch {
+      setError('Failed to load alerts');
     }
   };
 
@@ -185,8 +184,8 @@ const GeofenceAlertPanel: React.FC = () => {
           }
         }
       }
-    } catch (err) {
-      console.error('Error checking geofence alerts:', err);
+    } catch {
+      setError('Failed to check geofence alerts');
     }
   };
 
@@ -207,9 +206,8 @@ const GeofenceAlertPanel: React.FC = () => {
       );
 
       setSuccess('Alert acknowledged successfully');
-    } catch (err) {
+    } catch {
       setError('Failed to acknowledge alert');
-      console.error('Error acknowledging alert:', err);
     }
   };
 
@@ -228,9 +226,8 @@ const GeofenceAlertPanel: React.FC = () => {
       });
 
       setSuccess('Parent has been notified');
-    } catch (err) {
+    } catch {
       setError('Failed to contact parent');
-      console.error('Error contacting parent:', err);
     }
   };
 
@@ -244,9 +241,8 @@ const GeofenceAlertPanel: React.FC = () => {
       });
 
       setSuccess('Driver has been notified');
-    } catch (err) {
+    } catch {
       setError('Failed to contact driver');
-      console.error('Error contacting driver:', err);
     }
   };
 
@@ -265,7 +261,8 @@ const GeofenceAlertPanel: React.FC = () => {
 
   const playAlertSound = () => {
     const audio = new Audio('/alert-sound.mp3');
-    audio.play().catch(err => console.log('Could not play alert sound:', err));
+    audio.play().catch(() => {
+    });
   };
 
   const getFilteredAlerts = () => {
