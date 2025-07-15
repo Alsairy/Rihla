@@ -149,7 +149,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _attendanceService.RecordRFIDAttendanceAsync(rfidAttendanceDto, tenantId);
+                var result = await _attendanceService.RecordRFIDAttendanceAsync(rfidAttendanceDto.RFIDTag, rfidAttendanceDto.TripId, rfidAttendanceDto.RouteStopId, rfidAttendanceDto.Timestamp, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error recording RFID attendance", error = result.Error });
@@ -171,7 +171,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _attendanceService.RecordPhotoAttendanceAsync(photoAttendanceDto, tenantId);
+                var result = await _attendanceService.RecordPhotoAttendanceAsync(photoAttendanceDto.StudentId, photoAttendanceDto.TripId, photoAttendanceDto.RouteStopId, photoAttendanceDto.PhotoBase64, photoAttendanceDto.Timestamp, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error recording photo attendance", error = result.Error });
@@ -193,7 +193,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _attendanceService.RecordBiometricAttendanceAsync(biometricAttendanceDto, tenantId);
+                var result = await _attendanceService.RecordBiometricAttendanceAsync(biometricAttendanceDto.StudentId, biometricAttendanceDto.TripId, biometricAttendanceDto.RouteStopId, biometricAttendanceDto.BiometricData, biometricAttendanceDto.BiometricType, biometricAttendanceDto.Timestamp, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error recording biometric attendance", error = result.Error });
@@ -215,7 +215,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _attendanceService.SyncOfflineAttendanceAsync(syncDto, tenantId);
+                var result = await _attendanceService.SyncOfflineAttendanceAsync(syncDto.AttendanceRecords, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error syncing offline attendance", error = result.Error });

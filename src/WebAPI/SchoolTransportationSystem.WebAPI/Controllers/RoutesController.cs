@@ -128,7 +128,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return BadRequest(ModelState);
 
             var tenantId = _userContext.GetTenantId().ToString();
-            var result = await _routeService.GenerateOptimalRouteAsync(id, request, tenantId);
+            var result = await _routeService.GenerateOptimalRouteAsync(request.StudentIds, request.VehicleId, tenantId);
             
             if (!result.IsSuccess)
                 return StatusCode(500, new { message = "Error optimizing route", error = result.Error });
@@ -143,7 +143,8 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return BadRequest(ModelState);
 
             var tenantId = _userContext.GetTenantId().ToString();
-            var result = await _routeService.OptimizeExistingRouteAsync(id, request, tenantId);
+            request.RouteId = id;
+            var result = await _routeService.OptimizeExistingRouteAsync(request, tenantId);
             
             if (!result.IsSuccess)
                 return StatusCode(500, new { message = "Error optimizing existing route", error = result.Error });
@@ -155,7 +156,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
         public async Task<ActionResult<RouteEfficiencyMetricsDto>> GetRouteEfficiencyMetrics(int id)
         {
             var tenantId = _userContext.GetTenantId().ToString();
-            var result = await _routeService.CalculateRouteEfficiencyMetricsAsync(id, tenantId);
+            var result = await _routeService.CalculateRouteEfficiencyMetricsAsync(id, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, tenantId);
             
             if (!result.IsSuccess)
                 return StatusCode(500, new { message = "Error calculating route efficiency metrics", error = result.Error });

@@ -215,7 +215,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _paymentService.ProcessRefundsAsync(id, request, tenantId);
+                var result = await _paymentService.ProcessRefundsAsync(request, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error processing refund", error = result.Error });
@@ -247,13 +247,13 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
             }
         }
 
-        [HttpGet("fraud-detection")]
-        public async Task<ActionResult<FraudDetectionResultDto>> GetFraudDetectionResults([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        [HttpGet("fraud-detection/{transactionId}")]
+        public async Task<ActionResult<FraudDetectionResultDto>> GetFraudDetectionResults(string transactionId)
         {
             try
             {
                 var tenantId = "1";
-                var result = await _paymentService.GetFraudDetectionResultsAsync(startDate, endDate, tenantId);
+                var result = await _paymentService.GetFraudDetectionResultsAsync(transactionId, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error retrieving fraud detection results", error = result.Error });

@@ -321,7 +321,8 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                     return BadRequest(ModelState);
 
                 var tenantId = "1";
-                var result = await _tripService.RescheduleTripAsync(id, request, tenantId);
+                request.TripId = id;
+                var result = await _tripService.RescheduleTripAsync(request, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error rescheduling trip", error = result.Error });
@@ -341,7 +342,7 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
             try
             {
                 var tenantId = "1";
-                var result = await _tripService.GetScheduleConflictsAsync(startDate, endDate, tenantId);
+                var result = await _tripService.GetScheduleConflictsAsync(startDate, tenantId);
                 
                 if (!result.IsSuccess)
                     return StatusCode(500, new { message = "Error retrieving schedule conflicts", error = result.Error });
