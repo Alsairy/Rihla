@@ -14,7 +14,7 @@ import {
   RegisterRequest,
 } from './authContextTypes';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
