@@ -71,31 +71,12 @@ const NotificationCenter: React.FC = () => {
 
     signalRService.startConnection();
 
-    signalRService.onNotificationReceived((notification: any) => {
-      setNotifications(prev => [notification, ...prev]);
-      if (!notification.isRead) {
-        setUnreadCount(prev => prev + 1);
-      }
-
-      if (Notification.permission === 'granted') {
-        new Notification(notification.title, {
-          body: notification.message,
-          icon: '/favicon.ico',
-        });
-      }
+    signalRService.onNotificationReceived(() => {
+      loadNotifications();
     });
 
-    signalRService.onEmergencyAlert((alert: any) => {
-      setNotifications(prev => [alert, ...prev]);
-      setUnreadCount(prev => prev + 1);
-
-      if (Notification.permission === 'granted') {
-        new Notification('🚨 EMERGENCY ALERT', {
-          body: alert.message,
-          icon: '/favicon.ico',
-          requireInteraction: true,
-        });
-      }
+    signalRService.onEmergencyAlert(() => {
+      loadNotifications();
     });
 
     signalRService.onDriverCertificationUpdated(() => {
@@ -189,8 +170,9 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
   };
 
   const loadAlerts = async () => {
@@ -329,8 +311,9 @@ const NotificationCenter: React.FC = () => {
           alert => alert.severity === 'error' || alert.actionRequired
         ).length
       );
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -348,8 +331,9 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
   };
 
   const markAllAsRead = async () => {
@@ -357,8 +341,9 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
   };
 
   const getNotificationIcon = (type: string) => {

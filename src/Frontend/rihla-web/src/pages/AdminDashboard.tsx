@@ -713,8 +713,9 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                  // eslint-disable-next-line no-empty
-                } catch {}
+                } catch (error) {
+                  console.error('Failed to refresh data:', error);
+                }
               };
               fetchDashboardData();
             }}
@@ -763,8 +764,9 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                  // eslint-disable-next-line no-empty
-                } catch {}
+                } catch (error) {
+                  console.error('Failed to refresh data:', error);
+                }
               };
               fetchDashboardData();
             }}
