@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   Button,
   Table,
   TableBody,
@@ -34,6 +33,7 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from '@mui/material';
+import GridLegacy from '@mui/material/GridLegacy';
 import {
   Receipt as ReceiptIcon,
   Send as SendIcon,
@@ -371,8 +371,8 @@ const AutomatedBillingDashboard: React.FC = () => {
       )}
 
       {/* Billing Statistics */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+      <GridLegacy container spacing={3} sx={{ mb: 3 }}>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <ReceiptIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
@@ -382,8 +382,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        </GridLegacy>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <MoneyIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
@@ -395,8 +395,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        </GridLegacy>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <CheckCircleIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
@@ -406,8 +406,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        </GridLegacy>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <WarningIcon color="error" sx={{ fontSize: 40, mb: 1 }} />
@@ -419,8 +419,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        </GridLegacy>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <PaymentIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
@@ -432,8 +432,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        </GridLegacy>
+        <GridLegacy item xs={12} sm={6} md={2}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <Typography variant="h6" color="primary">
@@ -449,14 +449,14 @@ const AutomatedBillingDashboard: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </GridLegacy>
+      </GridLegacy>
 
       {/* Filters and Search */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <GridLegacy container spacing={2} alignItems="center">
+            <GridLegacy item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
                 label="Search invoices..."
@@ -464,8 +464,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                 onChange={e => setSearchTerm(e.target.value)}
                 size="small"
               />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            </GridLegacy>
+            <GridLegacy item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel>Status Filter</InputLabel>
                 <Select
@@ -481,8 +481,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                   <MenuItem value="Cancelled">Cancelled</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            </GridLegacy>
+            <GridLegacy item xs={12} sm={6} md={3}>
               <Button
                 variant="outlined"
                 startIcon={<RefreshIcon />}
@@ -491,8 +491,8 @@ const AutomatedBillingDashboard: React.FC = () => {
               >
                 Refresh
               </Button>
-            </Grid>
-          </Grid>
+            </GridLegacy>
+          </GridLegacy>
         </CardContent>
       </Card>
 
@@ -593,8 +593,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                 <Typography variant="h6">Automation Settings</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12 }}>
+                <GridLegacy container spacing={3}>
+                  <GridLegacy item xs={12}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -609,8 +609,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                       }
                       label="Auto-generate invoices"
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel>Invoice Frequency</InputLabel>
                       <Select
@@ -628,8 +628,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         <MenuItem value="Annually">Annually</MenuItem>
                       </Select>
                     </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Due Days"
@@ -642,8 +642,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                </Grid>
+                  </GridLegacy>
+                </GridLegacy>
               </AccordionDetails>
             </Accordion>
 
@@ -652,8 +652,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                 <Typography variant="h6">Company Information</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                <GridLegacy container spacing={3}>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Company Name"
@@ -668,8 +668,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Tax ID"
@@ -684,8 +684,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12}>
                     <TextField
                       fullWidth
                       label="Address"
@@ -702,8 +702,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Phone"
@@ -718,8 +718,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Email"
@@ -735,8 +735,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }))
                       }
                     />
-                  </Grid>
-                </Grid>
+                  </GridLegacy>
+                </GridLegacy>
               </AccordionDetails>
             </Accordion>
 
@@ -745,8 +745,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                 <Typography variant="h6">Tax & Fees</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                <GridLegacy container spacing={3}>
+                  <GridLegacy item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Tax Rate (%)"
@@ -760,8 +760,8 @@ const AutomatedBillingDashboard: React.FC = () => {
                       }
                       inputProps={{ step: 0.1, min: 0, max: 100 }}
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
+                  </GridLegacy>
+                  <GridLegacy item xs={12}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -776,9 +776,9 @@ const AutomatedBillingDashboard: React.FC = () => {
                       }
                       label="Enable late fees"
                     />
-                  </Grid>
+                  </GridLegacy>
                   {billingSettings.lateFeesEnabled && (
-                    <Grid size={{ xs: 12, sm: 6 }}>
+                    <GridLegacy item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="Late Fee Amount"
@@ -792,9 +792,9 @@ const AutomatedBillingDashboard: React.FC = () => {
                         }
                         inputProps={{ step: 0.01, min: 0 }}
                       />
-                    </Grid>
+                    </GridLegacy>
                   )}
-                </Grid>
+                </GridLegacy>
               </AccordionDetails>
             </Accordion>
           </Box>
