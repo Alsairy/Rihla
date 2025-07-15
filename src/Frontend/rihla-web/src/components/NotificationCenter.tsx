@@ -71,27 +71,27 @@ const NotificationCenter: React.FC = () => {
 
     signalRService.startConnection();
 
-    signalRService.onNotificationReceived((_notification: any) => {
+    signalRService.onNotificationReceived(() => {
       loadNotifications();
     });
 
-    signalRService.onEmergencyAlert((_alert: any) => {
+    signalRService.onEmergencyAlert(() => {
       loadNotifications();
     });
 
-    signalRService.onDriverCertificationUpdated((_update: any) => {
+    signalRService.onDriverCertificationUpdated(() => {
       loadAlerts(); // Refresh alerts when driver certifications change
     });
 
-    signalRService.onVehicleMaintenanceUpdated((_update: any) => {
+    signalRService.onVehicleMaintenanceUpdated(() => {
       loadAlerts(); // Refresh alerts when vehicle maintenance changes
     });
 
-    signalRService.onMaintenanceAlertCreated((_alert: any) => {
+    signalRService.onMaintenanceAlertCreated(() => {
       loadAlerts(); // Refresh alerts when new maintenance alerts are created
     });
 
-    signalRService.onInsuranceExpirationAlert((_alert: any) => {
+    signalRService.onInsuranceExpirationAlert(() => {
       loadAlerts(); // Refresh alerts when insurance expiration alerts are created
     });
 

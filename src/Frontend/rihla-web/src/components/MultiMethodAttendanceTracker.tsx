@@ -197,9 +197,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       }
 
       setRfidInput('');
-    } catch (err) {
+    } catch {
       setError('Failed to process RFID scan');
-      console.error('RFID scan error:', err);
     } finally {
       setRfidScanning(false);
     }
@@ -214,9 +213,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch (err) {
+    } catch {
       setError('Failed to access camera');
-      console.error('Camera access error:', err);
     }
   };
 
@@ -276,9 +274,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       }
 
       closePhotoDialog();
-    } catch (err) {
+    } catch {
       setError('Failed to submit photo attendance');
-      console.error('Photo attendance error:', err);
     } finally {
       setLoading(false);
     }
@@ -337,9 +334,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
       setManualStudentId(null);
       setManualStatus('Present');
-    } catch (err) {
+    } catch {
       setError('Failed to record manual attendance');
-      console.error('Manual attendance error:', err);
     } finally {
       setLoading(false);
     }
@@ -363,9 +359,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       } else {
         setError('Failed to sync offline records');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to sync offline records');
-      console.error('Sync error:', err);
     } finally {
       setLoading(false);
     }
