@@ -1,3 +1,10 @@
+import { User } from '../types';
+import {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+} from '../services/authService';
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -9,8 +16,8 @@ export interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-export { User } from '../types';
-export {
+export type { User } from '../types';
+export type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
