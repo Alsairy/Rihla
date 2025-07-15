@@ -231,20 +231,6 @@ const GeofenceAlertPanel: React.FC = () => {
     }
   };
 
-  const contactDriver = async (tripId: number) => {
-    try {
-      await apiClient.post(`/api/notifications/contact-driver`, {
-        tripId,
-        message:
-          'Please check for students who may have missed boarding at recent stops.',
-        urgency: 'Medium',
-      });
-
-      setSuccess('Driver has been notified');
-    } catch {
-      setError('Failed to contact driver');
-    }
-  };
 
   const loadAlertSettings = () => {
     const saved = localStorage.getItem('geofenceAlertSettings');

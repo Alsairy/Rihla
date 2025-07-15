@@ -22,10 +22,8 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  IconButton,
   Tabs,
   Tab,
-  Paper,
 } from '@mui/material';
 import {
   QrCodeScanner,
@@ -33,10 +31,7 @@ import {
   Wifi,
   WifiOff,
   CheckCircle,
-  Error,
   Person,
-  Schedule,
-  LocationOn,
   Refresh,
   Upload,
   Download,
@@ -144,9 +139,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         loadAttendanceRecords((tripsResponse as any).data.items[0].id);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load initial data');
-      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -156,8 +150,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     try {
       const response = await apiClient.get(`/api/attendance/trip/${tripId}`);
       setAttendanceRecords((response as any).data || []);
-    } catch (err) {
-      console.error('Error loading attendance records:', err);
+    } catch {
+      setError('Failed to load attendance records');
     }
   };
 
