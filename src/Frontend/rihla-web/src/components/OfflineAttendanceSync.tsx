@@ -30,13 +30,11 @@ import {
   WifiOff,
   CheckCircle,
   Error,
-  Warning,
   Delete,
   Refresh,
   Storage,
   Sync,
   Schedule,
-  Person,
   Info,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
@@ -85,7 +83,7 @@ const OfflineAttendanceSync: React.FC = () => {
     null
   );
   const [detailDialog, setDetailDialog] = useState(false);
-  const [autoSync, setAutoSync] = useState(true);
+  const [autoSync] = useState(true);
 
   useEffect(() => {
     loadOfflineRecords();

@@ -191,7 +191,6 @@ const NotificationCenter: React.FC = () => {
         notifications.filter((n: Notification) => !n.isRead).length
       );
     } catch (error) {
-      console.error('Failed to load data:', error);
     }
   };
 
@@ -332,7 +331,6 @@ const NotificationCenter: React.FC = () => {
         ).length
       );
     } catch (error) {
-      console.error('Failed to load data:', error);
     }
   };
 
@@ -352,7 +350,6 @@ const NotificationCenter: React.FC = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to load data:', error);
     }
   };
 
@@ -362,7 +359,6 @@ const NotificationCenter: React.FC = () => {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to load data:', error);
     }
   };
 
