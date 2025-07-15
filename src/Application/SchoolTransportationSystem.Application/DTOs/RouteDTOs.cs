@@ -119,12 +119,15 @@ namespace SchoolTransportationSystem.Application.DTOs
     {
         public int Id { get; set; }
         public int RouteId { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string StopName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public int StopOrder { get; set; }
+        public int SequenceNumber { get; set; }
         public TimeSpan ScheduledArrivalTime { get; set; }
+        public TimeSpan EstimatedArrivalTime { get; set; }
         public TimeSpan ScheduledDepartureTime { get; set; }
         public bool IsPickupPoint { get; set; }
         public bool IsDropoffPoint { get; set; }
@@ -291,6 +294,61 @@ namespace SchoolTransportationSystem.Application.DTOs
         public decimal FuelEfficiency { get; set; }
         public decimal StudentSatisfaction { get; set; }
         public DateTime LastUpdated { get; set; }
+    }
+
+    public class OptimalRouteRequestDto
+    {
+        [Required]
+        [StringLength(100)]
+        public string? RouteName { get; set; }
+
+        [Required]
+        public TimeSpan StartTime { get; set; }
+
+        [Required]
+        [Range(1, 100)]
+        public int VehicleCapacity { get; set; }
+
+        [Required]
+        public List<RouteStopDto> Stops { get; set; } = new();
+
+        public RouteType Type { get; set; } = RouteType.Regular;
+        
+        [StringLength(500)]
+        public string? Notes { get; set; }
+    }
+
+    public class RouteEfficiencyMetricsDto
+    {
+        public int RouteId { get; set; }
+        public string RouteName { get; set; } = string.Empty;
+        public decimal TotalDistance { get; set; }
+        public TimeSpan EstimatedDuration { get; set; }
+        public int NumberOfStops { get; set; }
+        public int StudentCapacity { get; set; }
+        public TimeSpan AverageActualDuration { get; set; }
+        public decimal OnTimePerformance { get; set; }
+        public decimal FuelEfficiency { get; set; }
+        public decimal CostPerStudent { get; set; }
+        public decimal OptimizationScore { get; set; }
+        public DateTime LastCalculated { get; set; }
+    }
+
+    public class RouteOptimizationResultDto
+    {
+        public int RouteId { get; set; }
+        public string RouteNumber { get; set; } = string.Empty;
+        public string RouteName { get; set; } = string.Empty;
+        public decimal OriginalDistance { get; set; }
+        public decimal OptimizedDistance { get; set; }
+        public decimal DistanceSavings { get; set; }
+        public TimeSpan OriginalDuration { get; set; }
+        public TimeSpan OptimizedDuration { get; set; }
+        public TimeSpan TimeSavings { get; set; }
+        public decimal FuelSavings { get; set; }
+        public decimal CostSavings { get; set; }
+        public List<RouteStopDto> OptimizedStops { get; set; } = new();
+        public DateTime OptimizedAt { get; set; }
     }
 }
 

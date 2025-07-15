@@ -489,6 +489,434 @@ namespace SchoolTransportationSystem.Application.Services
                 UpdatedAt = attendance.UpdatedAt
             };
         }
+
+        public async Task<Result<List<ResourceConflictDto>>> DetectResourceConflictsAsync(DateTime date, string tenantId)
+        {
+            try
+            {
+                var conflicts = new List<ResourceConflictDto>();
+                
+                var trips = await _context.Trips
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Include(t => t.Route)
+                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ScheduledStartTime.Date == date.Date)
+                    .OrderBy(t => t.ScheduledStartTime)
+                    .ToListAsync();
+
+                var vehicleConflicts = DetectVehicleConflicts(trips);
+                var driverConflicts = DetectDriverConflicts(trips);
+
+                conflicts.AddRange(vehicleConflicts);
+                conflicts.AddRange(driverConflicts);
+
+                return Result<List<ResourceConflictDto>>.Success(conflicts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error detecting resource conflicts for date {Date}", date);
+                return Result<List<ResourceConflictDto>>.Failure("An error occurred while detecting resource conflicts");
+            }
+        }
+
+        public async Task<Result<DailyTripScheduleDto>> GenerateDailyTripScheduleAsync(DateTime date, string tenantId)
+        {
+            try
+            {
+                var routes = await _context.Routes
+                    .Include(r => r.AssignedVehicle)
+                    .Include(r => r.AssignedDriver)
+                    .Where(r => r.TenantId == int.Parse(tenantId) && !r.IsDeleted && r.Status == RouteStatus.Active)
+                    .ToListAsync();
+
+                var existingTrips = await _context.Trips
+                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ScheduledStartTime.Date == date.Date)
+                    .ToListAsync();
+
+                var schedule = new DailyTripScheduleDto
+                {
+                    ScheduleDate = date,
+                    TotalRoutes = routes.Count,
+                    ScheduledTrips = new List<TripDto>(),
+                    UnscheduledRoutes = new List<RouteDto>(),
+                    Conflicts = new List<ResourceConflictDto>()
+                };
+
+                foreach (var route in routes)
+                {
+                    var morningTrip = GenerateTripForRoute(route, date, TripType.PickUp, existingTrips);
+                    var afternoonTrip = GenerateTripForRoute(route, date, TripType.DropOff, existingTrips);
+
+                    if (morningTrip != null)
+                    {
+                        schedule.ScheduledTrips.Add(morningTrip);
+                    }
+                    
+                    if (afternoonTrip != null)
+                    {
+                        schedule.ScheduledTrips.Add(afternoonTrip);
+                    }
+
+                    if (morningTrip == null && afternoonTrip == null)
+                    {
+                        schedule.UnscheduledRoutes.Add(MapRouteToDto(route));
+                    }
+                }
+
+                var conflicts = await DetectResourceConflictsAsync(date, tenantId);
+                if (conflicts.IsSuccess)
+                {
+                    schedule.Conflicts = conflicts.Value;
+                }
+
+                return Result<DailyTripScheduleDto>.Success(schedule);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating daily trip schedule for date {Date}", date);
+                return Result<DailyTripScheduleDto>.Failure("An error occurred while generating the daily trip schedule");
+            }
+        }
+
+        public async Task<Result<TripDto>> AdjustTripTimingAsync(int tripId, DateTime newStartTime, DateTime newEndTime, string tenantId)
+        {
+            try
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.Route)
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<TripDto>.Failure("Trip not found");
+                }
+
+                if (trip.Status == TripStatus.Completed)
+                {
+                    return Result<TripDto>.Failure("Cannot adjust timing for completed trips");
+                }
+
+                var conflicts = await CheckTimingConflictsAsync(tripId, newStartTime, newEndTime, tenantId);
+                if (conflicts.Any())
+                {
+                    var conflictMessages = string.Join(", ", conflicts.Select(c => c.Description));
+                    return Result<TripDto>.Failure($"Timing conflicts detected: {conflictMessages}");
+                }
+
+                trip.ScheduledStartTime = newStartTime;
+                trip.ScheduledEndTime = newEndTime;
+                trip.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var tripDto = MapToDto(trip);
+                return Result<TripDto>.Success(tripDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adjusting trip timing for trip {TripId}", tripId);
+                return Result<TripDto>.Failure("An error occurred while adjusting trip timing");
+            }
+        }
+
+        public async Task<Result<bool>> SendScheduleNotificationsAsync(int tripId, string tenantId)
+        {
+            try
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.Route)
+                        .ThenInclude(r => r.Students)
+                    .Include(t => t.Driver)
+                    .Include(t => t.Vehicle)
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<bool>.Failure("Trip not found");
+                }
+
+                var notifications = new List<Notification>();
+
+                if (trip.Driver != null)
+                {
+                    notifications.Add(new Notification
+                    {
+                        TenantId = int.Parse(tenantId),
+                        UserId = trip.Driver.Id,
+                        Type = NotificationType.TripSchedule,
+                        Title = "Trip Schedule Update",
+                        Message = $"Your trip on route {trip.Route?.Name} is scheduled for {trip.ScheduledStartTime:HH:mm}",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                foreach (var student in trip.Route?.Students ?? new List<Student>())
+                {
+                    if (!string.IsNullOrEmpty(student.ParentEmail))
+                    {
+                        notifications.Add(new Notification
+                        {
+                            TenantId = int.Parse(tenantId),
+                            UserId = student.Id,
+                            Type = NotificationType.TripSchedule,
+                            Title = "Trip Schedule Notification",
+                            Message = $"Trip for {student.FullName.FirstName} on route {trip.Route?.Name} is scheduled for {trip.ScheduledStartTime:HH:mm}",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending schedule notifications for trip {TripId}", tripId);
+                return Result<bool>.Failure("An error occurred while sending schedule notifications");
+            }
+        }
+
+        private List<ResourceConflictDto> DetectVehicleConflicts(List<Trip> trips)
+        {
+            var conflicts = new List<ResourceConflictDto>();
+            var vehicleGroups = trips.Where(t => t.VehicleId.HasValue)
+                                   .GroupBy(t => t.VehicleId.Value);
+
+            foreach (var group in vehicleGroups)
+            {
+                var vehicleTrips = group.OrderBy(t => t.ScheduledStartTime).ToList();
+                
+                for (int i = 0; i < vehicleTrips.Count - 1; i++)
+                {
+                    var currentTrip = vehicleTrips[i];
+                    var nextTrip = vehicleTrips[i + 1];
+
+                    if (currentTrip.ScheduledEndTime > nextTrip.ScheduledStartTime)
+                    {
+                        conflicts.Add(new ResourceConflictDto
+                        {
+                            ConflictType = ConflictType.Vehicle,
+                            ResourceId = currentTrip.VehicleId.Value,
+                            ResourceName = currentTrip.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
+                            ConflictingTripIds = new List<int> { currentTrip.Id, nextTrip.Id },
+                            ConflictTime = nextTrip.ScheduledStartTime,
+                            Description = $"Vehicle {currentTrip.Vehicle?.VehicleNumber} is scheduled for overlapping trips",
+                            Severity = ConflictSeverity.High
+                        });
+                    }
+                }
+            }
+
+            return conflicts;
+        }
+
+        private List<ResourceConflictDto> DetectDriverConflicts(List<Trip> trips)
+        {
+            var conflicts = new List<ResourceConflictDto>();
+            var driverGroups = trips.Where(t => t.DriverId.HasValue)
+                                   .GroupBy(t => t.DriverId.Value);
+
+            foreach (var group in driverGroups)
+            {
+                var driverTrips = group.OrderBy(t => t.ScheduledStartTime).ToList();
+                
+                for (int i = 0; i < driverTrips.Count - 1; i++)
+                {
+                    var currentTrip = driverTrips[i];
+                    var nextTrip = driverTrips[i + 1];
+
+                    if (currentTrip.ScheduledEndTime > nextTrip.ScheduledStartTime)
+                    {
+                        conflicts.Add(new ResourceConflictDto
+                        {
+                            ConflictType = ConflictType.Driver,
+                            ResourceId = currentTrip.DriverId.Value,
+                            ResourceName = $"{currentTrip.Driver?.FullName.FirstName} {currentTrip.Driver?.FullName.LastName}",
+                            ConflictingTripIds = new List<int> { currentTrip.Id, nextTrip.Id },
+                            ConflictTime = nextTrip.ScheduledStartTime,
+                            Description = $"Driver {currentTrip.Driver?.FullName.FirstName} {currentTrip.Driver?.FullName.LastName} is scheduled for overlapping trips",
+                            Severity = ConflictSeverity.High
+                        });
+                    }
+                }
+            }
+
+            return conflicts;
+        }
+
+        private TripDto? GenerateTripForRoute(Route route, DateTime date, TripType tripType, List<Trip> existingTrips)
+        {
+            if (route.AssignedVehicle == null || route.AssignedDriver == null)
+            {
+                return null;
+            }
+
+            var baseTime = tripType == TripType.PickUp ? route.StartTime : route.EndTime;
+            var scheduledStart = date.Date.Add(baseTime);
+            var scheduledEnd = scheduledStart.Add(TimeSpan.FromMinutes(route.EstimatedDuration));
+
+            var existingTrip = existingTrips.FirstOrDefault(t => 
+                t.RouteId == route.Id && 
+                t.ScheduledStartTime.Date == date.Date &&
+                Math.Abs((t.ScheduledStartTime.TimeOfDay - baseTime).TotalMinutes) < 30);
+
+            if (existingTrip != null)
+            {
+                return MapToDto(existingTrip);
+            }
+
+            var trip = new Trip
+            {
+                TenantId = route.TenantId,
+                RouteId = route.Id,
+                VehicleId = route.AssignedVehicle.Id,
+                DriverId = route.AssignedDriver.Id,
+                ScheduledStartTime = scheduledStart,
+                ScheduledEndTime = scheduledEnd,
+                Status = TripStatus.Scheduled,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            return new TripDto
+            {
+                Id = 0,
+                RouteId = trip.RouteId,
+                VehicleId = trip.VehicleId,
+                DriverId = trip.DriverId,
+                TripDate = trip.ScheduledStartTime.Date,
+                Type = tripType,
+                Status = trip.Status,
+                ScheduledStartTime = trip.ScheduledStartTime,
+                ScheduledEndTime = trip.ScheduledEndTime,
+                Route = MapRouteToDto(route),
+                Vehicle = MapVehicleToDto(route.AssignedVehicle),
+                Driver = MapDriverToDto(route.AssignedDriver),
+                CreatedAt = trip.CreatedAt,
+                TenantId = trip.TenantId.ToString()
+            };
+        }
+
+        private async Task<List<ResourceConflictDto>> CheckTimingConflictsAsync(int tripId, DateTime newStartTime, DateTime newEndTime, string tenantId)
+        {
+            var conflicts = new List<ResourceConflictDto>();
+
+            var trip = await _context.Trips
+                .Include(t => t.Vehicle)
+                .Include(t => t.Driver)
+                .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId))
+                .FirstOrDefaultAsync();
+
+            if (trip == null) return conflicts;
+
+            var conflictingTrips = await _context.Trips
+                .Include(t => t.Vehicle)
+                .Include(t => t.Driver)
+                .Where(t => t.Id != tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                .Where(t => t.ScheduledStartTime.Date == newStartTime.Date)
+                .Where(t => (t.VehicleId == trip.VehicleId || t.DriverId == trip.DriverId))
+                .Where(t => t.ScheduledStartTime < newEndTime && t.ScheduledEndTime > newStartTime)
+                .ToListAsync();
+
+            foreach (var conflictingTrip in conflictingTrips)
+            {
+                if (conflictingTrip.VehicleId == trip.VehicleId)
+                {
+                    conflicts.Add(new ResourceConflictDto
+                    {
+                        ConflictType = ConflictType.Vehicle,
+                        ResourceId = trip.VehicleId ?? 0,
+                        ResourceName = trip.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
+                        ConflictingTripIds = new List<int> { tripId, conflictingTrip.Id },
+                        ConflictTime = newStartTime,
+                        Description = $"Vehicle conflict with trip {conflictingTrip.Id}",
+                        Severity = ConflictSeverity.High
+                    });
+                }
+
+                if (conflictingTrip.DriverId == trip.DriverId)
+                {
+                    conflicts.Add(new ResourceConflictDto
+                    {
+                        ConflictType = ConflictType.Driver,
+                        ResourceId = trip.DriverId ?? 0,
+                        ResourceName = $"{trip.Driver?.FullName.FirstName} {trip.Driver?.FullName.LastName}",
+                        ConflictingTripIds = new List<int> { tripId, conflictingTrip.Id },
+                        ConflictTime = newStartTime,
+                        Description = $"Driver conflict with trip {conflictingTrip.Id}",
+                        Severity = ConflictSeverity.High
+                    });
+                }
+            }
+
+            return conflicts;
+        }
+
+        private RouteDto MapRouteToDto(Route route)
+        {
+            return new RouteDto
+            {
+                Id = route.Id,
+                RouteNumber = route.RouteNumber,
+                Name = route.Name,
+                Description = route.Description,
+                Status = route.Status,
+                StartTime = route.StartTime,
+                EndTime = route.EndTime,
+                EstimatedDistance = route.Distance,
+                EstimatedDuration = TimeSpan.FromMinutes(route.EstimatedDuration),
+                Notes = route.Notes,
+                IsActive = true,
+                CreatedAt = route.CreatedAt,
+                UpdatedAt = route.UpdatedAt,
+                TenantId = route.TenantId.ToString()
+            };
+        }
+
+        private VehicleDto MapVehicleToDto(Vehicle vehicle)
+        {
+            return new VehicleDto
+            {
+                Id = vehicle.Id,
+                VehicleNumber = vehicle.VehicleNumber,
+                LicensePlate = vehicle.LicensePlate,
+                Make = vehicle.Make,
+                Model = vehicle.Model,
+                Year = vehicle.Year,
+                Capacity = vehicle.Capacity,
+                Status = vehicle.Status,
+                CreatedAt = vehicle.CreatedAt,
+                UpdatedAt = vehicle.UpdatedAt,
+                TenantId = vehicle.TenantId.ToString()
+            };
+        }
+
+        private DriverDto MapDriverToDto(Driver driver)
+        {
+            return new DriverDto
+            {
+                Id = driver.Id,
+                EmployeeNumber = driver.EmployeeNumber,
+                FirstName = driver.FullName.FirstName,
+                LastName = driver.FullName.LastName,
+                MiddleName = driver.FullName.MiddleName,
+                Phone = driver.Phone,
+                Email = driver.Email,
+                Status = driver.Status,
+                CreatedAt = driver.CreatedAt,
+                UpdatedAt = driver.UpdatedAt,
+                TenantId = driver.TenantId.ToString()
+            };
+        }
     }
 }
 
