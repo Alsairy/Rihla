@@ -114,6 +114,61 @@ const NotificationCenter: React.FC = () => {
       loadAlerts(); // Refresh alerts when insurance expiration alerts are created
     });
 
+    signalRService.onRouteOptimizationUpdate((update: any) => {
+      setNotifications(prev => [{
+        id: `route-${Date.now()}`,
+        type: 'Info',
+        title: 'Route Optimization Update',
+        message: `Route ${update.routeId} has been optimized. New efficiency: ${update.efficiency}%`,
+        priority: 'Medium',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
+      setUnreadCount(prev => prev + 1);
+    });
+
+    signalRService.onGPSLocationUpdate((update: any) => {
+      if (update.alertType === 'geofence_violation' || update.alertType === 'emergency') {
+        setNotifications(prev => [{
+          id: `gps-${Date.now()}`,
+          type: update.alertType === 'emergency' ? 'Error' : 'Warning',
+          title: update.alertType === 'emergency' ? 'Emergency GPS Alert' : 'Geofence Violation',
+          message: update.message || `Vehicle ${update.vehicleId} location alert`,
+          priority: update.alertType === 'emergency' ? 'Critical' : 'High',
+          isRead: false,
+          createdAt: new Date().toISOString()
+        }, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      }
+    });
+
+    signalRService.onAttendanceMethodUpdate((update: any) => {
+      setNotifications(prev => [{
+        id: `attendance-${Date.now()}`,
+        type: 'Info',
+        title: 'Attendance Update',
+        message: `Student attendance recorded via ${update.method}. Status: ${update.status}`,
+        priority: 'Low',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
+      setUnreadCount(prev => prev + 1);
+    });
+
+    signalRService.onPaymentStatusUpdate((update: any) => {
+      const isError = update.status === 'failed' || update.status === 'declined';
+      setNotifications(prev => [{
+        id: `payment-${Date.now()}`,
+        type: isError ? 'Error' : 'Success',
+        title: `Payment ${update.status}`,
+        message: `Payment of $${update.amount} ${update.status}${update.reason ? `: ${update.reason}` : ''}`,
+        priority: isError ? 'High' : 'Medium',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      }, ...prev]);
+      setUnreadCount(prev => prev + 1);
+    });
+
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }

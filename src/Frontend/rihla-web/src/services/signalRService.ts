@@ -139,6 +139,42 @@ class SignalRService {
     }
   }
 
+  onRouteOptimizationUpdate(callback: (_update: any) => void): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('RouteOptimizationUpdate', callback);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }
+
+  onGPSLocationUpdate(callback: (_update: any) => void): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('GPSLocationUpdate', callback);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }
+
+  onAttendanceMethodUpdate(callback: (_update: any) => void): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('AttendanceMethodUpdate', callback);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }
+
+  onPaymentStatusUpdate(callback: (_update: any) => void): void {
+    if (this.connection && this.isConnected) {
+      try {
+        this.connection.on('PaymentStatusUpdate', callback);
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+  }
+
   async joinTripGroup(tripId: string): Promise<void> {
     if (this.connection && this.isConnected) {
       try {
@@ -205,6 +241,10 @@ class SignalRService {
         this.connection.off('DriverStatusChanged');
         this.connection.off('MaintenanceAlertCreated');
         this.connection.off('InsuranceExpirationAlert');
+        this.connection.off('RouteOptimizationUpdate');
+        this.connection.off('GPSLocationUpdate');
+        this.connection.off('AttendanceMethodUpdate');
+        this.connection.off('PaymentStatusUpdate');
         // eslint-disable-next-line no-empty
       } catch {}
     }
