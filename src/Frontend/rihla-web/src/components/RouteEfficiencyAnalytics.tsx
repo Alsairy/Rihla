@@ -22,7 +22,7 @@ import {
   InputLabel,
   Button,
   Alert,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -33,7 +33,7 @@ import {
   Route as RouteIcon,
   Refresh as RefreshIcon,
   Assessment as AssessmentIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -64,16 +64,16 @@ interface RouteEfficiencyAnalyticsProps {
   onRouteSelect?: (routeId: number) => void;
 }
 
-export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> = ({
-  selectedRouteId,
-  onRouteSelect
-}) => {
+export const RouteEfficiencyAnalytics: React.FC<
+  RouteEfficiencyAnalyticsProps
+> = ({ selectedRouteId, onRouteSelect }) => {
   const [metrics, setMetrics] = useState<RouteEfficiencyMetrics[]>([]);
   const [trends, setTrends] = useState<EfficiencyTrend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('7days');
-  const [selectedMetric, setSelectedMetric] = useState<string>('onTimePerformance');
+  const [selectedMetric, setSelectedMetric] =
+    useState<string>('onTimePerformance');
 
   useEffect(() => {
     loadEfficiencyMetrics();
@@ -94,14 +94,18 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
 
   const loadEfficiencyTrends = async () => {
     try {
-      const response = await apiClient.get(`/api/routes/efficiency-trends?period=${selectedPeriod}`);
+      const response = await apiClient.get(
+        `/api/routes/efficiency-trends?period=${selectedPeriod}`
+      );
       setTrends(response as EfficiencyTrend[]);
     } catch (err: any) {
       console.error('Failed to load efficiency trends:', err);
     }
   };
 
-  const getPerformanceColor = (score: number): 'success' | 'warning' | 'error' => {
+  const getPerformanceColor = (
+    score: number
+  ): 'success' | 'warning' | 'error' => {
     if (score >= 80) return 'success';
     if (score >= 60) return 'warning';
     return 'error';
@@ -123,13 +127,20 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: 400,
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -143,13 +154,20 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
     );
   }
 
-  const selectedRoute = selectedRouteId 
+  const selectedRoute = selectedRouteId
     ? metrics.find(m => m.routeId === selectedRouteId)
     : null;
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" component="h1">
           <AssessmentIcon sx={{ mr: 2, verticalAlign: 'middle' }} />
           Route Efficiency Analytics
@@ -160,7 +178,7 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
             <Select
               value={selectedPeriod}
               label="Period"
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              onChange={e => setSelectedPeriod(e.target.value)}
             >
               <MenuItem value="7days">Last 7 Days</MenuItem>
               <MenuItem value="30days">Last 30 Days</MenuItem>
@@ -195,9 +213,13 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
             <CardContent sx={{ textAlign: 'center' }}>
               <TimeIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h4">
-                {metrics.length > 0 
-                  ? Math.round(metrics.reduce((sum, m) => sum + m.onTimePerformance, 0) / metrics.length)
-                  : 0}%
+                {metrics.length > 0
+                  ? Math.round(
+                      metrics.reduce((sum, m) => sum + m.onTimePerformance, 0) /
+                        metrics.length
+                    )
+                  : 0}
+                %
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 Avg On-Time Performance
@@ -210,8 +232,11 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
             <CardContent sx={{ textAlign: 'center' }}>
               <FuelIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h4">
-                {metrics.length > 0 
-                  ? (metrics.reduce((sum, m) => sum + m.fuelEfficiency, 0) / metrics.length).toFixed(1)
+                {metrics.length > 0
+                  ? (
+                      metrics.reduce((sum, m) => sum + m.fuelEfficiency, 0) /
+                      metrics.length
+                    ).toFixed(1)
                   : 0}
               </Typography>
               <Typography variant="body2" color="textSecondary">
@@ -225,9 +250,13 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
             <CardContent sx={{ textAlign: 'center' }}>
               <SpeedIcon color="info" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h4">
-                {metrics.length > 0 
-                  ? Math.round(metrics.reduce((sum, m) => sum + m.optimizationScore, 0) / metrics.length)
-                  : 0}%
+                {metrics.length > 0
+                  ? Math.round(
+                      metrics.reduce((sum, m) => sum + m.optimizationScore, 0) /
+                        metrics.length
+                    )
+                  : 0}
+                %
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 Avg Optimization Score
@@ -254,7 +283,9 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                     <LinearProgress
                       variant="determinate"
                       value={selectedRoute.onTimePerformance}
-                      color={getPerformanceColor(selectedRoute.onTimePerformance)}
+                      color={getPerformanceColor(
+                        selectedRoute.onTimePerformance
+                      )}
                       sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
                     />
                     <Typography variant="body2">
@@ -270,7 +301,9 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                     <LinearProgress
                       variant="determinate"
                       value={selectedRoute.optimizationScore}
-                      color={getPerformanceColor(selectedRoute.optimizationScore)}
+                      color={getPerformanceColor(
+                        selectedRoute.optimizationScore
+                      )}
                       sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
                     />
                     <Typography variant="body2">
@@ -280,16 +313,40 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                 </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
-                <Typography variant="body2" color="textSecondary">Distance</Typography>
-                <Typography variant="h6">{selectedRoute.totalDistance} km</Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>Duration</Typography>
-                <Typography variant="h6">{formatDuration(selectedRoute.estimatedDuration)}</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Distance
+                </Typography>
+                <Typography variant="h6">
+                  {selectedRoute.totalDistance} km
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mt: 1 }}
+                >
+                  Duration
+                </Typography>
+                <Typography variant="h6">
+                  {formatDuration(selectedRoute.estimatedDuration)}
+                </Typography>
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
-                <Typography variant="body2" color="textSecondary">Cost per Student</Typography>
-                <Typography variant="h6">{formatCurrency(selectedRoute.costPerStudent)}</Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>Fuel Efficiency</Typography>
-                <Typography variant="h6">{selectedRoute.fuelEfficiency} MPG</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Cost per Student
+                </Typography>
+                <Typography variant="h6">
+                  {formatCurrency(selectedRoute.costPerStudent)}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mt: 1 }}
+                >
+                  Fuel Efficiency
+                </Typography>
+                <Typography variant="h6">
+                  {selectedRoute.fuelEfficiency} MPG
+                </Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -317,8 +374,8 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                 </TableRow>
               </TableHead>
               <TableBody>
-                {metrics.map((metric) => (
-                  <TableRow 
+                {metrics.map(metric => (
+                  <TableRow
                     key={metric.routeId}
                     selected={selectedRouteId === metric.routeId}
                     hover
@@ -334,7 +391,9 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                       </Typography>
                     </TableCell>
                     <TableCell align="center">{metric.numberOfStops}</TableCell>
-                    <TableCell align="center">{metric.totalDistance} km</TableCell>
+                    <TableCell align="center">
+                      {metric.totalDistance} km
+                    </TableCell>
                     <TableCell align="center">
                       <Chip
                         label={`${metric.onTimePerformance}%`}
@@ -342,10 +401,21 @@ export const RouteEfficiencyAnalytics: React.FC<RouteEfficiencyAnalyticsProps> =
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="center">{metric.fuelEfficiency} MPG</TableCell>
-                    <TableCell align="center">{formatCurrency(metric.costPerStudent)}</TableCell>
                     <TableCell align="center">
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                      {metric.fuelEfficiency} MPG
+                    </TableCell>
+                    <TableCell align="center">
+                      {formatCurrency(metric.costPerStudent)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <Chip
                           label={`${metric.optimizationScore}%`}
                           color={getPerformanceColor(metric.optimizationScore)}
