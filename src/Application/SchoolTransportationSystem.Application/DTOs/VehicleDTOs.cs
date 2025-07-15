@@ -148,17 +148,6 @@ namespace SchoolTransportationSystem.Application.DTOs
         public bool IsActive { get; set; } = true;
     }
 
-    public class VehicleLocationDto
-    {
-        public int VehicleId { get; set; }
-        public string VehicleNumber { get; set; } = string.Empty;
-        public decimal Latitude { get; set; }
-        public decimal Longitude { get; set; }
-        public DateTime Timestamp { get; set; }
-        public decimal? Speed { get; set; }
-        public decimal? Heading { get; set; }
-        public VehicleStatus Status { get; set; }
-    }
 
     public class VehicleMaintenanceDto
     {

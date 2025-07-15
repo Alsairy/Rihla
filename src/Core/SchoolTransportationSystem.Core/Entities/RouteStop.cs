@@ -11,8 +11,10 @@ namespace SchoolTransportationSystem.Core.Entities
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public int StopOrder { get; set; }
+        public int SequenceNumber { get; set; }
         public TimeSpan ScheduledArrival { get; set; }
         public TimeSpan ScheduledDeparture { get; set; }
+        public DateTime? EstimatedArrivalTime { get; set; }
         public bool IsActive { get; set; } = true;
         public string? Notes { get; set; }
 

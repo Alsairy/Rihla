@@ -17,7 +17,10 @@ namespace SchoolTransportationSystem.Application.Interfaces
         
         Task<Result<AttendanceDto>> RecordRFIDAttendanceAsync(string rfidTag, int tripId, int stopId, DateTime timestamp, string tenantId);
         Task<Result<AttendanceDto>> RecordPhotoAttendanceAsync(int studentId, int tripId, int stopId, string photoBase64, DateTime timestamp, string tenantId);
-        Task<Result<List<AttendanceDto>>> SyncOfflineAttendanceAsync(List<OfflineAttendanceDto> offlineRecords, string tenantId);
+        Task<Result<AttendanceDto>> RecordBiometricAttendanceAsync(int studentId, int tripId, int stopId, string biometricData, string biometricType, DateTime timestamp, string tenantId);
+        Task<Result<OfflineAttendanceSyncResultDto>> SyncOfflineAttendanceAsync(List<OfflineAttendanceDto> offlineRecords, string tenantId);
+        Task<Result<List<AttendanceMethodDto>>> GetAttendanceMethodsAsync(string tenantId);
+        Task<Result<AttendanceAnalyticsDto>> GetAttendanceAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId);
         Task<Result<List<GeofenceAlertDto>>> GenerateGeofenceAlertsAsync(int tripId, double latitude, double longitude, string tenantId);
     }
 }

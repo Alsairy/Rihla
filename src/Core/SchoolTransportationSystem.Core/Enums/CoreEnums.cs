@@ -54,7 +54,8 @@ namespace SchoolTransportationSystem.Core.Enums
         Active = 1,
         Inactive = 2,
         Suspended = 3,
-        UnderReview = 4
+        UnderReview = 4,
+        Draft = 5
     }
 
     public enum TripStatus
@@ -117,7 +118,9 @@ namespace SchoolTransportationSystem.Core.Enums
         Recurring = 2,
         Subscription = 3,
         Deposit = 4,
-        Fee = 5
+        Fee = 5,
+        MonthlyFee = 6,
+        Refund = 7
     }
 }
 
@@ -168,5 +171,18 @@ namespace SchoolTransportationSystem.Core.Enums
         SpecialNeeds = 3,
         FieldTrip = 4,
         Emergency = 5
+    }
+
+    public enum NotificationType
+    {
+        Info = 1,
+        Warning = 2,
+        Error = 3,
+        Success = 4,
+        Alert = 5,
+        Emergency = 6,
+        Reminder = 7,
+        Update = 8,
+        TripSchedule = 9
     }
 

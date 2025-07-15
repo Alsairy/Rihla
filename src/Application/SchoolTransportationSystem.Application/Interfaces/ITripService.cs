@@ -14,6 +14,11 @@ namespace SchoolTransportationSystem.Application.Interfaces
         Task<Result<List<TripDto>>> GetActiveTripsByDateAsync(DateTime date, string tenantId);
         Task<Result<bool>> StartTripAsync(int tripId, string tenantId);
         Task<Result<bool>> EndTripAsync(int tripId, string tenantId);
+        Task<Result<List<TripDto>>> GenerateDailyTripScheduleAsync(DailyScheduleRequestDto request, string tenantId);
+        Task<Result<bool>> RescheduleTripAsync(RescheduleTripDto rescheduleDto, string tenantId);
+        Task<Result<List<ScheduleConflictDto>>> GetScheduleConflictsAsync(DateTime date, string tenantId);
+        Task<Result<ScheduleOptimizationResultDto>> OptimizeScheduleAsync(ScheduleOptimizationRequestDto request, string tenantId);
+        Task<Result<ScheduleAnalyticsDto>> GetScheduleAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId);
     }
 }
 

@@ -27,7 +27,7 @@ namespace SchoolTransportationSystem.Application.Services
             try
             {
                 var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId ?? "0") && !v.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 if (vehicle == null)
@@ -58,7 +58,7 @@ namespace SchoolTransportationSystem.Application.Services
                     Heading = 0,
                     Timestamp = DateTime.UtcNow,
                     IsActive = true,
-                    TenantId = int.Parse(tenantId),
+                    TenantId = tenantId ?? "0",
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -80,7 +80,7 @@ namespace SchoolTransportationSystem.Application.Services
             try
             {
                 var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId ?? "0") && !v.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 if (vehicle == null)
@@ -90,27 +90,27 @@ namespace SchoolTransportationSystem.Application.Services
 
                 var activeTrip = await _context.Trips
                     .Where(t => t.VehicleId == vehicleId && t.Status == TripStatus.InProgress && 
-                               t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                               t.TenantId == int.Parse(tenantId ?? "0") && !t.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 var locationRecord = new VehicleLocation
                 {
                     VehicleId = vehicleId,
                     TripId = activeTrip?.Id,
-                    Latitude = latitude,
-                    Longitude = longitude,
-                    Speed = CalculateSpeed(vehicleId, latitude, longitude, timestamp),
-                    Heading = CalculateHeading(vehicleId, latitude, longitude),
+                    Latitude = (decimal)latitude,
+                    Longitude = (decimal)longitude,
+                    Speed = (decimal)await CalculateSpeed(vehicleId, (double)latitude, (double)longitude, timestamp),
+                    Heading = (decimal)await CalculateHeading(vehicleId, (double)latitude, (double)longitude),
                     Timestamp = timestamp,
                     IsActive = true,
-                    TenantId = int.Parse(tenantId),
+                    TenantId = tenantId ?? "0",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.VehicleLocations.Add(locationRecord);
 
-                vehicle.CurrentLatitude = latitude;
-                vehicle.CurrentLongitude = longitude;
+                vehicle.CurrentLatitude = (decimal?)latitude;
+                vehicle.CurrentLongitude = (decimal?)longitude;
                 vehicle.LastLocationUpdate = timestamp;
                 vehicle.UpdatedAt = DateTime.UtcNow;
 
@@ -136,7 +136,7 @@ namespace SchoolTransportationSystem.Application.Services
                     .Include(t => t.Route)
                         .ThenInclude(r => r.RouteStops)
                     .Where(t => t.VehicleId == vehicleId && t.Status == TripStatus.InProgress && 
-                               t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                               t.TenantId == int.Parse(tenantId ?? "0") && !t.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 if (activeTrip == null)
@@ -148,12 +148,12 @@ namespace SchoolTransportationSystem.Application.Services
                 const double speedLimitKmh = 60.0; // Speed limit in km/h
 
                 var nearestStop = activeTrip.Route.RouteStops
-                    .OrderBy(s => CalculateDistance(latitude, longitude, s.Latitude, s.Longitude))
+                    .OrderBy(s => CalculateDistance(latitude, longitude, (double)s.Latitude, (double)s.Longitude))
                     .FirstOrDefault();
 
                 if (nearestStop != null)
                 {
-                    var distanceFromRoute = CalculateDistance(latitude, longitude, nearestStop.Latitude, nearestStop.Longitude);
+                    var distanceFromRoute = CalculateDistance(latitude, longitude, (double)nearestStop.Latitude, (double)nearestStop.Longitude);
                     
                     if (distanceFromRoute > allowedDeviationKm)
                     {
@@ -163,8 +163,8 @@ namespace SchoolTransportationSystem.Application.Services
                             TripId = activeTrip.Id,
                             ViolationType = "Route Deviation",
                             Description = $"Vehicle is {distanceFromRoute:F2}km away from the designated route",
-                            Latitude = latitude,
-                            Longitude = longitude,
+                            Latitude = (decimal)latitude,
+                            Longitude = (decimal)longitude,
                             Timestamp = DateTime.UtcNow,
                             Severity = distanceFromRoute > 5.0 ? "High" : "Medium",
                             ActionRequired = distanceFromRoute > 5.0 ? "Immediate contact with driver required" : "Monitor closely"
@@ -181,8 +181,8 @@ namespace SchoolTransportationSystem.Application.Services
                         TripId = activeTrip.Id,
                         ViolationType = "Speed Violation",
                         Description = $"Vehicle speed ({currentSpeed:F1} km/h) exceeds limit ({speedLimitKmh} km/h)",
-                        Latitude = latitude,
-                        Longitude = longitude,
+                        Latitude = (decimal)latitude,
+                        Longitude = (decimal)longitude,
                         Timestamp = DateTime.UtcNow,
                         Severity = currentSpeed > speedLimitKmh * 1.2 ? "High" : "Medium",
                         ActionRequired = "Contact driver to reduce speed"
@@ -192,8 +192,8 @@ namespace SchoolTransportationSystem.Application.Services
                 var restrictedAreas = await GetRestrictedAreasAsync(tenantId);
                 foreach (var area in restrictedAreas)
                 {
-                    var distanceFromArea = CalculateDistance(latitude, longitude, area.Latitude, area.Longitude);
-                    if (distanceFromArea <= area.RadiusKm && IsWithinRestrictedHours(area))
+                    var distanceFromArea = CalculateDistance(latitude, longitude, (double)area.Latitude, (double)area.Longitude);
+                    if (distanceFromArea <= (double)area.RadiusKm && IsWithinRestrictedHours(area))
                     {
                         violations.Add(new GeofenceViolationDto
                         {
@@ -201,8 +201,8 @@ namespace SchoolTransportationSystem.Application.Services
                             TripId = activeTrip.Id,
                             ViolationType = "Restricted Area",
                             Description = $"Vehicle entered restricted area: {area.Name}",
-                            Latitude = latitude,
-                            Longitude = longitude,
+                            Latitude = (decimal)latitude,
+                            Longitude = (decimal)longitude,
                             Timestamp = DateTime.UtcNow,
                             Severity = "High",
                             ActionRequired = "Immediate evacuation from restricted area"
@@ -256,8 +256,8 @@ namespace SchoolTransportationSystem.Application.Services
                     return Result<EstimatedArrivalDto>.Failure("Current vehicle location not available");
                 }
 
-                var distanceKm = CalculateDistance(currentLocation.Latitude, currentLocation.Longitude, 
-                                                 targetStop.Latitude, targetStop.Longitude);
+                var distanceKm = CalculateDistance((double)currentLocation.Latitude, (double)currentLocation.Longitude, 
+                                                 (double)targetStop.Latitude, (double)targetStop.Longitude);
 
                 var averageSpeed = await GetAverageSpeedAsync(trip.VehicleId, TimeSpan.FromMinutes(10));
                 if (averageSpeed <= 0)
@@ -277,9 +277,9 @@ namespace SchoolTransportationSystem.Application.Services
                     StopId = stopId,
                     StopName = targetStop.Name,
                     EstimatedArrivalTime = estimatedArrival,
-                    DistanceKm = distanceKm,
-                    AverageSpeedKmh = averageSpeed,
-                    ConfidenceLevel = CalculateConfidenceLevel(distanceKm, averageSpeed),
+                    DistanceKm = (decimal)distanceKm,
+                    AverageSpeedKmh = (decimal)averageSpeed,
+                    ConfidenceLevel = (decimal)CalculateConfidenceLevel(distanceKm, averageSpeed),
                     LastUpdated = DateTime.UtcNow,
                     DelayMinutes = CalculateDelay(trip, targetStop, estimatedArrival)
                 };
@@ -299,7 +299,7 @@ namespace SchoolTransportationSystem.Application.Services
             try
             {
                 var locations = await _context.VehicleLocations
-                    .Where(l => l.VehicleId == vehicleId && l.TenantId == int.Parse(tenantId) &&
+                    .Where(l => l.VehicleId == vehicleId && l.TenantId == (tenantId ?? "0") &&
                                l.Timestamp >= startTime && l.Timestamp <= endTime)
                     .OrderBy(l => l.Timestamp)
                     .ToListAsync();
@@ -331,7 +331,7 @@ namespace SchoolTransportationSystem.Application.Services
             try
             {
                 var vehicle = await _context.Vehicles
-                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId ?? "0") && !v.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 if (vehicle == null)
@@ -351,7 +351,7 @@ namespace SchoolTransportationSystem.Application.Services
 
                 var activeTrips = await _context.Trips
                     .Where(t => t.VehicleId == vehicleId && t.Status == TripStatus.InProgress && 
-                               t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                               t.TenantId == int.Parse(tenantId ?? "0") && !t.IsDeleted)
                     .ToListAsync();
 
                 foreach (var trip in activeTrips)
@@ -379,7 +379,7 @@ namespace SchoolTransportationSystem.Application.Services
             {
                 var activeLocations = await _context.VehicleLocations
                     .Include(l => l.Vehicle)
-                    .Where(l => l.IsActive && l.TenantId == int.Parse(tenantId))
+                    .Where(l => l.IsActive && l.TenantId == (tenantId ?? "0"))
                     .GroupBy(l => l.VehicleId)
                     .Select(g => g.OrderByDescending(l => l.Timestamp).First())
                     .ToListAsync();
@@ -439,7 +439,7 @@ namespace SchoolTransportationSystem.Application.Services
             if (previousLocation == null)
                 return 0;
 
-            var distance = CalculateDistance(previousLocation.Latitude, previousLocation.Longitude, latitude, longitude);
+            var distance = CalculateDistance((double)previousLocation.Latitude, (double)previousLocation.Longitude, latitude, longitude);
             var timeHours = (timestamp - previousLocation.Timestamp).TotalHours;
 
             return timeHours > 0 ? distance / timeHours : 0;
@@ -455,8 +455,8 @@ namespace SchoolTransportationSystem.Application.Services
             if (previousLocation == null)
                 return 0;
 
-            var dLon = DegreesToRadians(longitude - previousLocation.Longitude);
-            var lat1 = DegreesToRadians(previousLocation.Latitude);
+            var dLon = DegreesToRadians(longitude - (double)previousLocation.Longitude);
+            var lat1 = DegreesToRadians((double)previousLocation.Latitude);
             var lat2 = DegreesToRadians(latitude);
 
             var y = Math.Sin(dLon) * Math.Cos(lat2);
@@ -473,7 +473,7 @@ namespace SchoolTransportationSystem.Application.Services
                 .OrderByDescending(l => l.Timestamp)
                 .FirstOrDefaultAsync();
 
-            return recentLocation?.Speed ?? 0;
+            return (double)(recentLocation?.Speed ?? 0);
         }
 
         private async Task<double> GetAverageSpeedAsync(int vehicleId, TimeSpan timeWindow)
@@ -483,7 +483,7 @@ namespace SchoolTransportationSystem.Application.Services
                 .Where(l => l.VehicleId == vehicleId && l.Timestamp >= cutoffTime && l.Speed > 0)
                 .ToListAsync();
 
-            return recentLocations.Any() ? recentLocations.Average(l => l.Speed) : 0;
+            return recentLocations.Any() ? (double)recentLocations.Average(l => l.Speed) : 0;
         }
 
         private async Task<List<RestrictedAreaDto>> GetRestrictedAreasAsync(string tenantId)
@@ -493,21 +493,25 @@ namespace SchoolTransportationSystem.Application.Services
                 new RestrictedAreaDto
                 {
                     Name = "Hospital Zone",
-                    Latitude = 24.7136, // Example coordinates
-                    Longitude = 46.6753,
-                    RadiusKm = 0.5,
-                    RestrictedHours = "22:00-06:00"
+                    Latitude = 24.7136M, // Example coordinates
+                    Longitude = 46.6753M,
+                    RadiusKm = 0.5M,
+                    RestrictedHours = new List<string> { "22:00-06:00" }
                 }
             };
         }
 
         private bool IsWithinRestrictedHours(RestrictedAreaDto area)
         {
-            if (string.IsNullOrEmpty(area.RestrictedHours))
+            if (area.RestrictedHours == null || !area.RestrictedHours.Any())
                 return false;
 
             var currentTime = DateTime.Now.TimeOfDay;
-            var parts = area.RestrictedHours.Split('-');
+            var timeRange = area.RestrictedHours.FirstOrDefault();
+            if (string.IsNullOrEmpty(timeRange))
+                return false;
+                
+            var parts = timeRange.Split('-');
             
             if (parts.Length != 2)
                 return false;
@@ -527,14 +531,14 @@ namespace SchoolTransportationSystem.Application.Services
             return false;
         }
 
-        private string CalculateConfidenceLevel(double distanceKm, double averageSpeed)
+        private double CalculateConfidenceLevel(double distanceKm, double averageSpeed)
         {
             if (distanceKm < 5 && averageSpeed > 0)
-                return "High";
+                return 0.9;
             else if (distanceKm < 15 && averageSpeed > 0)
-                return "Medium";
+                return 0.7;
             else
-                return "Low";
+                return 0.5;
         }
 
         private int CalculateDelay(Trip trip, RouteStop targetStop, DateTime estimatedArrival)

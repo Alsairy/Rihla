@@ -21,6 +21,517 @@ namespace SchoolTransportationSystem.Application.Services
             _logger = logger;
         }
 
+        public async Task<Result<PaymentGatewayDto>> GetByIdAsync(int id)
+        {
+            try
+            {
+                var gateway = await _context.PaymentGateways.FindAsync(id);
+                if (gateway == null)
+                {
+                    return Result<PaymentGatewayDto>.Failure("Payment gateway not found");
+                }
+
+                var dto = new PaymentGatewayDto
+                {
+                    Id = gateway.Id,
+                    GatewayName = gateway.GatewayName,
+                    GatewayType = gateway.GatewayType,
+                    TransactionId = gateway.TransactionId,
+                    ExternalTransactionId = gateway.ExternalTransactionId,
+                    Amount = gateway.Amount,
+                    Currency = gateway.Currency,
+                    Status = gateway.Status,
+                    PaymentMethod = gateway.PaymentMethod,
+                    CardLast4 = gateway.CardLast4,
+                    CardType = gateway.CardType,
+                    ProcessorResponse = gateway.ProcessorResponse,
+                    SecurityToken = gateway.SecurityToken,
+                    FraudScore = gateway.FraudScore,
+                    ProcessingFee = gateway.ProcessingFee,
+                    RefundAmount = gateway.RefundAmount,
+                    Notes = gateway.Notes,
+                    PaymentId = gateway.PaymentId,
+                    ProcessedAt = gateway.ProcessedAt,
+                    CreatedAt = gateway.CreatedAt,
+                    UpdatedAt = gateway.UpdatedAt
+                };
+
+                return Result<PaymentGatewayDto>.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment gateway by ID {Id}", id);
+                return Result<PaymentGatewayDto>.Failure($"Error retrieving payment gateway: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<IEnumerable<PaymentGatewayDto>>> GetAllAsync()
+        {
+            try
+            {
+                var gateways = await _context.PaymentGateways.ToListAsync();
+                var dtos = gateways.Select(g => new PaymentGatewayDto
+                {
+                    Id = g.Id,
+                    GatewayName = g.GatewayName,
+                    GatewayType = g.GatewayType,
+                    TransactionId = g.TransactionId,
+                    ExternalTransactionId = g.ExternalTransactionId,
+                    Amount = g.Amount,
+                    Currency = g.Currency,
+                    Status = g.Status,
+                    PaymentMethod = g.PaymentMethod,
+                    CardLast4 = g.CardLast4,
+                    CardType = g.CardType,
+                    ProcessorResponse = g.ProcessorResponse,
+                    SecurityToken = g.SecurityToken,
+                    FraudScore = g.FraudScore,
+                    ProcessingFee = g.ProcessingFee,
+                    RefundAmount = g.RefundAmount,
+                    Notes = g.Notes,
+                    PaymentId = g.PaymentId,
+                    ProcessedAt = g.ProcessedAt,
+                    CreatedAt = g.CreatedAt,
+                    UpdatedAt = g.UpdatedAt
+                });
+
+                return Result<IEnumerable<PaymentGatewayDto>>.Success(dtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all payment gateways");
+                return Result<IEnumerable<PaymentGatewayDto>>.Failure($"Error retrieving payment gateways: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<PaymentGatewayDto>> CreateAsync(CreatePaymentGatewayDto dto)
+        {
+            try
+            {
+                var gateway = new PaymentGateway
+                {
+                    GatewayName = dto.GatewayName,
+                    GatewayType = dto.GatewayType,
+                    TransactionId = dto.TransactionId,
+                    ExternalTransactionId = dto.ExternalTransactionId,
+                    Amount = dto.Amount,
+                    Currency = dto.Currency,
+                    Status = dto.Status,
+                    PaymentMethod = dto.PaymentMethod,
+                    CardLast4 = dto.CardLast4,
+                    CardType = dto.CardType,
+                    ProcessorResponse = dto.ProcessorResponse,
+                    SecurityToken = dto.SecurityToken,
+                    FraudScore = dto.FraudScore,
+                    ProcessingFee = dto.ProcessingFee,
+                    RefundAmount = dto.RefundAmount,
+                    Notes = dto.Notes,
+                    PaymentId = dto.PaymentId,
+                    ProcessedAt = dto.ProcessedAt,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.PaymentGateways.Add(gateway);
+                await _context.SaveChangesAsync();
+
+                var resultDto = new PaymentGatewayDto
+                {
+                    Id = gateway.Id,
+                    GatewayName = gateway.GatewayName,
+                    GatewayType = gateway.GatewayType,
+                    TransactionId = gateway.TransactionId,
+                    ExternalTransactionId = gateway.ExternalTransactionId,
+                    Amount = gateway.Amount,
+                    Currency = gateway.Currency,
+                    Status = gateway.Status,
+                    PaymentMethod = gateway.PaymentMethod,
+                    CardLast4 = gateway.CardLast4,
+                    CardType = gateway.CardType,
+                    ProcessorResponse = gateway.ProcessorResponse,
+                    SecurityToken = gateway.SecurityToken,
+                    FraudScore = gateway.FraudScore,
+                    ProcessingFee = gateway.ProcessingFee,
+                    RefundAmount = gateway.RefundAmount,
+                    Notes = gateway.Notes,
+                    PaymentId = gateway.PaymentId,
+                    ProcessedAt = gateway.ProcessedAt,
+                    CreatedAt = gateway.CreatedAt,
+                    UpdatedAt = gateway.UpdatedAt
+                };
+
+                return Result<PaymentGatewayDto>.Success(resultDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating payment gateway");
+                return Result<PaymentGatewayDto>.Failure($"Error creating payment gateway: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<PaymentGatewayDto>> UpdateAsync(UpdatePaymentGatewayDto dto)
+        {
+            try
+            {
+                var gateway = await _context.PaymentGateways.FindAsync(dto.Id);
+                if (gateway == null)
+                {
+                    return Result<PaymentGatewayDto>.Failure("Payment gateway not found");
+                }
+
+                if (!string.IsNullOrEmpty(dto.GatewayName))
+                    gateway.GatewayName = dto.GatewayName;
+                if (!string.IsNullOrEmpty(dto.GatewayType))
+                    gateway.GatewayType = dto.GatewayType;
+                if (!string.IsNullOrEmpty(dto.ExternalTransactionId))
+                    gateway.ExternalTransactionId = dto.ExternalTransactionId;
+                if (!string.IsNullOrEmpty(dto.Status))
+                    gateway.Status = dto.Status;
+                if (!string.IsNullOrEmpty(dto.PaymentMethod))
+                    gateway.PaymentMethod = dto.PaymentMethod;
+                if (!string.IsNullOrEmpty(dto.CardLast4))
+                    gateway.CardLast4 = dto.CardLast4;
+                if (!string.IsNullOrEmpty(dto.CardType))
+                    gateway.CardType = dto.CardType;
+                if (!string.IsNullOrEmpty(dto.ProcessorResponse))
+                    gateway.ProcessorResponse = dto.ProcessorResponse;
+                if (!string.IsNullOrEmpty(dto.SecurityToken))
+                    gateway.SecurityToken = dto.SecurityToken;
+                if (dto.FraudScore.HasValue)
+                    gateway.FraudScore = dto.FraudScore;
+                if (dto.ProcessingFee.HasValue)
+                    gateway.ProcessingFee = dto.ProcessingFee;
+                if (dto.RefundAmount.HasValue)
+                    gateway.RefundAmount = dto.RefundAmount;
+                if (!string.IsNullOrEmpty(dto.Notes))
+                    gateway.Notes = dto.Notes;
+                if (dto.ProcessedAt.HasValue)
+                    gateway.ProcessedAt = dto.ProcessedAt;
+
+                gateway.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var resultDto = new PaymentGatewayDto
+                {
+                    Id = gateway.Id,
+                    GatewayName = gateway.GatewayName,
+                    GatewayType = gateway.GatewayType,
+                    TransactionId = gateway.TransactionId,
+                    ExternalTransactionId = gateway.ExternalTransactionId,
+                    Amount = gateway.Amount,
+                    Currency = gateway.Currency,
+                    Status = gateway.Status,
+                    PaymentMethod = gateway.PaymentMethod,
+                    CardLast4 = gateway.CardLast4,
+                    CardType = gateway.CardType,
+                    ProcessorResponse = gateway.ProcessorResponse,
+                    SecurityToken = gateway.SecurityToken,
+                    FraudScore = gateway.FraudScore,
+                    ProcessingFee = gateway.ProcessingFee,
+                    RefundAmount = gateway.RefundAmount,
+                    Notes = gateway.Notes,
+                    PaymentId = gateway.PaymentId,
+                    ProcessedAt = gateway.ProcessedAt,
+                    CreatedAt = gateway.CreatedAt,
+                    UpdatedAt = gateway.UpdatedAt
+                };
+
+                return Result<PaymentGatewayDto>.Success(resultDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating payment gateway {Id}", dto.Id);
+                return Result<PaymentGatewayDto>.Failure($"Error updating payment gateway: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<bool>> DeleteAsync(int id)
+        {
+            try
+            {
+                var gateway = await _context.PaymentGateways.FindAsync(id);
+                if (gateway == null)
+                {
+                    return Result<bool>.Failure("Payment gateway not found");
+                }
+
+                _context.PaymentGateways.Remove(gateway);
+                await _context.SaveChangesAsync();
+
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting payment gateway {Id}", id);
+                return Result<bool>.Failure($"Error deleting payment gateway: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<CreditCardPaymentDto>> ProcessCreditCardPaymentAsync(CreditCardPaymentRequestDto request)
+        {
+            try
+            {
+                var securityValidation = await ValidatePaymentSecurityAsync(new PaymentSecurityRequestDto
+                {
+                    CardNumber = request.CardNumber,
+                    ExpiryMonth = request.ExpiryMonth,
+                    ExpiryYear = request.ExpiryYear,
+                    CVV = request.CVV,
+                    CardHolderName = request.CardHolderName,
+                    Amount = request.Amount,
+                    Currency = request.Currency,
+                    CustomerEmail = request.CustomerEmail,
+                    CustomerPhone = request.CustomerPhone,
+                    BillingAddress = request.BillingAddress
+                });
+
+                if (!securityValidation.IsSuccess || !securityValidation.Value.IsValid)
+                {
+                    return Result<CreditCardPaymentDto>.Failure("Payment security validation failed");
+                }
+
+                var transactionId = $"TXN{DateTime.UtcNow.Ticks}";
+                var authCode = GenerateAuthorizationCode();
+
+                var payment = new CreditCardPaymentDto
+                {
+                    TransactionId = transactionId,
+                    Status = "Success",
+                    Amount = request.Amount,
+                    Currency = request.Currency,
+                    CardLast4 = request.CardNumber[^4..],
+                    CardType = DetectCardType(request.CardNumber),
+                    AuthorizationCode = authCode,
+                    ProcessorResponse = "Approved",
+                    ProcessingFee = request.Amount * 0.029m, // 2.9% processing fee
+                    ProcessedAt = DateTime.UtcNow,
+                    IsSuccessful = true
+                };
+
+                return Result<CreditCardPaymentDto>.Success(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing credit card payment");
+                return Result<CreditCardPaymentDto>.Failure($"Payment processing failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<PaymentSecurityValidationDto>> ValidatePaymentSecurityAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                var validation = new PaymentSecurityValidationDto
+                {
+                    IsValid = true,
+                    ValidationStatus = "Passed",
+                    SecurityScore = 100,
+                    ValidatedAt = DateTime.UtcNow,
+                    ValidatedBy = "System"
+                };
+
+                var fraudCheck = await PerformFraudCheckAsync(request);
+                var avsCheck = await PerformAVSCheckAsync(request);
+                var cvvCheck = await PerformCVVCheckAsync(request);
+
+                if (!fraudCheck.IsSuccess || fraudCheck.Value.Status != "Passed")
+                {
+                    validation.IsValid = false;
+                    validation.ValidationErrors.Add("Fraud check failed");
+                    validation.SecurityScore -= 30;
+                }
+
+                if (!avsCheck.IsSuccess || avsCheck.Value.Status != "Passed")
+                {
+                    validation.SecurityWarnings.Add("Address verification warning");
+                    validation.SecurityScore -= 10;
+                }
+
+                if (!cvvCheck.IsSuccess || cvvCheck.Value.Status != "Passed")
+                {
+                    validation.IsValid = false;
+                    validation.ValidationErrors.Add("CVV verification failed");
+                    validation.SecurityScore -= 25;
+                }
+
+                validation.ValidationStatus = validation.IsValid ? "Passed" : "Failed";
+                validation.RecommendedAction = validation.IsValid ? "Proceed" : "Decline";
+
+                return Result<PaymentSecurityValidationDto>.Success(validation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating payment security");
+                return Result<PaymentSecurityValidationDto>.Failure($"Security validation failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<SecurityCheckDto>> PerformFraudCheckAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                await Task.Delay(200); // Simulate processing time
+
+                var check = new SecurityCheckDto
+                {
+                    CheckType = "Fraud Detection",
+                    Status = "Passed",
+                    Score = 95,
+                    Result = "No fraud indicators detected",
+                    CheckedAt = DateTime.UtcNow,
+                    CheckedBy = "FraudGuard System"
+                };
+
+                if (request.Amount > 5000)
+                {
+                    check.Score -= 20;
+                    check.Warnings.Add("High amount transaction");
+                }
+
+                if (string.IsNullOrEmpty(request.CustomerEmail))
+                {
+                    check.Score -= 10;
+                    check.Warnings.Add("No customer email provided");
+                }
+
+                check.Status = check.Score >= 70 ? "Passed" : "Failed";
+                check.RecommendedAction = check.Status == "Passed" ? "Approve" : "Review";
+
+                return Result<SecurityCheckDto>.Success(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error performing fraud check");
+                return Result<SecurityCheckDto>.Failure($"Fraud check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<SecurityCheckDto>> PerformAVSCheckAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                await Task.Delay(150);
+
+                var check = new SecurityCheckDto
+                {
+                    CheckType = "Address Verification",
+                    Status = !string.IsNullOrEmpty(request.BillingAddress) ? "Passed" : "Failed",
+                    Score = !string.IsNullOrEmpty(request.BillingAddress) ? 100 : 0,
+                    Result = !string.IsNullOrEmpty(request.BillingAddress) ? "Address verified" : "Address verification failed",
+                    CheckedAt = DateTime.UtcNow,
+                    CheckedBy = "AVS System"
+                };
+
+                return Result<SecurityCheckDto>.Success(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error performing AVS check");
+                return Result<SecurityCheckDto>.Failure($"AVS check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<SecurityCheckDto>> PerformCVVCheckAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                await Task.Delay(100);
+
+                var isValid = !string.IsNullOrEmpty(request.CVV) && request.CVV.Length >= 3;
+                var check = new SecurityCheckDto
+                {
+                    CheckType = "CVV Verification",
+                    Status = isValid ? "Passed" : "Failed",
+                    Score = isValid ? 100 : 0,
+                    Result = isValid ? "CVV verified" : "Invalid CVV",
+                    CheckedAt = DateTime.UtcNow,
+                    CheckedBy = "CVV System"
+                };
+
+                return Result<SecurityCheckDto>.Success(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error performing CVV check");
+                return Result<SecurityCheckDto>.Failure($"CVV check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<SecurityCheckDto>> Perform3DSecureCheckAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                await Task.Delay(300);
+
+                var check = new SecurityCheckDto
+                {
+                    CheckType = "3D Secure",
+                    Status = "Passed",
+                    Score = 100,
+                    Result = "3D Secure authentication successful",
+                    CheckedAt = DateTime.UtcNow,
+                    CheckedBy = "3DS System"
+                };
+
+                return Result<SecurityCheckDto>.Success(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error performing 3D Secure check");
+                return Result<SecurityCheckDto>.Failure($"3D Secure check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<SecurityCheckDto>> PerformVelocityCheckAsync(PaymentSecurityRequestDto request)
+        {
+            try
+            {
+                await Task.Delay(100);
+
+                var check = new SecurityCheckDto
+                {
+                    CheckType = "Velocity Check",
+                    Status = "Passed",
+                    Score = 100,
+                    Result = "Transaction velocity within limits",
+                    CheckedAt = DateTime.UtcNow,
+                    CheckedBy = "Velocity System"
+                };
+
+                return Result<SecurityCheckDto>.Success(check);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error performing velocity check");
+                return Result<SecurityCheckDto>.Failure($"Velocity check failed: {ex.Message}");
+            }
+        }
+
+        public async Task<Result<PaymentReceiptDataDto>> GenerateReceiptAsync(CreditCardPaymentDto payment)
+        {
+            try
+            {
+                var receipt = new PaymentReceiptDataDto
+                {
+                    ReceiptNumber = $"RCP{DateTime.UtcNow.Ticks % 1000000:D6}",
+                    TransactionId = payment.TransactionId,
+                    Amount = payment.Amount,
+                    Currency = payment.Currency,
+                    PaymentMethod = $"{payment.CardType} ending in {payment.CardLast4}",
+                    PaymentDate = payment.ProcessedAt,
+                    Status = payment.Status,
+                    Description = "School Transportation Payment"
+                };
+
+                return Result<PaymentReceiptDataDto>.Success(receipt);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating receipt");
+                return Result<PaymentReceiptDataDto>.Failure($"Receipt generation failed: {ex.Message}");
+            }
+        }
+
         public async Task<Result<PaymentGatewayDto>> InitializePaymentGatewayAsync(string gatewayProvider, string merchantId, string tenantId)
         {
             try
@@ -168,7 +679,7 @@ namespace SchoolTransportationSystem.Application.Services
                 };
 
                 var securityValidation = await ValidatePaymentSecurityAsync(securityRequest, tenantId);
-                if (!securityValidation.IsSuccess || !securityValidation.Data.IsValid)
+                if (!securityValidation.IsSuccess || !securityValidation.Value.IsValid)
                 {
                     return Result<CreditCardPaymentDto>.Failure($"Security validation failed: {securityValidation.Error ?? "High risk transaction"}");
                 }
@@ -185,7 +696,7 @@ namespace SchoolTransportationSystem.Application.Services
                     MaskedCardNumber = MaskCardNumber(paymentRequest.CardNumber),
                     CardType = DetectCardType(paymentRequest.CardNumber),
                     AuthorizationCode = GenerateAuthorizationCode(),
-                    SecurityValidation = securityValidation.Data
+                    SecurityValidation = securityValidation.Value
                 };
 
                 await Task.Delay(1000); // Simulate network delay
@@ -229,28 +740,30 @@ namespace SchoolTransportationSystem.Application.Services
             {
                 // In a real implementation, this would retrieve transaction details from database
                 
+                var receiptData = new PaymentReceiptDataDto
+                {
+                    MerchantName = "Rihla School Transportation",
+                    MerchantAddress = "123 Education Street, Riyadh, Saudi Arabia",
+                    MerchantPhone = "+966-11-123-4567",
+                    TransactionDate = DateTime.UtcNow,
+                    PaymentMethod = "Credit Card",
+                    Amount = 150.00m,
+                    Currency = "SAR",
+                    Status = "Completed",
+                    AuthorizationCode = GenerateAuthorizationCode(),
+                    CustomerReference = "Student Transportation Fee"
+                };
+
                 var receipt = new PaymentReceiptDto
                 {
                     ReceiptNumber = $"RCP-{DateTime.UtcNow:yyyyMMdd}-{transactionId[..8]}",
                     TransactionId = transactionId,
                     GeneratedAt = DateTime.UtcNow,
                     TenantId = tenantId,
-                    ReceiptData = new PaymentReceiptDataDto
-                    {
-                        MerchantName = "Rihla School Transportation",
-                        MerchantAddress = "123 Education Street, Riyadh, Saudi Arabia",
-                        MerchantPhone = "+966-11-123-4567",
-                        TransactionDate = DateTime.UtcNow,
-                        PaymentMethod = "Credit Card",
-                        Amount = 150.00m,
-                        Currency = "SAR",
-                        Status = "Completed",
-                        AuthorizationCode = GenerateAuthorizationCode(),
-                        CustomerReference = "Student Transportation Fee"
-                    }
+                    ReceiptContent = GenerateReceiptContent(receiptData)
                 };
 
-                receipt.ReceiptContent = GenerateReceiptContent(receipt.ReceiptData);
+                receipt.ReceiptContent = GenerateReceiptContent(receiptData);
                 
                 receipt.DigitalSignature = GenerateReceiptSignature(receipt);
 

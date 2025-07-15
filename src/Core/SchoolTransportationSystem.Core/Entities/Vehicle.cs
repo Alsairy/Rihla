@@ -31,6 +31,12 @@ namespace SchoolTransportationSystem.Core.Entities
         public List<Route> Routes { get; set; } = new();
         public List<Trip> Trips { get; set; } = new();
         public List<MaintenanceRecord> MaintenanceRecords { get; set; } = new();
+        public List<VehicleLocation> VehicleLocations { get; set; } = new();
+        
+        // GPS tracking properties
+        public decimal? CurrentLatitude { get; set; }
+        public decimal? CurrentLongitude { get; set; }
+        public DateTime? LastLocationUpdate { get; set; }
 
         public int GetAge()
         {

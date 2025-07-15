@@ -13,6 +13,10 @@ namespace SchoolTransportationSystem.Application.Interfaces
         Task<Result<RouteDto>> GetByRouteNumberAsync(string routeNumber, string tenantId);
         Task<Result<List<RouteDto>>> GetActiveRoutesAsync(string tenantId);
         Task<Result<List<StudentDto>>> GetStudentsOnRouteAsync(int routeId, string tenantId);
+        Task<Result<RouteDto>> GenerateOptimalRouteAsync(List<int> studentIds, int vehicleId, string tenantId);
+        Task<Result<RouteDto>> OptimizeExistingRouteAsync(RouteOptimizationRequestDto request, string tenantId);
+        Task<Result<RoutePerformanceDto>> CalculateRouteEfficiencyMetricsAsync(int routeId, DateTime startDate, DateTime endDate, string tenantId);
+        Task<Result<List<RouteOptimizationDto>>> GetOptimizationHistoryAsync(int routeId, string tenantId);
     }
 }
 

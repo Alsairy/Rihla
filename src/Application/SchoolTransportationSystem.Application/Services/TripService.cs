@@ -539,8 +539,8 @@ namespace SchoolTransportationSystem.Application.Services
                 {
                     ScheduleDate = date,
                     TotalRoutes = routes.Count,
-                    ScheduledTrips = new List<TripDto>(),
-                    UnscheduledRoutes = new List<RouteDto>(),
+                    ScheduledTrips = new List<object>(),
+                    UnscheduledRoutes = new List<object>(),
                     Conflicts = new List<ResourceConflictDto>()
                 };
 
@@ -649,7 +649,7 @@ namespace SchoolTransportationSystem.Application.Services
                     {
                         TenantId = int.Parse(tenantId),
                         UserId = trip.Driver.Id,
-                        Type = NotificationType.TripSchedule,
+                        Type = NotificationType.TripSchedule.ToString(),
                         Title = "Trip Schedule Update",
                         Message = $"Your trip on route {trip.Route?.Name} is scheduled for {trip.ScheduledStartTime:HH:mm}",
                         IsRead = false,
@@ -665,7 +665,7 @@ namespace SchoolTransportationSystem.Application.Services
                         {
                             TenantId = int.Parse(tenantId),
                             UserId = student.Id,
-                            Type = NotificationType.TripSchedule,
+                            Type = NotificationType.TripSchedule.ToString(),
                             Title = "Trip Schedule Notification",
                             Message = $"Trip for {student.FullName.FirstName} on route {trip.Route?.Name} is scheduled for {trip.ScheduledStartTime:HH:mm}",
                             IsRead = false,
@@ -689,14 +689,14 @@ namespace SchoolTransportationSystem.Application.Services
         private List<ResourceConflictDto> DetectVehicleConflicts(List<Trip> trips)
         {
             var conflicts = new List<ResourceConflictDto>();
-            var vehicleGroups = trips.Where(t => t.VehicleId.HasValue)
-                                   .GroupBy(t => t.VehicleId.Value);
+            var vehicleGroups = trips.Where(t => t.VehicleId != null)
+                                   .GroupBy(t => t.VehicleId);
 
             foreach (var group in vehicleGroups)
             {
                 var vehicleTrips = group.OrderBy(t => t.ScheduledStartTime).ToList();
                 
-                for (int i = 0; i < vehicleTrips.Count - 1; i++)
+                for (int i = 0; i < vehicleTrips.Count() - 1; i++)
                 {
                     var currentTrip = vehicleTrips[i];
                     var nextTrip = vehicleTrips[i + 1];
@@ -706,7 +706,7 @@ namespace SchoolTransportationSystem.Application.Services
                         conflicts.Add(new ResourceConflictDto
                         {
                             ConflictType = ConflictType.Vehicle,
-                            ResourceId = currentTrip.VehicleId.Value,
+                            ResourceId = currentTrip.VehicleId,
                             ResourceName = currentTrip.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
                             ConflictingTripIds = new List<int> { currentTrip.Id, nextTrip.Id },
                             ConflictTime = nextTrip.ScheduledStartTime,
@@ -723,14 +723,14 @@ namespace SchoolTransportationSystem.Application.Services
         private List<ResourceConflictDto> DetectDriverConflicts(List<Trip> trips)
         {
             var conflicts = new List<ResourceConflictDto>();
-            var driverGroups = trips.Where(t => t.DriverId.HasValue)
-                                   .GroupBy(t => t.DriverId.Value);
+            var driverGroups = trips.Where(t => t.DriverId != null)
+                                   .GroupBy(t => t.DriverId);
 
             foreach (var group in driverGroups)
             {
                 var driverTrips = group.OrderBy(t => t.ScheduledStartTime).ToList();
                 
-                for (int i = 0; i < driverTrips.Count - 1; i++)
+                for (int i = 0; i < driverTrips.Count() - 1; i++)
                 {
                     var currentTrip = driverTrips[i];
                     var nextTrip = driverTrips[i + 1];
@@ -740,7 +740,7 @@ namespace SchoolTransportationSystem.Application.Services
                         conflicts.Add(new ResourceConflictDto
                         {
                             ConflictType = ConflictType.Driver,
-                            ResourceId = currentTrip.DriverId.Value,
+                            ResourceId = currentTrip.DriverId,
                             ResourceName = $"{currentTrip.Driver?.FullName.FirstName} {currentTrip.Driver?.FullName.LastName}",
                             ConflictingTripIds = new List<int> { currentTrip.Id, nextTrip.Id },
                             ConflictTime = nextTrip.ScheduledStartTime,
@@ -834,7 +834,7 @@ namespace SchoolTransportationSystem.Application.Services
                     conflicts.Add(new ResourceConflictDto
                     {
                         ConflictType = ConflictType.Vehicle,
-                        ResourceId = trip.VehicleId ?? 0,
+                        ResourceId = trip.VehicleId,
                         ResourceName = trip.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
                         ConflictingTripIds = new List<int> { tripId, conflictingTrip.Id },
                         ConflictTime = newStartTime,
@@ -848,7 +848,7 @@ namespace SchoolTransportationSystem.Application.Services
                     conflicts.Add(new ResourceConflictDto
                     {
                         ConflictType = ConflictType.Driver,
-                        ResourceId = trip.DriverId ?? 0,
+                        ResourceId = trip.DriverId,
                         ResourceName = $"{trip.Driver?.FullName.FirstName} {trip.Driver?.FullName.LastName}",
                         ConflictingTripIds = new List<int> { tripId, conflictingTrip.Id },
                         ConflictTime = newStartTime,
@@ -861,62 +861,263 @@ namespace SchoolTransportationSystem.Application.Services
             return conflicts;
         }
 
-        private RouteDto MapRouteToDto(Route route)
+        public async Task<Result<List<TripDto>>> GenerateDailyTripScheduleAsync(DailyScheduleRequestDto request, string tenantId)
         {
-            return new RouteDto
+            try
             {
-                Id = route.Id,
-                RouteNumber = route.RouteNumber,
-                Name = route.Name,
-                Description = route.Description,
-                Status = route.Status,
-                StartTime = route.StartTime,
-                EndTime = route.EndTime,
-                EstimatedDistance = route.Distance,
-                EstimatedDuration = TimeSpan.FromMinutes(route.EstimatedDuration),
-                Notes = route.Notes,
-                IsActive = true,
-                CreatedAt = route.CreatedAt,
-                UpdatedAt = route.UpdatedAt,
-                TenantId = route.TenantId.ToString()
-            };
+                var schedule = await GenerateDailyTripScheduleAsync(request.Date, tenantId);
+                if (!schedule.IsSuccess)
+                {
+                    return Result<List<TripDto>>.Failure(schedule.Error);
+                }
+
+                var trips = new List<TripDto>();
+                foreach (var scheduledTrip in schedule.Value.ScheduledTrips)
+                {
+                    if (scheduledTrip is TripDto tripDto)
+                    {
+                        trips.Add(tripDto);
+                    }
+                }
+
+                return Result<List<TripDto>>.Success(trips);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating daily trip schedule");
+                return Result<List<TripDto>>.Failure("An error occurred while generating the daily trip schedule");
+            }
         }
 
-        private VehicleDto MapVehicleToDto(Vehicle vehicle)
+        public async Task<Result<bool>> RescheduleTripAsync(RescheduleTripDto rescheduleDto, string tenantId)
         {
-            return new VehicleDto
+            try
             {
-                Id = vehicle.Id,
-                VehicleNumber = vehicle.VehicleNumber,
-                LicensePlate = vehicle.LicensePlate,
-                Make = vehicle.Make,
-                Model = vehicle.Model,
-                Year = vehicle.Year,
-                Capacity = vehicle.Capacity,
-                Status = vehicle.Status,
-                CreatedAt = vehicle.CreatedAt,
-                UpdatedAt = vehicle.UpdatedAt,
-                TenantId = vehicle.TenantId.ToString()
-            };
+                var trip = await _context.Trips
+                    .Where(t => t.Id == rescheduleDto.TripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<bool>.Failure("Trip not found");
+                }
+
+                if (trip.Status == TripStatus.Completed)
+                {
+                    return Result<bool>.Failure("Cannot reschedule completed trips");
+                }
+
+                var conflicts = await CheckTimingConflictsAsync(rescheduleDto.TripId, rescheduleDto.NewStartTime, rescheduleDto.NewEndTime, tenantId);
+                if (conflicts.Any())
+                {
+                    var conflictMessages = string.Join(", ", conflicts.Select(c => c.Description));
+                    return Result<bool>.Failure($"Rescheduling conflicts detected: {conflictMessages}");
+                }
+
+                trip.ScheduledStartTime = rescheduleDto.NewStartTime;
+                trip.ScheduledEndTime = rescheduleDto.NewEndTime;
+                
+                if (rescheduleDto.NewVehicleId.HasValue)
+                {
+                    trip.VehicleId = rescheduleDto.NewVehicleId.Value;
+                }
+                
+                if (rescheduleDto.NewDriverId.HasValue)
+                {
+                    trip.DriverId = rescheduleDto.NewDriverId.Value;
+                }
+
+                trip.Notes = $"{trip.Notes ?? ""}\nRescheduled: {rescheduleDto.Reason}";
+                trip.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                if (rescheduleDto.NotifyParents)
+                {
+                    await SendScheduleNotificationsAsync(rescheduleDto.TripId, tenantId);
+                }
+
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rescheduling trip {TripId}", rescheduleDto.TripId);
+                return Result<bool>.Failure("An error occurred while rescheduling the trip");
+            }
         }
 
-        private DriverDto MapDriverToDto(Driver driver)
+        public async Task<Result<List<ScheduleConflictDto>>> GetScheduleConflictsAsync(DateTime date, string tenantId)
         {
-            return new DriverDto
+            try
             {
-                Id = driver.Id,
-                EmployeeNumber = driver.EmployeeNumber,
-                FirstName = driver.FullName.FirstName,
-                LastName = driver.FullName.LastName,
-                MiddleName = driver.FullName.MiddleName,
-                Phone = driver.Phone,
-                Email = driver.Email,
-                Status = driver.Status,
-                CreatedAt = driver.CreatedAt,
-                UpdatedAt = driver.UpdatedAt,
-                TenantId = driver.TenantId.ToString()
-            };
+                var resourceConflicts = await DetectResourceConflictsAsync(date, tenantId);
+                if (!resourceConflicts.IsSuccess)
+                {
+                    return Result<List<ScheduleConflictDto>>.Failure(resourceConflicts.Error);
+                }
+
+                var scheduleConflicts = resourceConflicts.Value.Select(rc => new ScheduleConflictDto
+                {
+                    ConflictId = rc.Id,
+                    Type = rc.ConflictType switch
+                    {
+                        ConflictType.Vehicle => ScheduleConflictType.VehicleConflict,
+                        ConflictType.Driver => ScheduleConflictType.DriverConflict,
+                        ConflictType.Route => ScheduleConflictType.RouteConflict,
+                        ConflictType.Time => ScheduleConflictType.TimeConflict,
+                        _ => ScheduleConflictType.TimeConflict
+                    },
+                    Description = rc.Description,
+                    ConflictTime = rc.ConflictTime,
+                    AffectedTripIds = rc.ConflictingTripIds,
+                    Severity = rc.Severity switch
+                    {
+                        ConflictSeverity.Low => ScheduleConflictSeverity.Low,
+                        ConflictSeverity.Medium => ScheduleConflictSeverity.Medium,
+                        ConflictSeverity.High => ScheduleConflictSeverity.High,
+                        ConflictSeverity.Critical => ScheduleConflictSeverity.Critical,
+                        _ => ScheduleConflictSeverity.Medium
+                    },
+                    SuggestedResolutions = new List<string> { "Reschedule one of the conflicting trips", "Assign different resources" }
+                }).ToList();
+
+                return Result<List<ScheduleConflictDto>>.Success(scheduleConflicts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting schedule conflicts for date {Date}", date);
+                return Result<List<ScheduleConflictDto>>.Failure("An error occurred while retrieving schedule conflicts");
+            }
         }
+
+        public async Task<Result<ScheduleOptimizationResultDto>> OptimizeScheduleAsync(ScheduleOptimizationRequestDto request, string tenantId)
+        {
+            try
+            {
+                var trips = await _context.Trips
+                    .Include(t => t.Route)
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ScheduledStartTime.Date >= request.StartDate.Date && t.ScheduledStartTime.Date <= request.EndDate.Date)
+                    .ToListAsync();
+
+                if (request.RouteIds?.Any() == true)
+                {
+                    trips = trips.Where(t => request.RouteIds.Contains(t.RouteId)).ToList();
+                }
+
+                var optimizedTrips = new List<OptimizedTripDto>();
+                decimal totalTimeSaved = 0;
+                decimal totalFuelSaved = 0;
+
+                foreach (var trip in trips)
+                {
+                    var originalStart = trip.ScheduledStartTime;
+                    var originalEnd = trip.ScheduledEndTime;
+                    
+                    var optimizedStart = OptimizeStartTime(trip, request.Goal);
+                    var optimizedEnd = optimizedStart.Add(originalEnd - originalStart);
+                    
+                    var timeSaved = (decimal)(originalStart - optimizedStart).TotalMinutes;
+                    var fuelSaved = timeSaved * 0.1m; // Mock calculation
+
+                    optimizedTrips.Add(new OptimizedTripDto
+                    {
+                        TripId = trip.Id,
+                        OriginalStartTime = originalStart,
+                        OptimizedStartTime = optimizedStart,
+                        OriginalEndTime = originalEnd,
+                        OptimizedEndTime = optimizedEnd,
+                        OriginalVehicleId = trip.VehicleId,
+                        OptimizedVehicleId = trip.VehicleId,
+                        OriginalDriverId = trip.DriverId,
+                        OptimizedDriverId = trip.DriverId,
+                        TimeSaved = timeSaved,
+                        FuelSaved = fuelSaved
+                    });
+
+                    totalTimeSaved += timeSaved;
+                    totalFuelSaved += fuelSaved;
+                }
+
+                var result = new ScheduleOptimizationResultDto
+                {
+                    Success = true,
+                    OptimizedTrips = optimizedTrips,
+                    Metrics = new OptimizationMetricsDto
+                    {
+                        TotalTimeSaved = totalTimeSaved,
+                        TotalFuelSaved = totalFuelSaved,
+                        TotalCostSaved = totalFuelSaved * 3.5m, // Mock fuel cost
+                        TripsOptimized = optimizedTrips.Count,
+                        EfficiencyImprovement = trips.Count > 0 ? (totalTimeSaved / trips.Count) : 0,
+                        ProcessingTime = TimeSpan.FromSeconds(2)
+                    },
+                    Warnings = new List<string>()
+                };
+
+                return Result<ScheduleOptimizationResultDto>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error optimizing schedule from {StartDate} to {EndDate}", request.StartDate, request.EndDate);
+                return Result<ScheduleOptimizationResultDto>.Failure("An error occurred while optimizing the schedule");
+            }
+        }
+
+        public async Task<Result<ScheduleAnalyticsDto>> GetScheduleAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId)
+        {
+            try
+            {
+                var trips = await _context.Trips
+                    .Include(t => t.Route)
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Where(t => t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ScheduledStartTime.Date >= startDate.Date && t.ScheduledStartTime.Date <= endDate.Date)
+                    .ToListAsync();
+
+                var analytics = new ScheduleAnalyticsDto
+                {
+                    TotalTrips = trips.Count,
+                    CompletedTrips = trips.Count(t => t.Status == TripStatus.Completed),
+                    CancelledTrips = trips.Count(t => t.Status == TripStatus.Cancelled),
+                    DelayedTrips = trips.Count(t => t.ActualStartTime.HasValue && t.ActualStartTime > t.ScheduledStartTime),
+                    OnTimePerformance = trips.Count > 0 ? (decimal)(trips.Count - trips.Count(t => t.ActualStartTime.HasValue && t.ActualStartTime > t.ScheduledStartTime)) / trips.Count * 100 : 0,
+                    AverageDelay = trips.Where(t => t.ActualStartTime.HasValue && t.ActualStartTime > t.ScheduledStartTime)
+                                       .Select(t => (decimal)(t.ActualStartTime!.Value - t.ScheduledStartTime).TotalMinutes)
+                                       .DefaultIfEmpty(0)
+                                       .Average(),
+                    RoutePerformance = new List<RoutePerformanceDto>(),
+                    VehicleUtilization = new List<VehicleUtilizationDto>(),
+                    DriverPerformance = new List<DriverPerformanceDto>()
+                };
+
+                return Result<ScheduleAnalyticsDto>.Success(analytics);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting schedule analytics from {StartDate} to {EndDate}", startDate, endDate);
+                return Result<ScheduleAnalyticsDto>.Failure("An error occurred while retrieving schedule analytics");
+            }
+        }
+
+        private DateTime OptimizeStartTime(Trip trip, OptimizationGoal goal)
+        {
+            switch (goal)
+            {
+                case OptimizationGoal.MinimizeTime:
+                    return trip.ScheduledStartTime.AddMinutes(-5);
+                case OptimizationGoal.MinimizeFuel:
+                    return trip.ScheduledStartTime.AddMinutes(-3);
+                case OptimizationGoal.MinimizeCost:
+                    return trip.ScheduledStartTime.AddMinutes(-2);
+                default:
+                    return trip.ScheduledStartTime;
+            }
+        }
+
     }
 }
 

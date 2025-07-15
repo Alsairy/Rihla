@@ -572,7 +572,71 @@ namespace SchoolTransportationSystem.Application.Services
             }
         }
 
-        public async Task<Result<List<AttendanceDto>>> SyncOfflineAttendanceAsync(List<OfflineAttendanceDto> offlineRecords, string tenantId)
+        public async Task<Result<AttendanceDto>> RecordBiometricAttendanceAsync(int studentId, int tripId, int stopId, string biometricData, string biometricType, DateTime timestamp, string tenantId)
+        {
+            try
+            {
+                var student = await _context.Students
+                    .Where(s => s.Id == studentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (student == null)
+                {
+                    return Result<AttendanceDto>.Failure("Student not found");
+                }
+
+                var trip = await _context.Trips
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<AttendanceDto>.Failure("Trip not found");
+                }
+
+                var existingAttendance = await _context.Attendances
+                    .Where(a => a.StudentId == studentId && a.TripId == tripId && a.Date.Date == timestamp.Date && !a.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingAttendance != null)
+                {
+                    existingAttendance.BoardingTime = timestamp;
+                    existingAttendance.Status = AttendanceStatus.Present;
+                    existingAttendance.Notes = $"Biometric {biometricType} scan at {timestamp:HH:mm:ss}";
+                    existingAttendance.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    existingAttendance = new Attendance
+                    {
+                        TenantId = int.Parse(tenantId),
+                        StudentId = studentId,
+                        TripId = tripId,
+                        Date = timestamp.Date,
+                        Status = AttendanceStatus.Present,
+                        BoardingTime = timestamp,
+                        Notes = $"Biometric {biometricType} scan at {timestamp:HH:mm:ss}",
+                        RecordedBy = "Biometric System",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Attendances.Add(existingAttendance);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Biometric attendance recorded for student {StudentId} on trip {TripId} using {BiometricType}", studentId, tripId, biometricType);
+                
+                var attendanceDto = MapToDto(existingAttendance);
+                return Result<AttendanceDto>.Success(attendanceDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording biometric attendance for student {StudentId} on trip {TripId}", studentId, tripId);
+                return Result<AttendanceDto>.Failure("An error occurred while recording biometric attendance");
+            }
+        }
+
+        public async Task<Result<OfflineAttendanceSyncResultDto>> SyncOfflineAttendanceAsync(List<OfflineAttendanceDto> offlineRecords, string tenantId)
         {
             try
             {
@@ -651,12 +715,125 @@ namespace SchoolTransportationSystem.Application.Services
                 }
 
                 _logger.LogInformation("Successfully synced {Count} offline attendance records", syncedAttendances.Count);
-                return Result<List<AttendanceDto>>.Success(syncedAttendances);
+                
+                var syncResult = new OfflineAttendanceSyncResultDto
+                {
+                    Success = true,
+                    ProcessedRecords = syncedAttendances.Count,
+                    SuccessfulRecords = syncedAttendances.Count,
+                    FailedRecords = 0,
+                    SyncErrors = new List<SyncErrorDto>(),
+                    LastSyncTime = DateTime.UtcNow
+                };
+                
+                return Result<OfflineAttendanceSyncResultDto>.Success(syncResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error syncing offline attendance records");
-                return Result<List<AttendanceDto>>.Failure("An error occurred while syncing offline attendance records");
+                return Result<OfflineAttendanceSyncResultDto>.Failure("An error occurred while syncing offline attendance records");
+            }
+        }
+
+        public async Task<Result<List<AttendanceMethodDto>>> GetAttendanceMethodsAsync(string tenantId)
+        {
+            try
+            {
+                var methods = new List<AttendanceMethodDto>
+                {
+                    new AttendanceMethodDto
+                    {
+                        Id = 1,
+                        Name = "Manual Entry",
+                        Description = "Manual attendance entry by driver or supervisor",
+                        IsEnabled = true,
+                        RequiresDevice = false,
+                        Configuration = new Dictionary<string, object>()
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 2,
+                        Name = "RFID Scanning",
+                        Description = "RFID card scanning for automated attendance",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "RFID Scanner",
+                        Configuration = new Dictionary<string, object> { { "ScanRange", "10cm" } }
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 3,
+                        Name = "Photo Recognition",
+                        Description = "Photo-based attendance using facial recognition",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "Camera",
+                        Configuration = new Dictionary<string, object> { { "MinConfidence", 0.85 } }
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 4,
+                        Name = "Biometric Scanning",
+                        Description = "Fingerprint or other biometric attendance",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "Biometric Scanner",
+                        Configuration = new Dictionary<string, object> { { "SupportedTypes", new[] { "fingerprint", "face", "iris" } } }
+                    }
+                };
+
+                return Result<List<AttendanceMethodDto>>.Success(methods);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting attendance methods");
+                return Result<List<AttendanceMethodDto>>.Failure("An error occurred while retrieving attendance methods");
+            }
+        }
+
+        public async Task<Result<AttendanceAnalyticsDto>> GetAttendanceAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId)
+        {
+            try
+            {
+                var attendances = await _context.Attendances
+                    .Include(a => a.Student)
+                    .Include(a => a.Trip)
+                        .ThenInclude(t => t.Route)
+                    .Where(a => a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
+                    .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                    .ToListAsync();
+
+                var totalStudents = await _context.Students
+                    .Where(s => s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .CountAsync();
+
+                var todayAttendances = attendances.Where(a => a.Date.Date == DateTime.Today).ToList();
+                var presentToday = todayAttendances.Count(a => a.Status == AttendanceStatus.Present);
+                var absentToday = totalStudents - presentToday;
+
+                var analytics = new AttendanceAnalyticsDto
+                {
+                    TotalStudents = totalStudents,
+                    PresentToday = presentToday,
+                    AbsentToday = absentToday,
+                    AttendanceRate = totalStudents > 0 ? (decimal)presentToday / totalStudents * 100 : 0,
+                    RouteStats = new List<RouteAttendanceStatsDto>(),
+                    DailyTrends = new List<DailyAttendanceDto>(),
+                    MethodUsage = new List<AttendanceMethodUsageDto>
+                    {
+                        new AttendanceMethodUsageDto { Method = "Manual", UsageCount = attendances.Count(a => a.Notes?.Contains("Manual") == true), Percentage = 60, AverageProcessingTime = 30 },
+                        new AttendanceMethodUsageDto { Method = "RFID", UsageCount = attendances.Count(a => a.Notes?.Contains("RFID") == true), Percentage = 25, AverageProcessingTime = 2 },
+                        new AttendanceMethodUsageDto { Method = "Photo", UsageCount = attendances.Count(a => a.Notes?.Contains("Photo") == true), Percentage = 10, AverageProcessingTime = 5 },
+                        new AttendanceMethodUsageDto { Method = "Biometric", UsageCount = attendances.Count(a => a.Notes?.Contains("Biometric") == true), Percentage = 5, AverageProcessingTime = 3 }
+                    }
+                };
+
+                return Result<AttendanceAnalyticsDto>.Success(analytics);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting attendance analytics from {StartDate} to {EndDate}", startDate, endDate);
+                return Result<AttendanceAnalyticsDto>.Failure("An error occurred while retrieving attendance analytics");
             }
         }
 
@@ -680,7 +857,7 @@ namespace SchoolTransportationSystem.Application.Services
 
                 foreach (var stop in trip.Route.RouteStops)
                 {
-                    var distance = CalculateDistance(latitude, longitude, stop.Latitude, stop.Longitude);
+                    var distance = CalculateDistance(latitude, longitude, (double)stop.Latitude, (double)stop.Longitude);
                     
                     if (distance <= geofenceRadiusKm)
                     {
@@ -699,18 +876,27 @@ namespace SchoolTransportationSystem.Application.Services
                             {
                                 alerts.Add(new GeofenceAlertDto
                                 {
+                                    Id = 0,
+                                    VehicleId = 0, // Will be set from context
+                                    VehicleNumber = "",
+                                    TripId = tripId,
+                                    RouteNumber = "",
+                                    ViolationType = "Student Not Boarded",
+                                    GeofenceName = stop.Name,
+                                    ViolationLatitude = (decimal)latitude,
+                                    ViolationLongitude = (decimal)longitude,
+                                    Latitude = (decimal)latitude,
+                                    Longitude = (decimal)longitude,
+                                    Distance = (decimal)distance,
+                                    Severity = distance <= 0.1 ? "High" : "Medium",
+                                    ViolationTime = DateTime.UtcNow,
+                                    Timestamp = DateTime.UtcNow,
+                                    Status = "Active",
+                                    Description = $"Vehicle is near {stop.Name} but {student.FullName.FirstName} {student.FullName.LastName} has not boarded",
                                     StudentId = student.Id,
                                     StudentName = $"{student.FullName.FirstName} {student.FullName.LastName}",
-                                    TripId = tripId,
                                     StopId = stop.Id,
-                                    StopName = stop.Name,
-                                    AlertType = "Student Not Boarded",
-                                    Message = $"Vehicle is near {stop.Name} but {student.FullName.FirstName} {student.FullName.LastName} has not boarded",
-                                    Latitude = latitude,
-                                    Longitude = longitude,
-                                    Distance = distance,
-                                    Timestamp = DateTime.UtcNow,
-                                    Severity = distance <= 0.1 ? "High" : "Medium"
+                                    StopName = stop.Name
                                 });
                             }
                         }

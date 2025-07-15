@@ -29,6 +29,8 @@ namespace SchoolTransportationSystem.Core.Entities
         // Navigation properties
         public int? RouteId { get; set; }
         public Route? Route { get; set; }
+        public int? RouteStopId { get; set; }
+        public string? RfidTag { get; set; }
         public List<Attendance> Attendances { get; set; } = new();
         public List<Payment> Payments { get; set; } = new();
 

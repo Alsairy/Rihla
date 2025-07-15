@@ -298,6 +298,7 @@ namespace SchoolTransportationSystem.Application.DTOs
 
     public class ResourceConflictDto
     {
+        public int Id { get; set; }
         public ConflictType ConflictType { get; set; }
         public int ResourceId { get; set; }
         public string ResourceName { get; set; } = string.Empty;
@@ -311,9 +312,11 @@ namespace SchoolTransportationSystem.Application.DTOs
     {
         public DateTime ScheduleDate { get; set; }
         public int TotalRoutes { get; set; }
-        public List<TripDto> ScheduledTrips { get; set; } = new();
-        public List<RouteDto> UnscheduledRoutes { get; set; } = new();
+        public int ScheduledTripsCount { get; set; }
+        public int UnscheduledRoutesCount { get; set; }
         public List<ResourceConflictDto> Conflicts { get; set; } = new();
+        public List<object> UnscheduledRoutes { get; set; } = new();
+        public List<object> ScheduledTrips { get; set; } = new();
     }
 
     public enum ConflictType

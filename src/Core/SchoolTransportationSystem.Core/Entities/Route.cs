@@ -15,6 +15,7 @@ namespace SchoolTransportationSystem.Core.Entities
         public string StartLocation { get; set; } = string.Empty;
         public string EndLocation { get; set; } = string.Empty;
         public string? Notes { get; set; }
+        public bool IsActive { get; set; } = true;
 
         // Navigation properties
         public int? AssignedVehicleId { get; set; }

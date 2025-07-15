@@ -30,6 +30,7 @@ namespace SchoolTransportationSystem.Infrastructure.Data
         public DbSet<AttendanceMethod> AttendanceMethods { get; set; }
         public DbSet<PaymentGateway> PaymentGateways { get; set; }
         public DbSet<GeofenceAlert> GeofenceAlerts { get; set; }
+        public DbSet<VehicleLocation> VehicleLocations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
