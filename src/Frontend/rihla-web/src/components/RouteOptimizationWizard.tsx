@@ -26,7 +26,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -36,7 +36,7 @@ import {
   LocalGasStation as FuelIcon,
   AccessTime as TimeIcon,
   LocationOn as LocationIcon,
-  Settings as OptimizeIcon
+  Settings as OptimizeIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -82,18 +82,21 @@ interface RouteOptimizationWizardProps {
   existingRouteId?: number;
 }
 
-const steps = ['Route Details', 'Add Stops', 'Optimization Settings', 'Review & Optimize'];
+const steps = [
+  'Route Details',
+  'Add Stops',
+  'Optimization Settings',
+  'Review & Optimize',
+];
 
-export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = ({
-  open,
-  onClose,
-  onRouteCreated,
-  existingRouteId
-}) => {
+export const RouteOptimizationWizard: React.FC<
+  RouteOptimizationWizardProps
+> = ({ open, onClose, onRouteCreated, existingRouteId }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [optimizationResult, setOptimizationResult] = useState<RouteOptimizationResult | null>(null);
+  const [optimizationResult, setOptimizationResult] =
+    useState<RouteOptimizationResult | null>(null);
 
   const [routeData, setRouteData] = useState<OptimalRouteRequest>({
     routeName: '',
@@ -101,18 +104,20 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
     vehicleCapacity: 30,
     stops: [],
     type: 'Regular',
-    notes: ''
+    notes: '',
   });
 
   const [newStop, setNewStop] = useState<Partial<RouteStop>>({
     name: '',
     address: '',
     latitude: 0,
-    longitude: 0
+    longitude: 0,
   });
 
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     if (open) {
@@ -125,7 +130,7 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
 
   const loadVehicles = async () => {
     try {
-      const response = await apiClient.get('/api/vehicles') as any;
+      const response = (await apiClient.get('/api/vehicles')) as any;
       setVehicles(response.items || []);
     } catch (err) {
       console.error('Failed to load vehicles:', err);
@@ -134,19 +139,19 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
 
   const loadExistingRoute = async () => {
     if (!existingRouteId) return;
-    
+
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/routes/${existingRouteId}`);
       const route = response as any;
-      
+
       setRouteData({
         routeName: route.name || '',
         startTime: route.startTime || '08:00',
         vehicleCapacity: route.assignedVehicle?.capacity || 30,
         stops: route.routeStops || [],
         type: route.type || 'Regular',
-        notes: route.notes || ''
+        notes: route.notes || '',
       });
     } catch (err) {
       setError('Failed to load existing route');
@@ -159,12 +164,12 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
     if (activeStep === steps.length - 1) {
       handleOptimizeRoute();
     } else {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      setActiveStep(prevActiveStep => prevActiveStep + 1);
     }
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep(prevActiveStep => prevActiveStep - 1);
   };
 
   const handleAddStop = () => {
@@ -175,19 +180,19 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
         latitude: newStop.latitude || 0,
         longitude: newStop.longitude || 0,
         sequenceNumber: routeData.stops.length + 1,
-        estimatedArrivalTime: '07:00'
+        estimatedArrivalTime: '07:00',
       };
-      
+
       setRouteData(prev => ({
         ...prev,
-        stops: [...prev.stops, stop]
+        stops: [...prev.stops, stop],
       }));
-      
+
       setNewStop({
         name: '',
         address: '',
         latitude: 0,
-        longitude: 0
+        longitude: 0,
       });
     }
   };
@@ -195,7 +200,7 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
   const handleRemoveStop = (index: number) => {
     setRouteData(prev => ({
       ...prev,
-      stops: prev.stops.filter((_, i) => i !== index)
+      stops: prev.stops.filter((_, i) => i !== index),
     }));
   };
 
@@ -206,9 +211,14 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
 
       let result;
       if (existingRouteId) {
-        result = await apiClient.post(`/api/routes/${existingRouteId}/optimize`);
+        result = await apiClient.post(
+          `/api/routes/${existingRouteId}/optimize`
+        );
       } else {
-        result = await apiClient.post('/api/routes/generate-optimal', routeData);
+        result = await apiClient.post(
+          '/api/routes/generate-optimal',
+          routeData
+        );
       }
 
       setOptimizationResult(result as RouteOptimizationResult);
@@ -226,13 +236,13 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
         `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=YOUR_API_KEY`
       );
       const data = await response.json();
-      
+
       if (data.results && data.results.length > 0) {
         const { lat, lng } = data.results[0].geometry;
         setNewStop(prev => ({
           ...prev,
           latitude: lat,
-          longitude: lng
+          longitude: lng,
         }));
       }
     } catch (err) {
@@ -251,7 +261,12 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   fullWidth
                   label="Route Name"
                   value={routeData.routeName}
-                  onChange={(e) => setRouteData(prev => ({ ...prev, routeName: e.target.value }))}
+                  onChange={e =>
+                    setRouteData(prev => ({
+                      ...prev,
+                      routeName: e.target.value,
+                    }))
+                  }
                   required
                 />
               </Grid>
@@ -261,7 +276,12 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   label="Start Time"
                   type="time"
                   value={routeData.startTime}
-                  onChange={(e) => setRouteData(prev => ({ ...prev, startTime: e.target.value }))}
+                  onChange={e =>
+                    setRouteData(prev => ({
+                      ...prev,
+                      startTime: e.target.value,
+                    }))
+                  }
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
@@ -271,7 +291,12 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   label="Vehicle Capacity"
                   type="number"
                   value={routeData.vehicleCapacity}
-                  onChange={(e) => setRouteData(prev => ({ ...prev, vehicleCapacity: parseInt(e.target.value) }))}
+                  onChange={e =>
+                    setRouteData(prev => ({
+                      ...prev,
+                      vehicleCapacity: parseInt(e.target.value),
+                    }))
+                  }
                   inputProps={{ min: 1, max: 100 }}
                 />
               </Grid>
@@ -280,7 +305,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   <InputLabel>Route Type</InputLabel>
                   <Select
                     value={routeData.type}
-                    onChange={(e) => setRouteData(prev => ({ ...prev, type: e.target.value }))}
+                    onChange={e =>
+                      setRouteData(prev => ({ ...prev, type: e.target.value }))
+                    }
                   >
                     <MenuItem value="Regular">Regular</MenuItem>
                     <MenuItem value="Express">Express</MenuItem>
@@ -295,7 +322,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   multiline
                   rows={3}
                   value={routeData.notes}
-                  onChange={(e) => setRouteData(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={e =>
+                    setRouteData(prev => ({ ...prev, notes: e.target.value }))
+                  }
                 />
               </Grid>
             </Grid>
@@ -316,7 +345,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                       fullWidth
                       label="Stop Name"
                       value={newStop.name}
-                      onChange={(e) => setNewStop(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={e =>
+                        setNewStop(prev => ({ ...prev, name: e.target.value }))
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -324,8 +355,15 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                       fullWidth
                       label="Address"
                       value={newStop.address}
-                      onChange={(e) => setNewStop(prev => ({ ...prev, address: e.target.value }))}
-                      onBlur={() => newStop.address && handleGeocodeAddress(newStop.address)}
+                      onChange={e =>
+                        setNewStop(prev => ({
+                          ...prev,
+                          address: e.target.value,
+                        }))
+                      }
+                      onBlur={() =>
+                        newStop.address && handleGeocodeAddress(newStop.address)
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 2 }}>
@@ -397,11 +435,14 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   <InputLabel>Select Vehicle</InputLabel>
                   <Select
                     value={selectedVehicleId || ''}
-                    onChange={(e) => setSelectedVehicleId(e.target.value as number)}
+                    onChange={e =>
+                      setSelectedVehicleId(e.target.value as number)
+                    }
                   >
-                    {vehicles.map((vehicle) => (
+                    {vehicles.map(vehicle => (
                       <MenuItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.vehicleNumber} - {vehicle.make} {vehicle.model} (Capacity: {vehicle.capacity})
+                        {vehicle.vehicleNumber} - {vehicle.make} {vehicle.model}{' '}
+                        (Capacity: {vehicle.capacity})
                       </MenuItem>
                     ))}
                   </Select>
@@ -437,10 +478,18 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                       <RouteIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                       Route Details
                     </Typography>
-                    <Typography variant="body2">Name: {routeData.routeName}</Typography>
-                    <Typography variant="body2">Start Time: {routeData.startTime}</Typography>
-                    <Typography variant="body2">Capacity: {routeData.vehicleCapacity} students</Typography>
-                    <Typography variant="body2">Type: {routeData.type}</Typography>
+                    <Typography variant="body2">
+                      Name: {routeData.routeName}
+                    </Typography>
+                    <Typography variant="body2">
+                      Start Time: {routeData.startTime}
+                    </Typography>
+                    <Typography variant="body2">
+                      Capacity: {routeData.vehicleCapacity} students
+                    </Typography>
+                    <Typography variant="body2">
+                      Type: {routeData.type}
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -451,7 +500,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                       <LocationIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                       Stops Summary
                     </Typography>
-                    <Typography variant="body2">Total Stops: {routeData.stops.length}</Typography>
+                    <Typography variant="body2">
+                      Total Stops: {routeData.stops.length}
+                    </Typography>
                     <Typography variant="body2">
                       Stops: {routeData.stops.map(s => s.name).join(', ')}
                     </Typography>
@@ -471,27 +522,48 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                   <Grid size={{ xs: 12, md: 3 }}>
                     <Card>
                       <CardContent sx={{ textAlign: 'center' }}>
-                        <SpeedIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                        <Typography variant="h6">{optimizationResult.distanceSavings.toFixed(1)} km</Typography>
-                        <Typography variant="body2" color="textSecondary">Distance Saved</Typography>
+                        <SpeedIcon
+                          color="primary"
+                          sx={{ fontSize: 40, mb: 1 }}
+                        />
+                        <Typography variant="h6">
+                          {optimizationResult.distanceSavings.toFixed(1)} km
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Distance Saved
+                        </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
                   <Grid size={{ xs: 12, md: 3 }}>
                     <Card>
                       <CardContent sx={{ textAlign: 'center' }}>
-                        <TimeIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                        <Typography variant="h6">{optimizationResult.timeSavings}</Typography>
-                        <Typography variant="body2" color="textSecondary">Time Saved</Typography>
+                        <TimeIcon
+                          color="primary"
+                          sx={{ fontSize: 40, mb: 1 }}
+                        />
+                        <Typography variant="h6">
+                          {optimizationResult.timeSavings}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Time Saved
+                        </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
                   <Grid size={{ xs: 12, md: 3 }}>
                     <Card>
                       <CardContent sx={{ textAlign: 'center' }}>
-                        <FuelIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-                        <Typography variant="h6">{optimizationResult.fuelSavings.toFixed(1)}L</Typography>
-                        <Typography variant="body2" color="textSecondary">Fuel Saved</Typography>
+                        <FuelIcon
+                          color="primary"
+                          sx={{ fontSize: 40, mb: 1 }}
+                        />
+                        <Typography variant="h6">
+                          {optimizationResult.fuelSavings.toFixed(1)}L
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Fuel Saved
+                        </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -501,7 +573,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
                         <Typography variant="h6" color="success.main">
                           ${optimizationResult.costSavings.toFixed(2)}
                         </Typography>
-                        <Typography variant="body2" color="textSecondary">Cost Saved</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Cost Saved
+                        </Typography>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -534,11 +608,13 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
-        {existingRouteId ? 'Optimize Existing Route' : 'Route Optimization Wizard'}
+        {existingRouteId
+          ? 'Optimize Existing Route'
+          : 'Route Optimization Wizard'}
       </DialogTitle>
       <DialogContent>
         <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-          {steps.map((label) => (
+          {steps.map(label => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
@@ -555,7 +631,9 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
             <Typography sx={{ ml: 2 }}>
-              {activeStep === steps.length - 1 ? 'Optimizing route...' : 'Loading...'}
+              {activeStep === steps.length - 1
+                ? 'Optimizing route...'
+                : 'Loading...'}
             </Typography>
           </Box>
         ) : (
@@ -564,10 +642,7 @@ export const RouteOptimizationWizard: React.FC<RouteOptimizationWizardProps> = (
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          disabled={activeStep === 0}
-          onClick={handleBack}
-        >
+        <Button disabled={activeStep === 0} onClick={handleBack}>
           Back
         </Button>
         <Button

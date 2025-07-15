@@ -16,7 +16,7 @@ import {
   Divider,
   Chip,
   InputAdornment,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import {
   CreditCard as CreditCardIcon,
@@ -25,7 +25,7 @@ import {
   Visibility,
   VisibilityOff,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -65,7 +65,7 @@ interface PaymentResult {
 
 const SecurePaymentForm: React.FC = () => {
   const [formData, setFormData] = useState<PaymentFormData>({
-    amount: 150.00,
+    amount: 150.0,
     currency: 'SAR',
     paymentMethod: 'CreditCard',
     cardNumber: '',
@@ -76,14 +76,17 @@ const SecurePaymentForm: React.FC = () => {
     billingAddress: '',
     city: '',
     zipCode: '',
-    country: 'Saudi Arabia'
+    country: 'Saudi Arabia',
   });
 
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [showCvv, setShowCvv] = useState(false);
-  const [securityValidation, setSecurityValidation] = useState<SecurityValidation | null>(null);
-  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+  const [securityValidation, setSecurityValidation] =
+    useState<SecurityValidation | null>(null);
+  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(
+    null
+  );
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [cardType, setCardType] = useState<string>('');
@@ -91,20 +94,20 @@ const SecurePaymentForm: React.FC = () => {
   const supportedGateways = [
     { value: 'Stripe', label: 'Stripe', icon: '💳' },
     { value: 'PayPal', label: 'PayPal', icon: '🅿️' },
-    { value: 'Mada', label: 'Mada (Saudi)', icon: '🇸🇦' }
+    { value: 'Mada', label: 'Mada (Saudi)', icon: '🇸🇦' },
   ];
 
   const paymentMethods = [
     { value: 'CreditCard', label: 'Credit Card' },
     { value: 'DebitCard', label: 'Debit Card' },
-    { value: 'BankTransfer', label: 'Bank Transfer' }
+    { value: 'BankTransfer', label: 'Bank Transfer' },
   ];
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) => currentYear + i);
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: String(i + 1).padStart(2, '0')
+    label: String(i + 1).padStart(2, '0'),
   }));
 
   useEffect(() => {
@@ -132,28 +135,30 @@ const SecurePaymentForm: React.FC = () => {
     return formattedValue.substring(0, 19); // Max 16 digits + 3 spaces
   };
 
-  const handleInputChange = (field: keyof PaymentFormData) => (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
-  ) => {
-    let value = event.target.value;
-    
-    if (field === 'cardNumber') {
-      value = formatCardNumber(value);
-    } else if (field === 'cvv') {
-      value = value.replace(/\D/g, '').substring(0, 4);
-    } else if (field === 'amount') {
-      value = parseFloat(value) || 0;
-    }
+  const handleInputChange =
+    (field: keyof PaymentFormData) =>
+    (
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
+    ) => {
+      let value = event.target.value;
 
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+      if (field === 'cardNumber') {
+        value = formatCardNumber(value);
+      } else if (field === 'cvv') {
+        value = value.replace(/\D/g, '').substring(0, 4);
+      } else if (field === 'amount') {
+        value = parseFloat(value) || 0;
+      }
 
-    if (securityValidation) {
-      setSecurityValidation(null);
-    }
-  };
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+      }));
+
+      if (securityValidation) {
+        setSecurityValidation(null);
+      }
+    };
 
   const validateSecurityAsync = async (): Promise<boolean> => {
     try {
@@ -167,16 +172,21 @@ const SecurePaymentForm: React.FC = () => {
         cardNumber: formData.cardNumber.replace(/\s/g, ''),
         cvv: formData.cvv,
         billingAddress: `${formData.billingAddress}, ${formData.city}, ${formData.zipCode}`,
-        customerIP: '127.0.0.1' // In real app, get actual IP
+        customerIP: '127.0.0.1', // In real app, get actual IP
       };
 
-      const response = await apiClient.post('/api/payments/validate-security', securityRequest);
+      const response = await apiClient.post(
+        '/api/payments/validate-security',
+        securityRequest
+      );
       const validation = (response as any).data;
-      
+
       setSecurityValidation(validation);
-      
+
       if (!validation.isValid) {
-        setError(`Security validation failed: ${validation.riskLevel} risk level detected`);
+        setError(
+          `Security validation failed: ${validation.riskLevel} risk level detected`
+        );
         return false;
       }
 
@@ -210,17 +220,22 @@ const SecurePaymentForm: React.FC = () => {
         cardholderName: formData.cardholderName,
         billingAddress: `${formData.billingAddress}, ${formData.city}, ${formData.zipCode}`,
         gatewayProvider: 'Stripe',
-        customerIP: '127.0.0.1'
+        customerIP: '127.0.0.1',
       };
 
-      const response = await apiClient.post('/api/payments/process-credit-card', paymentRequest);
+      const response = await apiClient.post(
+        '/api/payments/process-credit-card',
+        paymentRequest
+      );
       const result = (response as any).data;
-      
+
       setPaymentResult(result);
-      
+
       if (result.status === 'Completed') {
-        setSuccess(`Payment processed successfully! Transaction ID: ${result.transactionId}`);
-        
+        setSuccess(
+          `Payment processed successfully! Transaction ID: ${result.transactionId}`
+        );
+
         await generateReceipt(result.transactionId);
       } else {
         setError(`Payment failed: ${result.failureReason || 'Unknown error'}`);
@@ -234,9 +249,11 @@ const SecurePaymentForm: React.FC = () => {
 
   const generateReceipt = async (transactionId: string) => {
     try {
-      const response = await apiClient.post('/api/payments/generate-receipt', { transactionId });
+      const response = await apiClient.post('/api/payments/generate-receipt', {
+        transactionId,
+      });
       const receipt = (response as any).data;
-      
+
       console.log('Receipt generated:', receipt);
     } catch (err) {
       console.error('Failed to generate receipt:', err);
@@ -259,10 +276,14 @@ const SecurePaymentForm: React.FC = () => {
 
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel?.toLowerCase()) {
-      case 'low': return 'success';
-      case 'medium': return 'warning';
-      case 'high': return 'error';
-      default: return 'default';
+      case 'low':
+        return 'success';
+      case 'medium':
+        return 'warning';
+      case 'high':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -275,10 +296,10 @@ const SecurePaymentForm: React.FC = () => {
             <Typography variant="h5" component="h1">
               Secure Payment Processing
             </Typography>
-            <Chip 
-              label="PCI Compliant" 
-              color="success" 
-              size="small" 
+            <Chip
+              label="PCI Compliant"
+              color="success"
+              size="small"
               sx={{ ml: 2 }}
               icon={<LockIcon />}
             />
@@ -299,9 +320,16 @@ const SecurePaymentForm: React.FC = () => {
           {paymentResult && paymentResult.status === 'Completed' && (
             <Alert severity="success" sx={{ mb: 2 }}>
               <Typography variant="h6">Payment Successful!</Typography>
-              <Typography>Transaction ID: {paymentResult.transactionId}</Typography>
-              <Typography>Receipt Number: {paymentResult.receiptNumber}</Typography>
-              <Typography>Processed: {new Date(paymentResult.processedAt).toLocaleString()}</Typography>
+              <Typography>
+                Transaction ID: {paymentResult.transactionId}
+              </Typography>
+              <Typography>
+                Receipt Number: {paymentResult.receiptNumber}
+              </Typography>
+              <Typography>
+                Processed:{' '}
+                {new Date(paymentResult.processedAt).toLocaleString()}
+              </Typography>
             </Alert>
           )}
 
@@ -321,7 +349,9 @@ const SecurePaymentForm: React.FC = () => {
                 value={formData.amount}
                 onChange={handleInputChange('amount')}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">SAR</InputAdornment>
+                  startAdornment: (
+                    <InputAdornment position="start">SAR</InputAdornment>
+                  ),
                 }}
                 required
               />
@@ -369,7 +399,7 @@ const SecurePaymentForm: React.FC = () => {
                     <InputAdornment position="end">
                       <Chip label={cardType} size="small" />
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 required
               />
@@ -402,7 +432,7 @@ const SecurePaymentForm: React.FC = () => {
                         {showCvv ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  )
+                  ),
                 }}
                 required
               />
@@ -497,21 +527,29 @@ const SecurePaymentForm: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Security Validation
                 </Typography>
-                
+
                 <Box sx={{ mb: 2 }}>
-                  <Chip 
+                  <Chip
                     label={`Risk Level: ${securityValidation.riskLevel}`}
-                    color={getRiskLevelColor(securityValidation.riskLevel) as any}
-                    icon={securityValidation.isValid ? <CheckCircleIcon /> : <WarningIcon />}
+                    color={
+                      getRiskLevelColor(securityValidation.riskLevel) as any
+                    }
+                    icon={
+                      securityValidation.isValid ? (
+                        <CheckCircleIcon />
+                      ) : (
+                        <WarningIcon />
+                      )
+                    }
                   />
-                  <Chip 
+                  <Chip
                     label={`Risk Score: ${securityValidation.riskScore}`}
                     sx={{ ml: 1 }}
                   />
                 </Box>
 
                 {securityValidation.securityChecks.map((check, index) => (
-                  <Alert 
+                  <Alert
                     key={index}
                     severity={check.passed ? 'success' : 'warning'}
                     sx={{ mb: 1 }}
@@ -524,21 +562,34 @@ const SecurePaymentForm: React.FC = () => {
 
             {/* Action Buttons */}
             <Grid size={{ xs: 12 }}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'flex-end',
+                  mt: 3,
+                }}
+              >
                 <Button
                   variant="outlined"
                   onClick={validateSecurityAsync}
                   disabled={!isFormValid() || loading}
-                  startIcon={loading ? <CircularProgress size={20} /> : <SecurityIcon />}
+                  startIcon={
+                    loading ? <CircularProgress size={20} /> : <SecurityIcon />
+                  }
                 >
                   Validate Security
                 </Button>
-                
+
                 <Button
                   variant="contained"
                   onClick={processPayment}
-                  disabled={!isFormValid() || !securityValidation?.isValid || processing}
-                  startIcon={processing ? <CircularProgress size={20} /> : <LockIcon />}
+                  disabled={
+                    !isFormValid() || !securityValidation?.isValid || processing
+                  }
+                  startIcon={
+                    processing ? <CircularProgress size={20} /> : <LockIcon />
+                  }
                   color="primary"
                 >
                   {processing ? 'Processing...' : `Pay ${formData.amount} SAR`}

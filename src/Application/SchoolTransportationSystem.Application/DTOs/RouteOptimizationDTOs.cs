@@ -7,6 +7,12 @@ namespace SchoolTransportationSystem.Application.DTOs
         [Required]
         public int RouteId { get; set; }
         
+        [Required]
+        public List<int> StudentIds { get; set; } = new();
+        
+        [Required]
+        public int VehicleId { get; set; }
+        
         public OptimizationType Type { get; set; } = OptimizationType.Distance;
         public OptimizationType OptimizationType { get; set; } = OptimizationType.Distance;
         public int? VehicleCapacity { get; set; }

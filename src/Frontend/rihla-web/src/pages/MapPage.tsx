@@ -129,13 +129,8 @@ const MapPage: React.FC = () => {
         loadMapData();
       });
 
-      signalRService.onNotificationReceived(notification => {
-        if (
-          notification.type === 'VehicleLocationUpdate' ||
-          notification.type === 'TripStatusChange'
-        ) {
-          loadMapData();
-        }
+      signalRService.onNotificationReceived(() => {
+        loadMapData();
       });
 
       signalRService.onEmergencyAlert(() => {
@@ -511,19 +506,30 @@ const MapPage: React.FC = () => {
         open={showOptimizationWizard}
         onClose={() => setShowOptimizationWizard(false)}
         onRouteCreated={handleRouteOptimized}
-        existingRouteId={selectedRouteId ? parseInt(selectedRouteId) : undefined}
+        existingRouteId={
+          selectedRouteId ? parseInt(selectedRouteId) : undefined
+        }
       />
 
       {/* Route Efficiency Analytics */}
       {showAnalytics && (
         <Paper sx={{ mt: 3, p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
             <Typography variant="h6">Route Efficiency Analytics</Typography>
             <Button onClick={() => setShowAnalytics(false)}>Close</Button>
           </Box>
           <RouteEfficiencyAnalytics
-            selectedRouteId={selectedRouteId ? parseInt(selectedRouteId) : undefined}
-            onRouteSelect={(routeId) => setSelectedRouteId(routeId.toString())}
+            selectedRouteId={
+              selectedRouteId ? parseInt(selectedRouteId) : undefined
+            }
+            onRouteSelect={routeId => setSelectedRouteId(routeId.toString())}
           />
         </Paper>
       )}
@@ -531,7 +537,14 @@ const MapPage: React.FC = () => {
       {/* Trip Scheduling Dashboard */}
       {showScheduling && (
         <Paper sx={{ mt: 3, p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
             <Typography variant="h6">Trip Scheduling Dashboard</Typography>
             <Button onClick={() => setShowScheduling(false)}>Close</Button>
           </Box>

@@ -21,7 +21,7 @@ import {
   Paper,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
 } from '@mui/material';
 import {
   CloudUpload,
@@ -37,7 +37,7 @@ import {
   Sync,
   Schedule,
   Person,
-  Info
+  Info,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -75,31 +75,33 @@ const OfflineAttendanceSync: React.FC = () => {
     syncedRecords: 0,
     failedRecords: 0,
     inProgress: false,
-    errors: []
+    errors: [],
   });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedRecord, setSelectedRecord] = useState<OfflineRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<OfflineRecord | null>(
+    null
+  );
   const [detailDialog, setDetailDialog] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
 
   useEffect(() => {
     loadOfflineRecords();
-    
+
     const handleOnline = () => {
       setIsOnline(true);
       if (autoSync) {
         syncAllRecords();
       }
     };
-    
+
     const handleOffline = () => setIsOnline(false);
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -111,7 +113,7 @@ const OfflineAttendanceSync: React.FC = () => {
       const interval = setInterval(() => {
         syncAllRecords();
       }, 30000); // Auto-sync every 30 seconds when online
-      
+
       return () => clearInterval(interval);
     }
   }, [isOnline, autoSync]);
@@ -144,7 +146,9 @@ const OfflineAttendanceSync: React.FC = () => {
   const updateSyncStatus = (records: OfflineRecord[]) => {
     const totalRecords = records.length;
     const syncedRecords = records.filter(r => r.synced).length;
-    const failedRecords = records.filter(r => !r.synced && r.retryCount > 0).length;
+    const failedRecords = records.filter(
+      r => !r.synced && r.retryCount > 0
+    ).length;
     const errors = records
       .filter(r => r.lastError)
       .map(r => `${r.studentName}: ${r.lastError}`)
@@ -156,7 +160,7 @@ const OfflineAttendanceSync: React.FC = () => {
       failedRecords,
       inProgress: false,
       lastSyncTime: syncedRecords > 0 ? new Date().toISOString() : undefined,
-      errors
+      errors,
     });
   };
 
@@ -170,32 +174,37 @@ const OfflineAttendanceSync: React.FC = () => {
     setLoading(true);
 
     try {
-      const syncPromises = unsyncedRecords.map(record => syncSingleRecord(record));
+      const syncPromises = unsyncedRecords.map(record =>
+        syncSingleRecord(record)
+      );
       const results = await Promise.allSettled(syncPromises);
-      
+
       const updatedRecords = [...offlineRecords];
       let successCount = 0;
       let errorCount = 0;
 
       results.forEach((result, index) => {
-        const recordIndex = offlineRecords.findIndex(r => r.id === unsyncedRecords[index].id);
+        const recordIndex = offlineRecords.findIndex(
+          r => r.id === unsyncedRecords[index].id
+        );
         if (recordIndex !== -1) {
           if (result.status === 'fulfilled' && result.value.success) {
             updatedRecords[recordIndex] = {
               ...updatedRecords[recordIndex],
               synced: true,
-              lastError: undefined
+              lastError: undefined,
             };
             successCount++;
           } else {
-            const errorMessage = result.status === 'rejected' 
-              ? result.reason?.message || 'Unknown error'
-              : result.value.error || 'Sync failed';
-            
+            const errorMessage =
+              result.status === 'rejected'
+                ? result.reason?.message || 'Unknown error'
+                : result.value.error || 'Sync failed';
+
             updatedRecords[recordIndex] = {
               ...updatedRecords[recordIndex],
               retryCount: updatedRecords[recordIndex].retryCount + 1,
-              lastError: errorMessage
+              lastError: errorMessage,
             };
             errorCount++;
           }
@@ -203,7 +212,7 @@ const OfflineAttendanceSync: React.FC = () => {
       });
 
       saveOfflineRecords(updatedRecords);
-      
+
       if (successCount > 0) {
         setSuccess(`Successfully synced ${successCount} records`);
       }
@@ -219,25 +228,32 @@ const OfflineAttendanceSync: React.FC = () => {
     }
   };
 
-  const syncSingleRecord = async (record: OfflineRecord): Promise<{ success: boolean; error?: string }> => {
+  const syncSingleRecord = async (
+    record: OfflineRecord
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await apiClient.post('/api/attendance/sync-offline', {
-        offlineRecords: [{
-          studentId: record.studentId,
-          tripId: record.tripId,
-          status: record.status,
-          boardingTime: record.boardingTime,
-          alightingTime: record.alightingTime,
-          notes: record.notes,
-          attendanceDate: record.attendanceDate,
-          method: record.method
-        }]
+        offlineRecords: [
+          {
+            studentId: record.studentId,
+            tripId: record.tripId,
+            status: record.status,
+            boardingTime: record.boardingTime,
+            alightingTime: record.alightingTime,
+            notes: record.notes,
+            attendanceDate: record.attendanceDate,
+            method: record.method,
+          },
+        ],
       });
 
       if ((response as any).data?.success) {
         return { success: true };
       } else {
-        return { success: false, error: (response as any).data?.message || 'Sync failed' };
+        return {
+          success: false,
+          error: (response as any).data?.message || 'Sync failed',
+        };
       }
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
@@ -272,18 +288,22 @@ const OfflineAttendanceSync: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       try {
-        const importedRecords: OfflineRecord[] = JSON.parse(e.target?.result as string);
+        const importedRecords: OfflineRecord[] = JSON.parse(
+          e.target?.result as string
+        );
         const mergedRecords = [...offlineRecords];
-        
+
         importedRecords.forEach(importedRecord => {
-          const existingIndex = mergedRecords.findIndex(r => r.id === importedRecord.id);
+          const existingIndex = mergedRecords.findIndex(
+            r => r.id === importedRecord.id
+          );
           if (existingIndex === -1) {
             mergedRecords.push(importedRecord);
           }
         });
-        
+
         saveOfflineRecords(mergedRecords);
         setSuccess(`Imported ${importedRecords.length} records`);
       } catch (err) {
@@ -295,19 +315,27 @@ const OfflineAttendanceSync: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Present': return 'success';
-      case 'Absent': return 'error';
-      case 'Late': return 'warning';
-      default: return 'default';
+      case 'Present':
+        return 'success';
+      case 'Absent':
+        return 'error';
+      case 'Late':
+        return 'warning';
+      default:
+        return 'default';
     }
   };
 
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case 'RFID': return '📱';
-      case 'Photo': return '📷';
-      case 'Manual': return '✏️';
-      default: return '📝';
+      case 'RFID':
+        return '📱';
+      case 'Photo':
+        return '📷';
+      case 'Manual':
+        return '✏️';
+      default:
+        return '📝';
     }
   };
 
@@ -323,12 +351,14 @@ const OfflineAttendanceSync: React.FC = () => {
       </Typography>
 
       {/* Connection Status */}
-      <Alert 
-        severity={isOnline ? 'success' : 'warning'} 
+      <Alert
+        severity={isOnline ? 'success' : 'warning'}
         icon={isOnline ? <Wifi /> : <WifiOff />}
         sx={{ mb: 2 }}
       >
-        {isOnline ? 'Online - Auto-sync enabled' : 'Offline - Records will be synced when connection is restored'}
+        {isOnline
+          ? 'Online - Auto-sync enabled'
+          : 'Offline - Records will be synced when connection is restored'}
       </Alert>
 
       {/* Sync Status Overview */}
@@ -339,7 +369,9 @@ const OfflineAttendanceSync: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Storage color="primary" />
                 <Box>
-                  <Typography variant="h6">{syncStatus.totalRecords}</Typography>
+                  <Typography variant="h6">
+                    {syncStatus.totalRecords}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Records
                   </Typography>
@@ -354,7 +386,9 @@ const OfflineAttendanceSync: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircle color="success" />
                 <Box>
-                  <Typography variant="h6">{syncStatus.syncedRecords}</Typography>
+                  <Typography variant="h6">
+                    {syncStatus.syncedRecords}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Synced
                   </Typography>
@@ -370,7 +404,9 @@ const OfflineAttendanceSync: React.FC = () => {
                 <Schedule color="warning" />
                 <Box>
                   <Typography variant="h6">
-                    {syncStatus.totalRecords - syncStatus.syncedRecords - syncStatus.failedRecords}
+                    {syncStatus.totalRecords -
+                      syncStatus.syncedRecords -
+                      syncStatus.failedRecords}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Pending
@@ -386,7 +422,9 @@ const OfflineAttendanceSync: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Error color="error" />
                 <Box>
-                  <Typography variant="h6">{syncStatus.failedRecords}</Typography>
+                  <Typography variant="h6">
+                    {syncStatus.failedRecords}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Failed
                   </Typography>
@@ -401,19 +439,30 @@ const OfflineAttendanceSync: React.FC = () => {
       {syncStatus.totalRecords > 0 && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
+            >
               <Typography variant="h6">Sync Progress</Typography>
               <Typography variant="body2" color="text.secondary">
                 {syncStatus.syncedRecords} / {syncStatus.totalRecords} synced
               </Typography>
             </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={getSyncProgress()} 
+            <LinearProgress
+              variant="determinate"
+              value={getSyncProgress()}
               sx={{ height: 8, borderRadius: 4 }}
             />
             {syncStatus.lastSyncTime && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: 'block' }}
+              >
                 Last sync: {new Date(syncStatus.lastSyncTime).toLocaleString()}
               </Typography>
             )}
@@ -429,9 +478,19 @@ const OfflineAttendanceSync: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant="contained"
-                  startIcon={syncStatus.inProgress ? <CircularProgress size={20} /> : <Sync />}
+                  startIcon={
+                    syncStatus.inProgress ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <Sync />
+                    )
+                  }
                   onClick={syncAllRecords}
-                  disabled={!isOnline || syncStatus.inProgress || offlineRecords.filter(r => !r.synced).length === 0}
+                  disabled={
+                    !isOnline ||
+                    syncStatus.inProgress ||
+                    offlineRecords.filter(r => !r.synced).length === 0
+                  }
                 >
                   {syncStatus.inProgress ? 'Syncing...' : 'Sync All'}
                 </Button>
@@ -514,11 +573,15 @@ const OfflineAttendanceSync: React.FC = () => {
                 <React.Fragment key={record.id}>
                   <ListItem>
                     <ListItemIcon>
-                      <Typography variant="h6">{getMethodIcon(record.method)}</Typography>
+                      <Typography variant="h6">
+                        {getMethodIcon(record.method)}
+                      </Typography>
                     </ListItemIcon>
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
                           <Typography variant="subtitle1">
                             {record.studentName}
                           </Typography>
@@ -530,16 +593,25 @@ const OfflineAttendanceSync: React.FC = () => {
                           {record.synced ? (
                             <Chip label="Synced" color="success" size="small" />
                           ) : record.retryCount > 0 ? (
-                            <Chip label={`Failed (${record.retryCount})`} color="error" size="small" />
+                            <Chip
+                              label={`Failed (${record.retryCount})`}
+                              color="error"
+                              size="small"
+                            />
                           ) : (
-                            <Chip label="Pending" color="warning" size="small" />
+                            <Chip
+                              label="Pending"
+                              color="warning"
+                              size="small"
+                            />
                           )}
                         </Box>
                       }
                       secondary={
                         <Box>
                           <Typography variant="body2">
-                            {record.tripName} • {record.method} • {new Date(record.timestamp).toLocaleString()}
+                            {record.tripName} • {record.method} •{' '}
+                            {new Date(record.timestamp).toLocaleString()}
                           </Typography>
                           {record.lastError && (
                             <Typography variant="caption" color="error">
@@ -581,10 +653,13 @@ const OfflineAttendanceSync: React.FC = () => {
       </Card>
 
       {/* Record Detail Dialog */}
-      <Dialog open={detailDialog} onClose={() => setDetailDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Record Details
-        </DialogTitle>
+      <Dialog
+        open={detailDialog}
+        onClose={() => setDetailDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Record Details</DialogTitle>
         <DialogContent>
           {selectedRecord && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -640,7 +715,9 @@ const OfflineAttendanceSync: React.FC = () => {
                       Date
                     </Typography>
                     <Typography variant="body1">
-                      {new Date(selectedRecord.attendanceDate).toLocaleDateString()}
+                      {new Date(
+                        selectedRecord.attendanceDate
+                      ).toLocaleDateString()}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
@@ -657,7 +734,9 @@ const OfflineAttendanceSync: React.FC = () => {
                         Boarding Time
                       </Typography>
                       <Typography variant="body1">
-                        {new Date(selectedRecord.boardingTime).toLocaleTimeString()}
+                        {new Date(
+                          selectedRecord.boardingTime
+                        ).toLocaleTimeString()}
                       </Typography>
                     </Grid>
                   )}
@@ -667,7 +746,9 @@ const OfflineAttendanceSync: React.FC = () => {
                         Alighting Time
                       </Typography>
                       <Typography variant="body1">
-                        {new Date(selectedRecord.alightingTime).toLocaleTimeString()}
+                        {new Date(
+                          selectedRecord.alightingTime
+                        ).toLocaleTimeString()}
                       </Typography>
                     </Grid>
                   )}
@@ -723,9 +804,7 @@ const OfflineAttendanceSync: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailDialog(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setDetailDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 
@@ -736,7 +815,11 @@ const OfflineAttendanceSync: React.FC = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mt: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}

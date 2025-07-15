@@ -32,7 +32,7 @@ import {
   LinearProgress,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -47,7 +47,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Settings as SettingsIcon,
   ExpandMore as ExpandMoreIcon,
-  AttachMoney as MoneyIcon
+  AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -121,8 +121,8 @@ const AutomatedBillingDashboard: React.FC = () => {
       address: '123 School District Ave, City, State 12345',
       phone: '+1 (555) 123-4567',
       email: 'billing@rihla.com',
-      taxId: 'TAX123456789'
-    }
+      taxId: 'TAX123456789',
+    },
   });
   const [billingStats, setBillingStats] = useState<BillingStats>({
     totalInvoices: 0,
@@ -130,7 +130,7 @@ const AutomatedBillingDashboard: React.FC = () => {
     paidInvoices: 0,
     overdueInvoices: 0,
     pendingAmount: 0,
-    collectionRate: 0
+    collectionRate: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,18 +149,22 @@ const AutomatedBillingDashboard: React.FC = () => {
   const loadInvoices = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/billing/invoices') as { data: Invoice[] };
+      const response = (await apiClient.get('/api/billing/invoices')) as {
+        data: Invoice[];
+      };
       setInvoices(response.data || []);
     } catch {
       setError('Failed to load invoices');
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const loadBillingSettings = async () => {
     try {
-      const response = await apiClient.get('/api/billing/settings') as { data: BillingSettings };
+      const response = (await apiClient.get('/api/billing/settings')) as {
+        data: BillingSettings;
+      };
       if (response.data) {
         setBillingSettings(response.data);
       }
@@ -171,7 +175,9 @@ const AutomatedBillingDashboard: React.FC = () => {
 
   const loadBillingStats = async () => {
     try {
-      const response = await apiClient.get('/api/billing/stats') as { data: BillingStats };
+      const response = (await apiClient.get('/api/billing/stats')) as {
+        data: BillingStats;
+      };
       if (response.data) {
         setBillingStats(response.data);
       }
@@ -184,21 +190,26 @@ const AutomatedBillingDashboard: React.FC = () => {
     try {
       setGeneratingInvoices(true);
       setError(null);
-      
-      const response = await apiClient.post('/api/billing/generate-automated-invoices', {
-        frequency: billingSettings.invoiceFrequency,
-        dueDays: billingSettings.dueDays,
-        taxRate: billingSettings.taxRate
-      }) as { data: { success: boolean; invoicesCreated: number } };
+
+      const response = (await apiClient.post(
+        '/api/billing/generate-automated-invoices',
+        {
+          frequency: billingSettings.invoiceFrequency,
+          dueDays: billingSettings.dueDays,
+          taxRate: billingSettings.taxRate,
+        }
+      )) as { data: { success: boolean; invoicesCreated: number } };
 
       if (response.data.success) {
-        setSuccess(`Generated ${response.data.invoicesCreated} automated invoices successfully`);
+        setSuccess(
+          `Generated ${response.data.invoicesCreated} automated invoices successfully`
+        );
         loadInvoices();
         loadBillingStats();
       }
     } catch {
       setError('Failed to generate automated invoices');
-    }finally {
+    } finally {
       setGeneratingInvoices(false);
     }
   };
@@ -206,23 +217,27 @@ const AutomatedBillingDashboard: React.FC = () => {
   const sendInvoice = async (invoiceId: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.post(`/api/billing/invoices/${invoiceId}/send`) as { data: { success: boolean } };
-      
+      const response = (await apiClient.post(
+        `/api/billing/invoices/${invoiceId}/send`
+      )) as { data: { success: boolean } };
+
       if (response.data.success) {
         setSuccess('Invoice sent successfully');
         loadInvoices();
       }
     } catch {
       setError('Failed to send invoice');
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const downloadInvoice = async (invoiceId: number) => {
     try {
-      const response = await apiClient.get(`/api/billing/invoices/${invoiceId}/download`) as { data: Blob };
-      
+      const response = (await apiClient.get(
+        `/api/billing/invoices/${invoiceId}/download`
+      )) as { data: Blob };
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -236,46 +251,56 @@ const AutomatedBillingDashboard: React.FC = () => {
     }
   };
 
-
   const saveBillingSettings = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.put('/api/billing/settings', billingSettings) as { data: { success: boolean } };
-      
+      const response = (await apiClient.put(
+        '/api/billing/settings',
+        billingSettings
+      )) as { data: { success: boolean } };
+
       if (response.data.success) {
         setSuccess('Billing settings saved successfully');
         setSettingsDialogOpen(false);
       }
     } catch {
       setError('Failed to save billing settings');
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Paid': return 'success';
-      case 'Sent': return 'info';
-      case 'Draft': return 'default';
-      case 'Overdue': return 'error';
-      case 'Cancelled': return 'warning';
-      default: return 'default';
+      case 'Paid':
+        return 'success';
+      case 'Sent':
+        return 'info';
+      case 'Draft':
+        return 'default';
+      case 'Overdue':
+        return 'error';
+      case 'Cancelled':
+        return 'warning';
+      default:
+        return 'default';
     }
   };
 
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesStatus = filterStatus === 'All' || invoice.status === filterStatus;
-    const matchesSearch = invoice.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.parentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === 'All' || invoice.status === filterStatus;
+    const matchesSearch =
+      invoice.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.parentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -285,7 +310,14 @@ const AutomatedBillingDashboard: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" gutterBottom>
           <ReceiptIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
           Automated Billing Dashboard
@@ -294,14 +326,19 @@ const AutomatedBillingDashboard: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => {
-            }}
+            onClick={() => {}}
           >
             Create Invoice
           </Button>
           <Button
             variant="outlined"
-            startIcon={generatingInvoices ? <CircularProgress size={20} /> : <ScheduleIcon />}
+            startIcon={
+              generatingInvoices ? (
+                <CircularProgress size={20} />
+              ) : (
+                <ScheduleIcon />
+              )
+            }
             onClick={generateAutomatedInvoices}
             disabled={generatingInvoices}
           >
@@ -324,7 +361,11 @@ const AutomatedBillingDashboard: React.FC = () => {
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
@@ -336,7 +377,9 @@ const AutomatedBillingDashboard: React.FC = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <ReceiptIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">{billingStats.totalInvoices}</Typography>
-              <Typography variant="body2" color="textSecondary">Total Invoices</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Total Invoices
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -344,8 +387,12 @@ const AutomatedBillingDashboard: React.FC = () => {
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <MoneyIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6">{formatCurrency(billingStats.totalRevenue)}</Typography>
-              <Typography variant="body2" color="textSecondary">Total Revenue</Typography>
+              <Typography variant="h6">
+                {formatCurrency(billingStats.totalRevenue)}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Total Revenue
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -354,7 +401,9 @@ const AutomatedBillingDashboard: React.FC = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <CheckCircleIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">{billingStats.paidInvoices}</Typography>
-              <Typography variant="body2" color="textSecondary">Paid Invoices</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Paid Invoices
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -362,8 +411,12 @@ const AutomatedBillingDashboard: React.FC = () => {
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <WarningIcon color="error" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6">{billingStats.overdueInvoices}</Typography>
-              <Typography variant="body2" color="textSecondary">Overdue</Typography>
+              <Typography variant="h6">
+                {billingStats.overdueInvoices}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Overdue
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -371,8 +424,12 @@ const AutomatedBillingDashboard: React.FC = () => {
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <PaymentIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6">{formatCurrency(billingStats.pendingAmount)}</Typography>
-              <Typography variant="body2" color="textSecondary">Pending Amount</Typography>
+              <Typography variant="h6">
+                {formatCurrency(billingStats.pendingAmount)}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Pending Amount
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -382,10 +439,12 @@ const AutomatedBillingDashboard: React.FC = () => {
               <Typography variant="h6" color="primary">
                 {(billingStats.collectionRate * 100).toFixed(1)}%
               </Typography>
-              <Typography variant="body2" color="textSecondary">Collection Rate</Typography>
-              <LinearProgress 
-                variant="determinate" 
-                value={billingStats.collectionRate * 100} 
+              <Typography variant="body2" color="textSecondary">
+                Collection Rate
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={billingStats.collectionRate * 100}
                 sx={{ mt: 1 }}
               />
             </CardContent>
@@ -402,7 +461,7 @@ const AutomatedBillingDashboard: React.FC = () => {
                 fullWidth
                 label="Search invoices..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 size="small"
               />
             </Grid>
@@ -411,7 +470,7 @@ const AutomatedBillingDashboard: React.FC = () => {
                 <InputLabel>Status Filter</InputLabel>
                 <Select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={e => setFilterStatus(e.target.value)}
                   label="Status Filter"
                 >
                   <MenuItem value="All">All Statuses</MenuItem>
@@ -443,7 +502,7 @@ const AutomatedBillingDashboard: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Invoices ({filteredInvoices.length})
           </Typography>
-          
+
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
@@ -464,17 +523,19 @@ const AutomatedBillingDashboard: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredInvoices.map((invoice) => (
+                  {filteredInvoices.map(invoice => (
                     <TableRow key={invoice.id}>
                       <TableCell>{invoice.invoiceNumber}</TableCell>
                       <TableCell>{invoice.studentName}</TableCell>
                       <TableCell>{invoice.parentName}</TableCell>
-                      <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
+                      <TableCell>
+                        {formatCurrency(invoice.totalAmount)}
+                      </TableCell>
                       <TableCell>{formatDate(invoice.issueDate)}</TableCell>
                       <TableCell>{formatDate(invoice.dueDate)}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={invoice.status} 
+                        <Chip
+                          label={invoice.status}
                           color={getStatusColor(invoice.status) as any}
                           size="small"
                         />
@@ -482,11 +543,7 @@ const AutomatedBillingDashboard: React.FC = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Tooltip title="View/Edit">
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                              }}
-                            >
+                            <IconButton size="small" onClick={() => {}}>
                               <EditIcon />
                             </IconButton>
                           </Tooltip>
@@ -494,7 +551,10 @@ const AutomatedBillingDashboard: React.FC = () => {
                             <IconButton
                               size="small"
                               onClick={() => sendInvoice(invoice.id)}
-                              disabled={invoice.status === 'Paid' || invoice.status === 'Cancelled'}
+                              disabled={
+                                invoice.status === 'Paid' ||
+                                invoice.status === 'Cancelled'
+                              }
                             >
                               <SendIcon />
                             </IconButton>
@@ -519,7 +579,12 @@ const AutomatedBillingDashboard: React.FC = () => {
       </Card>
 
       {/* Billing Settings Dialog */}
-      <Dialog open={settingsDialogOpen} onClose={() => setSettingsDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={settingsDialogOpen}
+        onClose={() => setSettingsDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Billing Settings</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
@@ -534,10 +599,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                       control={
                         <Switch
                           checked={billingSettings.autoGenerateInvoices}
-                          onChange={(e) => setBillingSettings(prev => ({
-                            ...prev,
-                            autoGenerateInvoices: e.target.checked
-                          }))}
+                          onChange={e =>
+                            setBillingSettings(prev => ({
+                              ...prev,
+                              autoGenerateInvoices: e.target.checked,
+                            }))
+                          }
                         />
                       }
                       label="Auto-generate invoices"
@@ -548,10 +615,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                       <InputLabel>Invoice Frequency</InputLabel>
                       <Select
                         value={billingSettings.invoiceFrequency}
-                        onChange={(e) => setBillingSettings(prev => ({
-                          ...prev,
-                          invoiceFrequency: e.target.value as any
-                        }))}
+                        onChange={e =>
+                          setBillingSettings(prev => ({
+                            ...prev,
+                            invoiceFrequency: e.target.value as any,
+                          }))
+                        }
                         label="Invoice Frequency"
                       >
                         <MenuItem value="Monthly">Monthly</MenuItem>
@@ -566,10 +635,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                       label="Due Days"
                       type="number"
                       value={billingSettings.dueDays}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        dueDays: parseInt(e.target.value)
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          dueDays: parseInt(e.target.value),
+                        }))
+                      }
                     />
                   </Grid>
                 </Grid>
@@ -587,10 +658,15 @@ const AutomatedBillingDashboard: React.FC = () => {
                       fullWidth
                       label="Company Name"
                       value={billingSettings.companyInfo.name}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        companyInfo: { ...prev.companyInfo, name: e.target.value }
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          companyInfo: {
+                            ...prev.companyInfo,
+                            name: e.target.value,
+                          },
+                        }))
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -598,10 +674,15 @@ const AutomatedBillingDashboard: React.FC = () => {
                       fullWidth
                       label="Tax ID"
                       value={billingSettings.companyInfo.taxId}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        companyInfo: { ...prev.companyInfo, taxId: e.target.value }
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          companyInfo: {
+                            ...prev.companyInfo,
+                            taxId: e.target.value,
+                          },
+                        }))
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
@@ -611,10 +692,15 @@ const AutomatedBillingDashboard: React.FC = () => {
                       multiline
                       rows={2}
                       value={billingSettings.companyInfo.address}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        companyInfo: { ...prev.companyInfo, address: e.target.value }
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          companyInfo: {
+                            ...prev.companyInfo,
+                            address: e.target.value,
+                          },
+                        }))
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -622,10 +708,15 @@ const AutomatedBillingDashboard: React.FC = () => {
                       fullWidth
                       label="Phone"
                       value={billingSettings.companyInfo.phone}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        companyInfo: { ...prev.companyInfo, phone: e.target.value }
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          companyInfo: {
+                            ...prev.companyInfo,
+                            phone: e.target.value,
+                          },
+                        }))
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -634,10 +725,15 @@ const AutomatedBillingDashboard: React.FC = () => {
                       label="Email"
                       type="email"
                       value={billingSettings.companyInfo.email}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        companyInfo: { ...prev.companyInfo, email: e.target.value }
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          companyInfo: {
+                            ...prev.companyInfo,
+                            email: e.target.value,
+                          },
+                        }))
+                      }
                     />
                   </Grid>
                 </Grid>
@@ -656,10 +752,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                       label="Tax Rate (%)"
                       type="number"
                       value={billingSettings.taxRate * 100}
-                      onChange={(e) => setBillingSettings(prev => ({
-                        ...prev,
-                        taxRate: parseFloat(e.target.value) / 100
-                      }))}
+                      onChange={e =>
+                        setBillingSettings(prev => ({
+                          ...prev,
+                          taxRate: parseFloat(e.target.value) / 100,
+                        }))
+                      }
                       inputProps={{ step: 0.1, min: 0, max: 100 }}
                     />
                   </Grid>
@@ -668,10 +766,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                       control={
                         <Switch
                           checked={billingSettings.lateFeesEnabled}
-                          onChange={(e) => setBillingSettings(prev => ({
-                            ...prev,
-                            lateFeesEnabled: e.target.checked
-                          }))}
+                          onChange={e =>
+                            setBillingSettings(prev => ({
+                              ...prev,
+                              lateFeesEnabled: e.target.checked,
+                            }))
+                          }
                         />
                       }
                       label="Enable late fees"
@@ -684,10 +784,12 @@ const AutomatedBillingDashboard: React.FC = () => {
                         label="Late Fee Amount"
                         type="number"
                         value={billingSettings.lateFeeAmount}
-                        onChange={(e) => setBillingSettings(prev => ({
-                          ...prev,
-                          lateFeeAmount: parseFloat(e.target.value)
-                        }))}
+                        onChange={e =>
+                          setBillingSettings(prev => ({
+                            ...prev,
+                            lateFeeAmount: parseFloat(e.target.value),
+                          }))
+                        }
                         inputProps={{ step: 0.01, min: 0 }}
                       />
                     </Grid>

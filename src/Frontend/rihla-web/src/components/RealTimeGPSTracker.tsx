@@ -24,7 +24,7 @@ import {
   Switch,
   FormControlLabel,
   Paper,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   LocationOn,
@@ -40,7 +40,7 @@ import {
   Stop,
   Map as MapIcon,
   Schedule,
-  Route
+  Route,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -103,23 +103,30 @@ const RealTimeGPSTracker: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [activeTrips, setActiveTrips] = useState<Trip[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<number | null>(null);
-  const [vehicleLocations, setVehicleLocations] = useState<VehicleLocation[]>([]);
-  const [geofenceViolations, setGeofenceViolations] = useState<GeofenceViolation[]>([]);
-  const [estimatedArrivals, setEstimatedArrivals] = useState<EstimatedArrival[]>([]);
+  const [vehicleLocations, setVehicleLocations] = useState<VehicleLocation[]>(
+    []
+  );
+  const [geofenceViolations, setGeofenceViolations] = useState<
+    GeofenceViolation[]
+  >([]);
+  const [estimatedArrivals, setEstimatedArrivals] = useState<
+    EstimatedArrival[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [trackingActive, setTrackingActive] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [violationDialog, setViolationDialog] = useState(false);
-  const [selectedViolation, setSelectedViolation] = useState<GeofenceViolation | null>(null);
+  const [selectedViolation, setSelectedViolation] =
+    useState<GeofenceViolation | null>(null);
 
   const intervalRef = useRef<number | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadInitialData();
-    
+
     return () => {
       if (intervalRef.current) {
         window.clearInterval(intervalRef.current);
@@ -150,16 +157,16 @@ const RealTimeGPSTracker: React.FC = () => {
     try {
       const [vehiclesResponse, tripsResponse] = await Promise.all([
         apiClient.get('/api/vehicles'),
-        apiClient.get('/api/trips/active')
+        apiClient.get('/api/trips/active'),
       ]);
-      
+
       setVehicles((vehiclesResponse as any).data?.items || []);
       setActiveTrips((tripsResponse as any).data?.items || []);
-      
+
       if ((vehiclesResponse as any).data?.items?.length > 0) {
         setSelectedVehicle((vehiclesResponse as any).data.items[0].id);
       }
-      
+
       await loadActiveVehicleLocations();
     } catch (err) {
       setError('Failed to load initial data');
@@ -189,9 +196,9 @@ const RealTimeGPSTracker: React.FC = () => {
     try {
       const response = await apiClient.post('/api/gps/start-tracking', {
         vehicleId,
-        tripId: trip.id
+        tripId: trip.id,
       });
-      
+
       if ((response as any).data?.success) {
         setTrackingActive(true);
         setSuccess('Real-time tracking started');
@@ -211,9 +218,9 @@ const RealTimeGPSTracker: React.FC = () => {
     setLoading(true);
     try {
       const response = await apiClient.post('/api/gps/stop-tracking', {
-        vehicleId
+        vehicleId,
       });
-      
+
       if ((response as any).data?.success) {
         setTrackingActive(false);
         setSuccess('Real-time tracking stopped');
@@ -242,21 +249,25 @@ const RealTimeGPSTracker: React.FC = () => {
 
   const checkGeofenceViolations = async () => {
     if (!selectedVehicle) return;
-    
-    const location = vehicleLocations.find(l => l.vehicleId === selectedVehicle);
+
+    const location = vehicleLocations.find(
+      l => l.vehicleId === selectedVehicle
+    );
     if (!location) return;
 
     try {
       const response = await apiClient.post('/api/gps/check-violations', {
         vehicleId: selectedVehicle,
         latitude: location.latitude,
-        longitude: location.longitude
+        longitude: location.longitude,
       });
-      
+
       if ((response as any).data && (response as any).data.length > 0) {
         setGeofenceViolations((response as any).data);
-        
-        const highSeverityViolations = (response as any).data.filter((v: GeofenceViolation) => v.severity === 'High');
+
+        const highSeverityViolations = (response as any).data.filter(
+          (v: GeofenceViolation) => v.severity === 'High'
+        );
         if (highSeverityViolations.length > 0) {
           setSelectedViolation(highSeverityViolations[0]);
           setViolationDialog(true);
@@ -270,10 +281,12 @@ const RealTimeGPSTracker: React.FC = () => {
   const getEstimatedArrival = async (tripId: number, stopId: number) => {
     try {
       const response = await apiClient.get(`/api/gps/eta/${tripId}/${stopId}`);
-      
+
       if ((response as any).data) {
         setEstimatedArrivals(prev => {
-          const filtered = prev.filter(eta => !(eta.tripId === tripId && eta.stopId === stopId));
+          const filtered = prev.filter(
+            eta => !(eta.tripId === tripId && eta.stopId === stopId)
+          );
           return [...filtered, (response as any).data];
         });
       }
@@ -282,13 +295,18 @@ const RealTimeGPSTracker: React.FC = () => {
     }
   };
 
-  const getVehicleLocationHistory = async (vehicleId: number, hours: number = 24) => {
+  const getVehicleLocationHistory = async (
+    vehicleId: number,
+    hours: number = 24
+  ) => {
     const endTime = new Date();
-    const startTime = new Date(endTime.getTime() - (hours * 60 * 60 * 1000));
-    
+    const startTime = new Date(endTime.getTime() - hours * 60 * 60 * 1000);
+
     try {
-      const response = await apiClient.get(`/api/gps/history/${vehicleId}?startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`);
-      
+      const response = await apiClient.get(
+        `/api/gps/history/${vehicleId}?startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`
+      );
+
       return (response as any).data || [];
     } catch (err) {
       console.error('Error getting location history:', err);
@@ -298,19 +316,27 @@ const RealTimeGPSTracker: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'High': return 'error';
-      case 'Medium': return 'warning';
-      case 'Low': return 'info';
-      default: return 'default';
+      case 'High':
+        return 'error';
+      case 'Medium':
+        return 'warning';
+      case 'Low':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
   const getViolationIcon = (type: string) => {
     switch (type) {
-      case 'Speed Violation': return <Speed />;
-      case 'Route Deviation': return <Route />;
-      case 'Restricted Area': return <Warning />;
-      default: return <Error />;
+      case 'Speed Violation':
+        return <Speed />;
+      case 'Route Deviation':
+        return <Route />;
+      case 'Restricted Area':
+        return <Warning />;
+      default:
+        return <Error />;
     }
   };
 
@@ -319,15 +345,21 @@ const RealTimeGPSTracker: React.FC = () => {
   };
 
   const formatDistance = (distance: number) => {
-    return distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`;
+    return distance < 1
+      ? `${(distance * 1000).toFixed(0)}m`
+      : `${distance.toFixed(1)}km`;
   };
 
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
-      case 'High': return 'success';
-      case 'Medium': return 'warning';
-      case 'Low': return 'error';
-      default: return 'default';
+      case 'High':
+        return 'success';
+      case 'Medium':
+        return 'warning';
+      case 'Low':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -346,9 +378,9 @@ const RealTimeGPSTracker: React.FC = () => {
                 <InputLabel>Select Vehicle</InputLabel>
                 <Select
                   value={selectedVehicle || ''}
-                  onChange={(e) => setSelectedVehicle(Number(e.target.value))}
+                  onChange={e => setSelectedVehicle(Number(e.target.value))}
                 >
-                  {vehicles.map((vehicle) => (
+                  {vehicles.map(vehicle => (
                     <MenuItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.licensePlate} - {vehicle.model}
                     </MenuItem>
@@ -362,7 +394,9 @@ const RealTimeGPSTracker: React.FC = () => {
                   <Button
                     variant="contained"
                     startIcon={<PlayArrow />}
-                    onClick={() => selectedVehicle && startTracking(selectedVehicle)}
+                    onClick={() =>
+                      selectedVehicle && startTracking(selectedVehicle)
+                    }
                     disabled={!selectedVehicle || loading}
                   >
                     Start Tracking
@@ -372,7 +406,9 @@ const RealTimeGPSTracker: React.FC = () => {
                     variant="contained"
                     color="error"
                     startIcon={<Stop />}
-                    onClick={() => selectedVehicle && stopTracking(selectedVehicle)}
+                    onClick={() =>
+                      selectedVehicle && stopTracking(selectedVehicle)
+                    }
                     disabled={!selectedVehicle || loading}
                   >
                     Stop Tracking
@@ -393,7 +429,7 @@ const RealTimeGPSTracker: React.FC = () => {
                 control={
                   <Switch
                     checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
+                    onChange={e => setAutoRefresh(e.target.checked)}
                   />
                 }
                 label="Auto Refresh"
@@ -416,7 +452,7 @@ const RealTimeGPSTracker: React.FC = () => {
                 <>
                   {vehicleLocations
                     .filter(loc => loc.vehicleId === selectedVehicle)
-                    .map((location) => (
+                    .map(location => (
                       <Box key={location.id} sx={{ mb: 2 }}>
                         <Grid container spacing={2}>
                           <Grid size={{ xs: 6 }}>
@@ -424,7 +460,8 @@ const RealTimeGPSTracker: React.FC = () => {
                               Location
                             </Typography>
                             <Typography variant="body1">
-                              {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                              {location.latitude.toFixed(6)},{' '}
+                              {location.longitude.toFixed(6)}
                             </Typography>
                           </Grid>
                           <Grid size={{ xs: 6 }}>
@@ -448,7 +485,9 @@ const RealTimeGPSTracker: React.FC = () => {
                               Last Update
                             </Typography>
                             <Typography variant="body1">
-                              {new Date(location.timestamp).toLocaleTimeString()}
+                              {new Date(
+                                location.timestamp
+                              ).toLocaleTimeString()}
                             </Typography>
                           </Grid>
                         </Grid>
@@ -460,7 +499,9 @@ const RealTimeGPSTracker: React.FC = () => {
                         />
                       </Box>
                     ))}
-                  {vehicleLocations.filter(loc => loc.vehicleId === selectedVehicle).length === 0 && (
+                  {vehicleLocations.filter(
+                    loc => loc.vehicleId === selectedVehicle
+                  ).length === 0 && (
                     <Typography color="text.secondary">
                       No location data available
                     </Typography>
@@ -480,7 +521,13 @@ const RealTimeGPSTracker: React.FC = () => {
                 Geofence Violations
               </Typography>
               {geofenceViolations.length === 0 ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', color: 'success.main' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'success.main',
+                  }}
+                >
                   <CheckCircle sx={{ mr: 1 }} />
                   <Typography>No violations detected</Typography>
                 </Box>
@@ -498,14 +545,25 @@ const RealTimeGPSTracker: React.FC = () => {
                             <Typography variant="body2">
                               {violation.description}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mt: 0.5,
+                              }}
+                            >
                               <Chip
                                 label={violation.severity}
-                                color={getSeverityColor(violation.severity) as any}
+                                color={
+                                  getSeverityColor(violation.severity) as any
+                                }
                                 size="small"
                               />
                               <Typography variant="caption">
-                                {new Date(violation.timestamp).toLocaleTimeString()}
+                                {new Date(
+                                  violation.timestamp
+                                ).toLocaleTimeString()}
                               </Typography>
                             </Box>
                           </Box>
@@ -533,24 +591,31 @@ const RealTimeGPSTracker: React.FC = () => {
                 </Typography>
               ) : (
                 <List>
-                  {vehicleLocations.map((location) => (
+                  {vehicleLocations.map(location => (
                     <ListItem key={location.id} divider>
                       <ListItemIcon>
                         <DirectionsCar />
                       </ListItemIcon>
                       <ListItemText
-                        primary={location.vehicleName || `Vehicle ${location.vehicleId}`}
+                        primary={
+                          location.vehicleName ||
+                          `Vehicle ${location.vehicleId}`
+                        }
                         secondary={
                           <Box>
                             <Typography variant="body2">
-                              {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                              {location.latitude.toFixed(4)},{' '}
+                              {location.longitude.toFixed(4)}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                               <Typography variant="caption">
                                 Speed: {formatSpeed(location.speed)}
                               </Typography>
                               <Typography variant="caption">
-                                Updated: {new Date(location.timestamp).toLocaleTimeString()}
+                                Updated:{' '}
+                                {new Date(
+                                  location.timestamp
+                                ).toLocaleTimeString()}
                               </Typography>
                             </Box>
                           </Box>
@@ -583,14 +648,17 @@ const RealTimeGPSTracker: React.FC = () => {
                 </Typography>
               ) : (
                 <List dense>
-                  {estimatedArrivals.map((eta) => (
+                  {estimatedArrivals.map(eta => (
                     <ListItem key={`${eta.tripId}-${eta.stopId}`} divider>
                       <ListItemText
                         primary={eta.stopName}
                         secondary={
                           <Box>
                             <Typography variant="body2">
-                              ETA: {new Date(eta.estimatedArrivalTime).toLocaleTimeString()}
+                              ETA:{' '}
+                              {new Date(
+                                eta.estimatedArrivalTime
+                              ).toLocaleTimeString()}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                               <Typography variant="caption">
@@ -601,7 +669,9 @@ const RealTimeGPSTracker: React.FC = () => {
                               </Typography>
                               <Chip
                                 label={eta.confidenceLevel}
-                                color={getConfidenceColor(eta.confidenceLevel) as any}
+                                color={
+                                  getConfidenceColor(eta.confidenceLevel) as any
+                                }
                                 size="small"
                               />
                             </Box>
@@ -625,13 +695,16 @@ const RealTimeGPSTracker: React.FC = () => {
       </Grid>
 
       {/* Violation Details Dialog */}
-      <Dialog open={violationDialog} onClose={() => setViolationDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={violationDialog}
+        onClose={() => setViolationDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Warning color="error" />
-            <Typography variant="h6">
-              Geofence Violation Alert
-            </Typography>
+            <Typography variant="h6">Geofence Violation Alert</Typography>
             {selectedViolation && (
               <Chip
                 label={selectedViolation.severity}
@@ -652,7 +725,7 @@ const RealTimeGPSTracker: React.FC = () => {
                   {selectedViolation.description}
                 </Typography>
               </Alert>
-              
+
               <Paper sx={{ p: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Violation Details
@@ -679,7 +752,8 @@ const RealTimeGPSTracker: React.FC = () => {
                       Location
                     </Typography>
                     <Typography variant="body1">
-                      {selectedViolation.latitude.toFixed(6)}, {selectedViolation.longitude.toFixed(6)}
+                      {selectedViolation.latitude.toFixed(6)},{' '}
+                      {selectedViolation.longitude.toFixed(6)}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
@@ -705,11 +779,9 @@ const RealTimeGPSTracker: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViolationDialog(false)}>
-            Close
-          </Button>
-          <Button 
-            variant="contained" 
+          <Button onClick={() => setViolationDialog(false)}>Close</Button>
+          <Button
+            variant="contained"
             color="primary"
             onClick={() => {
               setViolationDialog(false);
@@ -728,7 +800,11 @@ const RealTimeGPSTracker: React.FC = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mt: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}

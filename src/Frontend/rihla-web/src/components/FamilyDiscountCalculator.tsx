@@ -29,9 +29,6 @@ import {
   Switch,
   FormControlLabel,
   Slider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemText,
@@ -43,32 +40,24 @@ import {
   StepLabel,
   StepContent,
   Avatar,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   Calculate as CalculateIcon,
-  Family as FamilyIcon,
   Percent as PercentIcon,
   Money as MoneyIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Save as SaveIcon,
-  Refresh as RefreshIcon,
   Settings as SettingsIcon,
   Preview as PreviewIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
-  ExpandMore as ExpandMoreIcon,
-  Person as PersonIcon,
   School as SchoolIcon,
   DirectionsBus as BusIcon,
   AttachMoney as DollarIcon,
   TrendingDown as DiscountIcon,
   Assessment as ReportIcon,
   Schedule as ScheduleIcon,
-  Group as GroupIcon
+  Group as GroupIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -136,7 +125,8 @@ interface DiscountSimulation {
 const FamilyDiscountCalculator: React.FC = () => {
   const [families, setFamilies] = useState<FamilyDiscountCalculation[]>([]);
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
-  const [selectedFamily, setSelectedFamily] = useState<FamilyDiscountCalculation | null>(null);
+  const [selectedFamily, setSelectedFamily] =
+    useState<FamilyDiscountCalculation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -147,7 +137,9 @@ const FamilyDiscountCalculator: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMinChildren, setFilterMinChildren] = useState(1);
-  const [simulationResults, setSimulationResults] = useState<DiscountSimulation[]>([]);
+  const [simulationResults, setSimulationResults] = useState<
+    DiscountSimulation[]
+  >([]);
 
   const [newRule, setNewRule] = useState<Partial<DiscountRule>>({
     name: '',
@@ -157,7 +149,7 @@ const FamilyDiscountCalculator: React.FC = () => {
     minChildren: 2,
     isActive: true,
     priority: 1,
-    conditions: []
+    conditions: [],
   });
 
   useEffect(() => {
@@ -168,7 +160,9 @@ const FamilyDiscountCalculator: React.FC = () => {
   const loadFamilyDiscounts = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/discounts/families') as { data: FamilyDiscountCalculation[] };
+      const response = (await apiClient.get('/api/discounts/families')) as {
+        data: FamilyDiscountCalculation[];
+      };
       setFamilies(response.data || []);
     } catch (err) {
       setError('Failed to load family discounts');
@@ -180,7 +174,9 @@ const FamilyDiscountCalculator: React.FC = () => {
 
   const loadDiscountRules = async () => {
     try {
-      const response = await apiClient.get('/api/discounts/rules') as { data: DiscountRule[] };
+      const response = (await apiClient.get('/api/discounts/rules')) as {
+        data: DiscountRule[];
+      };
       setDiscountRules(response.data || []);
     } catch (err) {
       console.error('Error loading discount rules:', err);
@@ -190,14 +186,18 @@ const FamilyDiscountCalculator: React.FC = () => {
   const calculateFamilyDiscount = async (familyId: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.post(`/api/discounts/calculate/${familyId}`) as { data: FamilyDiscountCalculation };
-      
+      const response = (await apiClient.post(
+        `/api/discounts/calculate/${familyId}`
+      )) as { data: FamilyDiscountCalculation };
+
       if (response.data) {
         setSelectedFamily(response.data);
         setCalculatorDialogOpen(true);
-        setFamilies(prev => prev.map(family => 
-          family.familyId === familyId ? response.data : family
-        ));
+        setFamilies(prev =>
+          prev.map(family =>
+            family.familyId === familyId ? response.data : family
+          )
+        );
       }
     } catch (err) {
       setError('Failed to calculate family discount');
@@ -210,13 +210,19 @@ const FamilyDiscountCalculator: React.FC = () => {
   const saveDiscountRule = async () => {
     try {
       setLoading(true);
-      const endpoint = selectedRule ? `/api/discounts/rules/${selectedRule.id}` : '/api/discounts/rules';
+      const endpoint = selectedRule
+        ? `/api/discounts/rules/${selectedRule.id}`
+        : '/api/discounts/rules';
       const method = selectedRule ? 'put' : 'post';
-      
-      const response = await apiClient[method](endpoint, newRule) as { data: { success: boolean } };
-      
+
+      const response = (await apiClient[method](endpoint, newRule)) as {
+        data: { success: boolean };
+      };
+
       if (response.data.success) {
-        setSuccess(`Discount rule ${selectedRule ? 'updated' : 'created'} successfully`);
+        setSuccess(
+          `Discount rule ${selectedRule ? 'updated' : 'created'} successfully`
+        );
         loadDiscountRules();
         setRuleDialogOpen(false);
         resetRuleForm();
@@ -232,8 +238,10 @@ const FamilyDiscountCalculator: React.FC = () => {
   const deleteDiscountRule = async (ruleId: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.delete(`/api/discounts/rules/${ruleId}`) as { data: { success: boolean } };
-      
+      const response = (await apiClient.delete(
+        `/api/discounts/rules/${ruleId}`
+      )) as { data: { success: boolean } };
+
       if (response.data.success) {
         setSuccess('Discount rule deleted successfully');
         loadDiscountRules();
@@ -249,10 +257,10 @@ const FamilyDiscountCalculator: React.FC = () => {
   const runDiscountSimulation = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/api/discounts/simulate', {
-        rules: discountRules.filter(rule => rule.isActive)
-      }) as { data: DiscountSimulation[] };
-      
+      const response = (await apiClient.post('/api/discounts/simulate', {
+        rules: discountRules.filter(rule => rule.isActive),
+      })) as { data: DiscountSimulation[] };
+
       setSimulationResults(response.data || []);
       setSimulationDialogOpen(true);
     } catch (err) {
@@ -266,10 +274,14 @@ const FamilyDiscountCalculator: React.FC = () => {
   const applyBulkDiscounts = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/api/discounts/apply-bulk') as { data: { success: boolean; affectedFamilies: number } };
-      
+      const response = (await apiClient.post('/api/discounts/apply-bulk')) as {
+        data: { success: boolean; affectedFamilies: number };
+      };
+
       if (response.data.success) {
-        setSuccess(`Bulk discounts applied to ${response.data.affectedFamilies} families`);
+        setSuccess(
+          `Bulk discounts applied to ${response.data.affectedFamilies} families`
+        );
         loadFamilyDiscounts();
       }
     } catch (err) {
@@ -289,7 +301,7 @@ const FamilyDiscountCalculator: React.FC = () => {
       minChildren: 2,
       isActive: true,
       priority: 1,
-      conditions: []
+      conditions: [],
     });
     setSelectedRule(null);
     setActiveStep(0);
@@ -304,57 +316,75 @@ const FamilyDiscountCalculator: React.FC = () => {
           id: Date.now(),
           type: 'Grade',
           operator: 'Equals',
-          value: ''
-        }
-      ]
+          value: '',
+        },
+      ],
     }));
   };
 
   const removeCondition = (conditionId: number) => {
     setNewRule(prev => ({
       ...prev,
-      conditions: prev.conditions?.filter(c => c.id !== conditionId) || []
+      conditions: prev.conditions?.filter(c => c.id !== conditionId) || [],
     }));
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
   const getDiscountTypeColor = (type: string) => {
     switch (type) {
-      case 'Percentage': return 'primary';
-      case 'FixedAmount': return 'success';
-      case 'Tiered': return 'warning';
-      default: return 'default';
+      case 'Percentage':
+        return 'primary';
+      case 'FixedAmount':
+        return 'success';
+      case 'Tiered':
+        return 'warning';
+      default:
+        return 'default';
     }
   };
 
   const filteredFamilies = families.filter(family => {
-    const matchesSearch = family.parentName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = family.parentName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesChildren = family.totalChildren >= filterMinChildren;
     return matchesSearch && matchesChildren;
   });
 
-  const totalSavings = families.reduce((sum, family) => sum + family.savings, 0);
-  const averageSavings = families.length > 0 ? totalSavings / families.length : 0;
-  const familiesWithDiscounts = families.filter(family => family.totalDiscount > 0).length;
+  const totalSavings = families.reduce(
+    (sum, family) => sum + family.savings,
+    0
+  );
+  const averageSavings =
+    families.length > 0 ? totalSavings / families.length : 0;
+  const familiesWithDiscounts = families.filter(
+    family => family.totalDiscount > 0
+  ).length;
 
   const steps = [
     'Basic Information',
     'Discount Configuration',
     'Conditions & Rules',
-    'Review & Save'
+    'Review & Save',
   ];
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Typography variant="h4" gutterBottom>
-          <FamilyIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
           Family Discount Calculator
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -392,7 +422,11 @@ const FamilyDiscountCalculator: React.FC = () => {
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
@@ -402,9 +436,10 @@ const FamilyDiscountCalculator: React.FC = () => {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
-              <FamilyIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">{families.length}</Typography>
-              <Typography variant="body2" color="textSecondary">Total Families</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Total Families
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -413,7 +448,9 @@ const FamilyDiscountCalculator: React.FC = () => {
             <CardContent sx={{ textAlign: 'center' }}>
               <DiscountIcon color="success" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h6">{familiesWithDiscounts}</Typography>
-              <Typography variant="body2" color="textSecondary">With Discounts</Typography>
+              <Typography variant="body2" color="textSecondary">
+                With Discounts
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -421,8 +458,12 @@ const FamilyDiscountCalculator: React.FC = () => {
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <MoneyIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6">{formatCurrency(totalSavings)}</Typography>
-              <Typography variant="body2" color="textSecondary">Total Savings</Typography>
+              <Typography variant="h6">
+                {formatCurrency(totalSavings)}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Total Savings
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -430,8 +471,12 @@ const FamilyDiscountCalculator: React.FC = () => {
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <PercentIcon color="info" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h6">{formatCurrency(averageSavings)}</Typography>
-              <Typography variant="body2" color="textSecondary">Average Savings</Typography>
+              <Typography variant="h6">
+                {formatCurrency(averageSavings)}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Average Savings
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -442,62 +487,69 @@ const FamilyDiscountCalculator: React.FC = () => {
         <CardContent>
           <Typography variant="h6" gutterBottom>
             <SettingsIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Active Discount Rules ({discountRules.filter(rule => rule.isActive).length})
+            Active Discount Rules (
+            {discountRules.filter(rule => rule.isActive).length})
           </Typography>
-          
+
           <List>
-            {discountRules.filter(rule => rule.isActive).map((rule) => (
-              <ListItem key={rule.id}>
-                <ListItemText
-                  primary={rule.name}
-                  secondary={
-                    <Box>
-                      <Typography variant="body2" color="textSecondary">
-                        {rule.description}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        <Chip 
-                          label={rule.type} 
-                          color={getDiscountTypeColor(rule.type) as any}
-                          size="small"
-                        />
-                        <Chip 
-                          label={`${rule.minChildren}+ children`}
-                          size="small"
-                          variant="outlined"
-                        />
-                        <Chip 
-                          label={rule.type === 'Percentage' ? `${rule.value}%` : formatCurrency(rule.value)}
-                          size="small"
-                          color="success"
-                        />
+            {discountRules
+              .filter(rule => rule.isActive)
+              .map(rule => (
+                <ListItem key={rule.id}>
+                  <ListItemText
+                    primary={rule.name}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          {rule.description}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                          <Chip
+                            label={rule.type}
+                            color={getDiscountTypeColor(rule.type) as any}
+                            size="small"
+                          />
+                          <Chip
+                            label={`${rule.minChildren}+ children`}
+                            size="small"
+                            variant="outlined"
+                          />
+                          <Chip
+                            label={
+                              rule.type === 'Percentage'
+                                ? `${rule.value}%`
+                                : formatCurrency(rule.value)
+                            }
+                            size="small"
+                            color="success"
+                          />
+                        </Box>
                       </Box>
-                    </Box>
-                  }
-                />
-                <ListItemSecondaryAction>
-                  <Tooltip title="Edit Rule">
-                    <IconButton
-                      onClick={() => {
-                        setSelectedRule(rule);
-                        setNewRule(rule);
-                        setRuleDialogOpen(true);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete Rule">
-                    <IconButton
-                      onClick={() => deleteDiscountRule(rule.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </ListItemSecondaryAction>
-              </ListItem>
-            ))}
+                    }
+                  />
+                  <ListItemSecondaryAction>
+                    <Tooltip title="Edit Rule">
+                      <IconButton
+                        onClick={() => {
+                          setSelectedRule(rule);
+                          setNewRule(rule);
+                          setRuleDialogOpen(true);
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete Rule">
+                      <IconButton
+                        onClick={() => deleteDiscountRule(rule.id)}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
           </List>
         </CardContent>
       </Card>
@@ -505,7 +557,14 @@ const FamilyDiscountCalculator: React.FC = () => {
       {/* Family Discounts Table */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
             <Typography variant="h6">
               Family Discount Calculations ({filteredFamilies.length})
             </Typography>
@@ -514,14 +573,14 @@ const FamilyDiscountCalculator: React.FC = () => {
                 size="small"
                 label="Search families..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
               />
               <TextField
                 size="small"
                 label="Min Children"
                 type="number"
                 value={filterMinChildren}
-                onChange={(e) => setFilterMinChildren(parseInt(e.target.value))}
+                onChange={e => setFilterMinChildren(parseInt(e.target.value))}
                 inputProps={{ min: 1, max: 10 }}
                 sx={{ width: 120 }}
               />
@@ -547,24 +606,27 @@ const FamilyDiscountCalculator: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredFamilies.map((family) => (
+                  {filteredFamilies.map(family => (
                     <TableRow key={family.familyId}>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar>
-                            <FamilyIcon />
-                          </Avatar>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
+                          <Avatar></Avatar>
                           {family.parentName}
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <Badge badgeContent={family.totalChildren} color="primary">
+                        <Badge
+                          badgeContent={family.totalChildren}
+                          color="primary"
+                        >
                           <GroupIcon />
                         </Badge>
                       </TableCell>
                       <TableCell>{formatCurrency(family.subtotal)}</TableCell>
                       <TableCell>
-                        <Chip 
+                        <Chip
                           label={formatCurrency(family.totalDiscount)}
                           color="success"
                           size="small"
@@ -589,7 +651,9 @@ const FamilyDiscountCalculator: React.FC = () => {
                         <Tooltip title="Calculate Discount">
                           <IconButton
                             size="small"
-                            onClick={() => calculateFamilyDiscount(family.familyId)}
+                            onClick={() =>
+                              calculateFamilyDiscount(family.familyId)
+                            }
                           >
                             <CalculateIcon />
                           </IconButton>
@@ -605,8 +669,8 @@ const FamilyDiscountCalculator: React.FC = () => {
       </Card>
 
       {/* Family Discount Calculator Dialog */}
-      <Dialog 
-        open={calculatorDialogOpen} 
+      <Dialog
+        open={calculatorDialogOpen}
         onClose={() => setCalculatorDialogOpen(false)}
         maxWidth="lg"
         fullWidth
@@ -615,7 +679,8 @@ const FamilyDiscountCalculator: React.FC = () => {
           Family Discount Calculation
           {selectedFamily && (
             <Typography variant="subtitle1" color="textSecondary">
-              {selectedFamily.parentName} - {selectedFamily.totalChildren} Children
+              {selectedFamily.parentName} - {selectedFamily.totalChildren}{' '}
+              Children
             </Typography>
           )}
         </DialogTitle>
@@ -638,14 +703,16 @@ const FamilyDiscountCalculator: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {selectedFamily.members.map((member) => (
+                    {selectedFamily.members.map(member => (
                       <TableRow key={member.id}>
                         <TableCell>{member.studentName}</TableCell>
                         <TableCell>{member.grade}</TableCell>
                         <TableCell>{member.routeName}</TableCell>
-                        <TableCell>{formatCurrency(member.basePrice)}</TableCell>
                         <TableCell>
-                          <Chip 
+                          {formatCurrency(member.basePrice)}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
                             label={formatCurrency(member.currentDiscount)}
                             color="success"
                             size="small"
@@ -679,25 +746,36 @@ const FamilyDiscountCalculator: React.FC = () => {
               <Divider sx={{ my: 2 }} />
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography variant="subtitle2" color="textSecondary">Subtotal</Typography>
-                  <Typography variant="h6">{formatCurrency(selectedFamily.subtotal)}</Typography>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Subtotal
+                  </Typography>
+                  <Typography variant="h6">
+                    {formatCurrency(selectedFamily.subtotal)}
+                  </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography variant="subtitle2" color="textSecondary">Total Discount</Typography>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Total Discount
+                  </Typography>
                   <Typography variant="h6" color="success.main">
                     -{formatCurrency(selectedFamily.totalDiscount)}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography variant="subtitle2" color="textSecondary">Final Total</Typography>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Final Total
+                  </Typography>
                   <Typography variant="h6" color="primary">
                     {formatCurrency(selectedFamily.finalTotal)}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography variant="subtitle2" color="textSecondary">Savings</Typography>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Savings
+                  </Typography>
                   <Typography variant="h6" color="success.main">
-                    {formatCurrency(selectedFamily.savings)} ({selectedFamily.savingsPercentage.toFixed(1)}%)
+                    {formatCurrency(selectedFamily.savings)} (
+                    {selectedFamily.savingsPercentage.toFixed(1)}%)
                   </Typography>
                 </Grid>
               </Grid>
@@ -710,8 +788,8 @@ const FamilyDiscountCalculator: React.FC = () => {
       </Dialog>
 
       {/* Discount Rule Creation/Edit Dialog */}
-      <Dialog 
-        open={ruleDialogOpen} 
+      <Dialog
+        open={ruleDialogOpen}
         onClose={() => setRuleDialogOpen(false)}
         maxWidth="md"
         fullWidth
@@ -732,7 +810,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                           fullWidth
                           label="Rule Name"
                           value={newRule.name || ''}
-                          onChange={(e) => setNewRule(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={e =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
                           required
                         />
                       </Grid>
@@ -743,7 +826,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                           multiline
                           rows={3}
                           value={newRule.description || ''}
-                          onChange={(e) => setNewRule(prev => ({ ...prev, description: e.target.value }))}
+                          onChange={e =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              description: e.target.value,
+                            }))
+                          }
                         />
                       </Grid>
                       <Grid size={{ xs: 12 }}>
@@ -751,7 +839,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                           control={
                             <Switch
                               checked={newRule.isActive || false}
-                              onChange={(e) => setNewRule(prev => ({ ...prev, isActive: e.target.checked }))}
+                              onChange={e =>
+                                setNewRule(prev => ({
+                                  ...prev,
+                                  isActive: e.target.checked,
+                                }))
+                              }
                             />
                           }
                           label="Active Rule"
@@ -767,11 +860,18 @@ const FamilyDiscountCalculator: React.FC = () => {
                           <InputLabel>Discount Type</InputLabel>
                           <Select
                             value={newRule.type || 'Percentage'}
-                            onChange={(e) => setNewRule(prev => ({ ...prev, type: e.target.value as any }))}
+                            onChange={e =>
+                              setNewRule(prev => ({
+                                ...prev,
+                                type: e.target.value as any,
+                              }))
+                            }
                             label="Discount Type"
                           >
                             <MenuItem value="Percentage">Percentage</MenuItem>
-                            <MenuItem value="FixedAmount">Fixed Amount</MenuItem>
+                            <MenuItem value="FixedAmount">
+                              Fixed Amount
+                            </MenuItem>
                             <MenuItem value="Tiered">Tiered</MenuItem>
                           </Select>
                         </FormControl>
@@ -779,14 +879,24 @@ const FamilyDiscountCalculator: React.FC = () => {
                       <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                           fullWidth
-                          label={newRule.type === 'Percentage' ? 'Percentage (%)' : 'Amount ($)'}
+                          label={
+                            newRule.type === 'Percentage'
+                              ? 'Percentage (%)'
+                              : 'Amount ($)'
+                          }
                           type="number"
                           value={newRule.value || 0}
-                          onChange={(e) => setNewRule(prev => ({ ...prev, value: parseFloat(e.target.value) }))}
-                          inputProps={{ 
+                          onChange={e =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              value: parseFloat(e.target.value),
+                            }))
+                          }
+                          inputProps={{
                             step: newRule.type === 'Percentage' ? 1 : 0.01,
                             min: 0,
-                            max: newRule.type === 'Percentage' ? 100 : undefined
+                            max:
+                              newRule.type === 'Percentage' ? 100 : undefined,
                           }}
                         />
                       </Grid>
@@ -796,7 +906,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                           label="Minimum Children"
                           type="number"
                           value={newRule.minChildren || 2}
-                          onChange={(e) => setNewRule(prev => ({ ...prev, minChildren: parseInt(e.target.value) }))}
+                          onChange={e =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              minChildren: parseInt(e.target.value),
+                            }))
+                          }
                           inputProps={{ min: 1, max: 10 }}
                         />
                       </Grid>
@@ -806,10 +921,14 @@ const FamilyDiscountCalculator: React.FC = () => {
                           label="Maximum Children (Optional)"
                           type="number"
                           value={newRule.maxChildren || ''}
-                          onChange={(e) => setNewRule(prev => ({ 
-                            ...prev, 
-                            maxChildren: e.target.value ? parseInt(e.target.value) : undefined 
-                          }))}
+                          onChange={e =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              maxChildren: e.target.value
+                                ? parseInt(e.target.value)
+                                : undefined,
+                            }))
+                          }
                           inputProps={{ min: 1, max: 20 }}
                         />
                       </Grid>
@@ -819,7 +938,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                         </Typography>
                         <Slider
                           value={newRule.priority || 1}
-                          onChange={(e, value) => setNewRule(prev => ({ ...prev, priority: value as number }))}
+                          onChange={(e, value) =>
+                            setNewRule(prev => ({
+                              ...prev,
+                              priority: value as number,
+                            }))
+                          }
                           min={1}
                           max={10}
                           marks
@@ -831,7 +955,14 @@ const FamilyDiscountCalculator: React.FC = () => {
 
                   {index === 2 && (
                     <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 2,
+                        }}
+                      >
                         <Typography variant="h6">Conditions</Typography>
                         <Button
                           variant="outlined"
@@ -841,7 +972,7 @@ const FamilyDiscountCalculator: React.FC = () => {
                           Add Condition
                         </Button>
                       </Box>
-                      
+
                       {newRule.conditions?.map((condition, conditionIndex) => (
                         <Card key={condition.id} sx={{ mb: 2 }}>
                           <CardContent>
@@ -851,17 +982,27 @@ const FamilyDiscountCalculator: React.FC = () => {
                                   <InputLabel>Type</InputLabel>
                                   <Select
                                     value={condition.type}
-                                    onChange={(e) => {
-                                      const updatedConditions = [...(newRule.conditions || [])];
-                                      updatedConditions[conditionIndex].type = e.target.value as any;
-                                      setNewRule(prev => ({ ...prev, conditions: updatedConditions }));
+                                    onChange={e => {
+                                      const updatedConditions = [
+                                        ...(newRule.conditions || []),
+                                      ];
+                                      updatedConditions[conditionIndex].type = e
+                                        .target.value as any;
+                                      setNewRule(prev => ({
+                                        ...prev,
+                                        conditions: updatedConditions,
+                                      }));
                                     }}
                                     label="Type"
                                   >
                                     <MenuItem value="Grade">Grade</MenuItem>
                                     <MenuItem value="Route">Route</MenuItem>
-                                    <MenuItem value="PaymentMethod">Payment Method</MenuItem>
-                                    <MenuItem value="Duration">Duration</MenuItem>
+                                    <MenuItem value="PaymentMethod">
+                                      Payment Method
+                                    </MenuItem>
+                                    <MenuItem value="Duration">
+                                      Duration
+                                    </MenuItem>
                                   </Select>
                                 </FormControl>
                               </Grid>
@@ -870,17 +1011,30 @@ const FamilyDiscountCalculator: React.FC = () => {
                                   <InputLabel>Operator</InputLabel>
                                   <Select
                                     value={condition.operator}
-                                    onChange={(e) => {
-                                      const updatedConditions = [...(newRule.conditions || [])];
-                                      updatedConditions[conditionIndex].operator = e.target.value as any;
-                                      setNewRule(prev => ({ ...prev, conditions: updatedConditions }));
+                                    onChange={e => {
+                                      const updatedConditions = [
+                                        ...(newRule.conditions || []),
+                                      ];
+                                      updatedConditions[
+                                        conditionIndex
+                                      ].operator = e.target.value as any;
+                                      setNewRule(prev => ({
+                                        ...prev,
+                                        conditions: updatedConditions,
+                                      }));
                                     }}
                                     label="Operator"
                                   >
                                     <MenuItem value="Equals">Equals</MenuItem>
-                                    <MenuItem value="GreaterThan">Greater Than</MenuItem>
-                                    <MenuItem value="LessThan">Less Than</MenuItem>
-                                    <MenuItem value="Contains">Contains</MenuItem>
+                                    <MenuItem value="GreaterThan">
+                                      Greater Than
+                                    </MenuItem>
+                                    <MenuItem value="LessThan">
+                                      Less Than
+                                    </MenuItem>
+                                    <MenuItem value="Contains">
+                                      Contains
+                                    </MenuItem>
                                   </Select>
                                 </FormControl>
                               </Grid>
@@ -890,10 +1044,16 @@ const FamilyDiscountCalculator: React.FC = () => {
                                   size="small"
                                   label="Value"
                                   value={condition.value}
-                                  onChange={(e) => {
-                                    const updatedConditions = [...(newRule.conditions || [])];
-                                    updatedConditions[conditionIndex].value = e.target.value;
-                                    setNewRule(prev => ({ ...prev, conditions: updatedConditions }));
+                                  onChange={e => {
+                                    const updatedConditions = [
+                                      ...(newRule.conditions || []),
+                                    ];
+                                    updatedConditions[conditionIndex].value =
+                                      e.target.value;
+                                    setNewRule(prev => ({
+                                      ...prev,
+                                      conditions: updatedConditions,
+                                    }));
                                   }}
                                 />
                               </Grid>
@@ -914,39 +1074,67 @@ const FamilyDiscountCalculator: React.FC = () => {
 
                   {index === 3 && (
                     <Box>
-                      <Typography variant="h6" gutterBottom>Review Rule</Typography>
+                      <Typography variant="h6" gutterBottom>
+                        Review Rule
+                      </Typography>
                       <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Name</Typography>
-                          <Typography variant="body1">{newRule.name}</Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Name
+                          </Typography>
+                          <Typography variant="body1">
+                            {newRule.name}
+                          </Typography>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Type</Typography>
-                          <Chip 
-                            label={newRule.type} 
-                            color={getDiscountTypeColor(newRule.type || 'Percentage') as any}
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Type
+                          </Typography>
+                          <Chip
+                            label={newRule.type}
+                            color={
+                              getDiscountTypeColor(
+                                newRule.type || 'Percentage'
+                              ) as any
+                            }
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Value</Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Value
+                          </Typography>
                           <Typography variant="body1">
-                            {newRule.type === 'Percentage' ? `${newRule.value}%` : formatCurrency(newRule.value || 0)}
+                            {newRule.type === 'Percentage'
+                              ? `${newRule.value}%`
+                              : formatCurrency(newRule.value || 0)}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Children Range</Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Children Range
+                          </Typography>
                           <Typography variant="body1">
-                            {newRule.minChildren}+ {newRule.maxChildren ? `(max ${newRule.maxChildren})` : ''}
+                            {newRule.minChildren}+{' '}
+                            {newRule.maxChildren
+                              ? `(max ${newRule.maxChildren})`
+                              : ''}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Description</Typography>
-                          <Typography variant="body1">{newRule.description}</Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Description
+                          </Typography>
+                          <Typography variant="body1">
+                            {newRule.description}
+                          </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="subtitle2" color="textSecondary">Conditions</Typography>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Conditions
+                          </Typography>
                           <Typography variant="body1">
-                            {newRule.conditions?.length || 0} condition(s) defined
+                            {newRule.conditions?.length || 0} condition(s)
+                            defined
                           </Typography>
                         </Grid>
                       </Grid>
@@ -985,8 +1173,8 @@ const FamilyDiscountCalculator: React.FC = () => {
       </Dialog>
 
       {/* Simulation Results Dialog */}
-      <Dialog 
-        open={simulationDialogOpen} 
+      <Dialog
+        open={simulationDialogOpen}
         onClose={() => setSimulationDialogOpen(false)}
         maxWidth="lg"
         fullWidth
@@ -1012,8 +1200,12 @@ const FamilyDiscountCalculator: React.FC = () => {
                 {simulationResults.map((result, index) => (
                   <TableRow key={index}>
                     <TableCell>{result.scenario}</TableCell>
-                    <TableCell>{formatCurrency(result.originalTotal)}</TableCell>
-                    <TableCell>{formatCurrency(result.discountedTotal)}</TableCell>
+                    <TableCell>
+                      {formatCurrency(result.originalTotal)}
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(result.discountedTotal)}
+                    </TableCell>
                     <TableCell>
                       <Typography color="success.main">
                         {formatCurrency(result.totalSavings)}

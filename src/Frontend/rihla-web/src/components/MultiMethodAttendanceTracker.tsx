@@ -25,7 +25,7 @@ import {
   IconButton,
   Tabs,
   Tab,
-  Paper
+  Paper,
 } from '@mui/material';
 import {
   QrCodeScanner,
@@ -39,7 +39,7 @@ import {
   LocationOn,
   Refresh,
   Upload,
-  Download
+  Download,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -87,7 +87,9 @@ const MultiMethodAttendanceTracker: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<number | null>(null);
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    AttendanceRecord[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -104,21 +106,23 @@ const MultiMethodAttendanceTracker: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [manualStudentId, setManualStudentId] = useState<number | null>(null);
-  const [manualStatus, setManualStatus] = useState<'Present' | 'Absent' | 'Late'>('Present');
+  const [manualStatus, setManualStatus] = useState<
+    'Present' | 'Absent' | 'Late'
+  >('Present');
 
   useEffect(() => {
     loadInitialData();
-    
+
     const handleOnline = () => {
       setIsOnline(true);
       syncOfflineRecords();
     };
-    
+
     const handleOffline = () => setIsOnline(false);
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -130,12 +134,12 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     try {
       const [studentsResponse, tripsResponse] = await Promise.all([
         apiClient.get('/api/students'),
-        apiClient.get('/api/trips/active')
+        apiClient.get('/api/trips/active'),
       ]);
-      
+
       setStudents((studentsResponse as any).data?.items || []);
       setTrips((tripsResponse as any).data?.items || []);
-      
+
       if ((tripsResponse as any).data?.items?.length > 0) {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         loadAttendanceRecords((tripsResponse as any).data.items[0].id);
@@ -159,7 +163,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
   const handleRfidScan = async () => {
     if (!rfidInput.trim() || !selectedTrip) return;
-    
+
     setRfidScanning(true);
     try {
       if (isOnline) {
@@ -167,14 +171,16 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           rfidTag: rfidInput.trim(),
           tripId: selectedTrip,
           stopId: 1, // Default stop
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         if ((response as any).data.success) {
           setSuccess('RFID attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError((response as any).data.message || 'Failed to record RFID attendance');
+          setError(
+            (response as any).data.message || 'Failed to record RFID attendance'
+          );
         }
       } else {
         const student = students.find(s => s.rfidTag === rfidInput.trim());
@@ -186,16 +192,16 @@ const MultiMethodAttendanceTracker: React.FC = () => {
             boardingTime: new Date().toISOString(),
             notes: `RFID scan: ${rfidInput.trim()}`,
             attendanceDate: new Date().toISOString(),
-            method: 'RFID'
+            method: 'RFID',
           };
-          
+
           setOfflineRecords(prev => [...prev, offlineRecord]);
           setSuccess('RFID attendance stored offline');
         } else {
           setError('Student with RFID tag not found');
         }
       }
-      
+
       setRfidInput('');
     } catch (err) {
       setError('Failed to process RFID scan');
@@ -208,7 +214,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
   const startPhotoCapture = async (student: Student) => {
     setSelectedStudent(student);
     setPhotoDialog(true);
-    
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
@@ -224,10 +230,10 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0);
@@ -239,7 +245,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
   const submitPhotoAttendance = async () => {
     if (!selectedStudent || !capturedPhoto || !selectedTrip) return;
-    
+
     setLoading(true);
     try {
       if (isOnline) {
@@ -248,14 +254,17 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           tripId: selectedTrip,
           stopId: 1,
           photoBase64: capturedPhoto.split(',')[1], // Remove data:image/jpeg;base64, prefix
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         if ((response as any).data.success) {
           setSuccess('Photo attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError((response as any).data.message || 'Failed to record photo attendance');
+          setError(
+            (response as any).data.message ||
+              'Failed to record photo attendance'
+          );
         }
       } else {
         const offlineRecord: OfflineRecord = {
@@ -265,13 +274,13 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           boardingTime: new Date().toISOString(),
           notes: 'Photo verification',
           attendanceDate: new Date().toISOString(),
-          method: 'Photo'
+          method: 'Photo',
         };
-        
+
         setOfflineRecords(prev => [...prev, offlineRecord]);
         setSuccess('Photo attendance stored offline');
       }
-      
+
       closePhotoDialog();
     } catch (err) {
       setError('Failed to submit photo attendance');
@@ -285,7 +294,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     setPhotoDialog(false);
     setSelectedStudent(null);
     setCapturedPhoto(null);
-    
+
     if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -294,7 +303,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
   const handleManualAttendance = async () => {
     if (!manualStudentId || !selectedTrip) return;
-    
+
     setLoading(true);
     try {
       if (isOnline) {
@@ -303,30 +312,35 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           tripId: selectedTrip,
           status: manualStatus,
           attendanceDate: new Date().toISOString(),
-          boardingTime: manualStatus === 'Present' ? new Date().toISOString() : null
+          boardingTime:
+            manualStatus === 'Present' ? new Date().toISOString() : null,
         });
-        
+
         if ((response as any).data.success) {
           setSuccess('Manual attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError((response as any).data.message || 'Failed to record manual attendance');
+          setError(
+            (response as any).data.message ||
+              'Failed to record manual attendance'
+          );
         }
       } else {
         const offlineRecord: OfflineRecord = {
           studentId: manualStudentId,
           tripId: selectedTrip,
           status: manualStatus,
-          boardingTime: manualStatus === 'Present' ? new Date().toISOString() : undefined,
+          boardingTime:
+            manualStatus === 'Present' ? new Date().toISOString() : undefined,
           notes: 'Manual entry',
           attendanceDate: new Date().toISOString(),
-          method: 'Manual'
+          method: 'Manual',
         };
-        
+
         setOfflineRecords(prev => [...prev, offlineRecord]);
         setSuccess('Manual attendance stored offline');
       }
-      
+
       setManualStudentId(null);
       setManualStatus('Present');
     } catch (err) {
@@ -339,13 +353,13 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
   const syncOfflineRecords = async () => {
     if (offlineRecords.length === 0) return;
-    
+
     setLoading(true);
     try {
       const response = await apiClient.post('/api/attendance/sync-offline', {
-        offlineRecords
+        offlineRecords,
       });
-      
+
       if ((response as any).data.success) {
         setOfflineRecords([]);
         setSuccess(`Synced ${offlineRecords.length} offline records`);
@@ -376,20 +390,29 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Present': return 'success';
-      case 'Absent': return 'error';
-      case 'Late': return 'warning';
-      default: return 'default';
+      case 'Present':
+        return 'success';
+      case 'Absent':
+        return 'error';
+      case 'Late':
+        return 'warning';
+      default:
+        return 'default';
     }
   };
 
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case 'RFID': return <QrCodeScanner />;
-      case 'Photo': return <CameraAlt />;
-      case 'Manual': return <Person />;
-      case 'Offline': return <WifiOff />;
-      default: return <CheckCircle />;
+      case 'RFID':
+        return <QrCodeScanner />;
+      case 'Photo':
+        return <CameraAlt />;
+      case 'Manual':
+        return <Person />;
+      case 'Offline':
+        return <WifiOff />;
+      default:
+        return <CheckCircle />;
     }
   };
 
@@ -400,17 +423,19 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       </Typography>
 
       {/* Connection Status */}
-      <Alert 
-        severity={isOnline ? 'success' : 'warning'} 
+      <Alert
+        severity={isOnline ? 'success' : 'warning'}
         icon={isOnline ? <Wifi /> : <WifiOff />}
         sx={{ mb: 2 }}
       >
-        {isOnline ? 'Online - Real-time sync enabled' : 'Offline - Data will be synced when connection is restored'}
+        {isOnline
+          ? 'Online - Real-time sync enabled'
+          : 'Offline - Data will be synced when connection is restored'}
         {!isOnline && offlineRecords.length > 0 && (
-          <Chip 
-            label={`${offlineRecords.length} records pending sync`} 
-            size="small" 
-            sx={{ ml: 1 }} 
+          <Chip
+            label={`${offlineRecords.length} records pending sync`}
+            size="small"
+            sx={{ ml: 1 }}
           />
         )}
       </Alert>
@@ -424,15 +449,16 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                 <InputLabel>Select Trip</InputLabel>
                 <Select
                   value={selectedTrip || ''}
-                  onChange={(e) => {
+                  onChange={e => {
                     const tripId = Number(e.target.value);
                     setSelectedTrip(tripId);
                     loadAttendanceRecords(tripId);
                   }}
                 >
-                  {trips.map((trip) => (
+                  {trips.map(trip => (
                     <MenuItem key={trip.id} value={trip.id}>
-                      {trip.routeName} - {trip.vehicleName} ({new Date(trip.scheduledStartTime).toLocaleTimeString()})
+                      {trip.routeName} - {trip.vehicleName} (
+                      {new Date(trip.scheduledStartTime).toLocaleTimeString()})
                     </MenuItem>
                   ))}
                 </Select>
@@ -443,7 +469,9 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<Refresh />}
-                  onClick={() => selectedTrip && loadAttendanceRecords(selectedTrip)}
+                  onClick={() =>
+                    selectedTrip && loadAttendanceRecords(selectedTrip)
+                  }
                   disabled={loading}
                 >
                   Refresh
@@ -475,7 +503,10 @@ const MultiMethodAttendanceTracker: React.FC = () => {
 
       {/* Attendance Methods Tabs */}
       <Card sx={{ mb: 3 }}>
-        <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+        >
           <Tab label="RFID Scanner" icon={<QrCodeScanner />} />
           <Tab label="Photo Capture" icon={<CameraAlt />} />
           <Tab label="Manual Entry" icon={<Person />} />
@@ -494,8 +525,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     fullWidth
                     label="Scan or Enter RFID Tag"
                     value={rfidInput}
-                    onChange={(e) => setRfidInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleRfidScan()}
+                    onChange={e => setRfidInput(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && handleRfidScan()}
                     placeholder="Tap RFID card or enter tag manually"
                     disabled={rfidScanning}
                   />
@@ -505,8 +536,16 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     fullWidth
                     variant="contained"
                     onClick={handleRfidScan}
-                    disabled={!rfidInput.trim() || rfidScanning || !selectedTrip}
-                    startIcon={rfidScanning ? <CircularProgress size={20} /> : <QrCodeScanner />}
+                    disabled={
+                      !rfidInput.trim() || rfidScanning || !selectedTrip
+                    }
+                    startIcon={
+                      rfidScanning ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <QrCodeScanner />
+                      )
+                    }
                   >
                     {rfidScanning ? 'Processing...' : 'Record Attendance'}
                   </Button>
@@ -522,7 +561,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                 Photo Verification
               </Typography>
               <Grid container spacing={2}>
-                {students.map((student) => (
+                {students.map(student => (
                   <Grid key={student.id} size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card variant="outlined">
                       <CardContent>
@@ -562,11 +601,12 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     <InputLabel>Select Student</InputLabel>
                     <Select
                       value={manualStudentId || ''}
-                      onChange={(e) => setManualStudentId(Number(e.target.value))}
+                      onChange={e => setManualStudentId(Number(e.target.value))}
                     >
-                      {students.map((student) => (
+                      {students.map(student => (
                         <MenuItem key={student.id} value={student.id}>
-                          {student.firstName} {student.lastName} ({student.studentNumber})
+                          {student.firstName} {student.lastName} (
+                          {student.studentNumber})
                         </MenuItem>
                       ))}
                     </Select>
@@ -577,7 +617,11 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     <InputLabel>Status</InputLabel>
                     <Select
                       value={manualStatus}
-                      onChange={(e) => setManualStatus(e.target.value as 'Present' | 'Absent' | 'Late')}
+                      onChange={e =>
+                        setManualStatus(
+                          e.target.value as 'Present' | 'Absent' | 'Late'
+                        )
+                      }
                     >
                       <MenuItem value="Present">Present</MenuItem>
                       <MenuItem value="Absent">Absent</MenuItem>
@@ -591,7 +635,9 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     variant="contained"
                     onClick={handleManualAttendance}
                     disabled={!manualStudentId || !selectedTrip || loading}
-                    startIcon={loading ? <CircularProgress size={20} /> : <Person />}
+                    startIcon={
+                      loading ? <CircularProgress size={20} /> : <Person />
+                    }
                   >
                     Record Attendance
                   </Button>
@@ -614,22 +660,23 @@ const MultiMethodAttendanceTracker: React.FC = () => {
             </Typography>
           ) : (
             <List>
-              {attendanceRecords.map((record) => (
+              {attendanceRecords.map(record => (
                 <ListItem key={record.id}>
-                  <ListItemIcon>
-                    {getMethodIcon(record.method)}
-                  </ListItemIcon>
+                  <ListItemIcon>{getMethodIcon(record.method)}</ListItemIcon>
                   <ListItemText
                     primary={record.studentName}
                     secondary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
                         <Chip
                           label={record.status}
                           color={getStatusColor(record.status) as any}
                           size="small"
                         />
                         <Typography variant="caption">
-                          {record.method} • {new Date(record.timestamp).toLocaleTimeString()}
+                          {record.method} •{' '}
+                          {new Date(record.timestamp).toLocaleTimeString()}
                         </Typography>
                       </Box>
                     }
@@ -642,12 +689,25 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       </Card>
 
       {/* Photo Capture Dialog */}
-      <Dialog open={photoDialog} onClose={closePhotoDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={photoDialog}
+        onClose={closePhotoDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
-          Photo Verification - {selectedStudent?.firstName} {selectedStudent?.lastName}
+          Photo Verification - {selectedStudent?.firstName}{' '}
+          {selectedStudent?.lastName}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
             {!capturedPhoto ? (
               <>
                 <video
@@ -682,7 +742,9 @@ const MultiMethodAttendanceTracker: React.FC = () => {
                     variant="contained"
                     onClick={submitPhotoAttendance}
                     disabled={loading}
-                    startIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
+                    startIcon={
+                      loading ? <CircularProgress size={20} /> : <CheckCircle />
+                    }
                   >
                     Confirm Attendance
                   </Button>
@@ -704,7 +766,11 @@ const MultiMethodAttendanceTracker: React.FC = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mt: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}

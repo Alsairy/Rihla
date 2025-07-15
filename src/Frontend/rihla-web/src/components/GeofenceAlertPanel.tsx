@@ -27,7 +27,7 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Badge
+  Badge,
 } from '@mui/material';
 import {
   LocationOn,
@@ -45,7 +45,7 @@ import {
   Phone,
   Message,
   Clear,
-  FilterList
+  FilterList,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -90,7 +90,9 @@ const GeofenceAlertPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<GeofenceAlert | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<GeofenceAlert | null>(
+    null
+  );
   const [alertDialog, setAlertDialog] = useState(false);
   const [settingsDialog, setSettingsDialog] = useState(false);
   const [alertSettings, setAlertSettings] = useState<AlertSettings>({
@@ -98,19 +100,19 @@ const GeofenceAlertPanel: React.FC = () => {
     alertRadius: 500,
     autoAcknowledge: false,
     soundEnabled: true,
-    severityFilter: 'All'
+    severityFilter: 'All',
   });
 
   useEffect(() => {
     loadInitialData();
     loadAlertSettings();
-    
+
     const interval = window.setInterval(() => {
       if (selectedTrip && alertSettings.enableNotifications) {
         checkGeofenceAlerts();
       }
     }, 10000); // Check every 10 seconds
-    
+
     return () => window.clearInterval(interval);
   }, [selectedTrip, alertSettings.enableNotifications]);
 
@@ -119,7 +121,7 @@ const GeofenceAlertPanel: React.FC = () => {
     try {
       const tripsResponse = await apiClient.get('/api/trips/active');
       setTrips((tripsResponse as any).data?.items || []);
-      
+
       if ((tripsResponse as any).data?.items?.length > 0) {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         await loadAlertsForTrip((tripsResponse as any).data.items[0].id);
@@ -143,33 +145,42 @@ const GeofenceAlertPanel: React.FC = () => {
 
   const checkGeofenceAlerts = async () => {
     if (!selectedTrip) return;
-    
+
     try {
-      const locationResponse = await apiClient.get(`/api/trips/${selectedTrip}/current-location`);
+      const locationResponse = await apiClient.get(
+        `/api/trips/${selectedTrip}/current-location`
+      );
       const location = (locationResponse as any).data;
-      
+
       if (location) {
-        const response = await apiClient.post('/api/attendance/geofence-alerts', {
-          tripId: selectedTrip,
-          latitude: location.latitude,
-          longitude: location.longitude
-        });
-        
+        const response = await apiClient.post(
+          '/api/attendance/geofence-alerts',
+          {
+            tripId: selectedTrip,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }
+        );
+
         const newAlerts = (response as any).data || [];
         if (newAlerts.length > 0) {
           setAlerts(prev => {
             const existingIds = prev.map(a => a.id);
-            const uniqueNewAlerts = newAlerts.filter((alert: GeofenceAlert) => !existingIds.includes(alert.id));
+            const uniqueNewAlerts = newAlerts.filter(
+              (alert: GeofenceAlert) => !existingIds.includes(alert.id)
+            );
             return [...prev, ...uniqueNewAlerts];
           });
-          
+
           if (alertSettings.soundEnabled) {
-            const highSeverityAlerts = newAlerts.filter((alert: GeofenceAlert) => alert.severity === 'High');
+            const highSeverityAlerts = newAlerts.filter(
+              (alert: GeofenceAlert) => alert.severity === 'High'
+            );
             if (highSeverityAlerts.length > 0) {
               playAlertSound();
             }
           }
-          
+
           if (alertSettings.autoAcknowledge) {
             newAlerts.forEach((alert: GeofenceAlert) => {
               acknowledgeAlert(alert.id);
@@ -185,13 +196,19 @@ const GeofenceAlertPanel: React.FC = () => {
   const acknowledgeAlert = async (alertId: string) => {
     try {
       await apiClient.post(`/api/geofence/alerts/${alertId}/acknowledge`);
-      
-      setAlerts(prev => prev.map(alert => 
-        alert.id === alertId 
-          ? { ...alert, acknowledged: true, actionTaken: 'Acknowledged by operator' }
-          : alert
-      ));
-      
+
+      setAlerts(prev =>
+        prev.map(alert =>
+          alert.id === alertId
+            ? {
+                ...alert,
+                acknowledged: true,
+                actionTaken: 'Acknowledged by operator',
+              }
+            : alert
+        )
+      );
+
       setSuccess('Alert acknowledged successfully');
     } catch (err) {
       setError('Failed to acknowledge alert');
@@ -208,10 +225,11 @@ const GeofenceAlertPanel: React.FC = () => {
     try {
       await apiClient.post(`/api/notifications/contact-parent`, {
         studentId,
-        message: 'Your child has not boarded the school bus at the designated stop. Please contact the school immediately.',
-        urgency: 'High'
+        message:
+          'Your child has not boarded the school bus at the designated stop. Please contact the school immediately.',
+        urgency: 'High',
       });
-      
+
       setSuccess('Parent has been notified');
     } catch (err) {
       setError('Failed to contact parent');
@@ -223,10 +241,11 @@ const GeofenceAlertPanel: React.FC = () => {
     try {
       await apiClient.post(`/api/notifications/contact-driver`, {
         tripId,
-        message: 'Please check for students who may have missed boarding at recent stops.',
-        urgency: 'Medium'
+        message:
+          'Please check for students who may have missed boarding at recent stops.',
+        urgency: 'Medium',
       });
-      
+
       setSuccess('Driver has been notified');
     } catch (err) {
       setError('Failed to contact driver');
@@ -254,35 +273,46 @@ const GeofenceAlertPanel: React.FC = () => {
 
   const getFilteredAlerts = () => {
     let filtered = alerts;
-    
+
     if (alertSettings.severityFilter !== 'All') {
-      filtered = filtered.filter(alert => alert.severity === alertSettings.severityFilter);
+      filtered = filtered.filter(
+        alert => alert.severity === alertSettings.severityFilter
+      );
     }
-    
+
     return filtered.sort((a, b) => {
-      const severityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-      const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
+      const severityOrder = { High: 3, Medium: 2, Low: 1 };
+      const severityDiff =
+        severityOrder[b.severity] - severityOrder[a.severity];
       if (severityDiff !== 0) return severityDiff;
-      
+
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'High': return 'error';
-      case 'Medium': return 'warning';
-      case 'Low': return 'info';
-      default: return 'default';
+      case 'High':
+        return 'error';
+      case 'Medium':
+        return 'warning';
+      case 'Low':
+        return 'info';
+      default:
+        return 'default';
     }
   };
 
   const getAlertIcon = (alertType: string) => {
     switch (alertType) {
-      case 'Student Not Boarded': return <Person />;
-      case 'Vehicle Delayed': return <Schedule />;
-      case 'Route Deviation': return <DirectionsCar />;
-      default: return <Warning />;
+      case 'Student Not Boarded':
+        return <Person />;
+      case 'Vehicle Delayed':
+        return <Schedule />;
+      case 'Route Deviation':
+        return <DirectionsCar />;
+      default:
+        return <Warning />;
     }
   };
 
@@ -291,21 +321,41 @@ const GeofenceAlertPanel: React.FC = () => {
   };
 
   const getHighSeverityCount = () => {
-    return alerts.filter(alert => alert.severity === 'High' && !alert.acknowledged).length;
+    return alerts.filter(
+      alert => alert.severity === 'High' && !alert.acknowledged
+    ).length;
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
-          Geofence Alert Panel
-        </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4">Geofence Alert Panel</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Badge badgeContent={getUnacknowledgedCount()} color="error">
             <Button
-              variant={alertSettings.enableNotifications ? 'contained' : 'outlined'}
-              startIcon={alertSettings.enableNotifications ? <Notifications /> : <NotificationsOff />}
-              onClick={() => saveAlertSettings({ ...alertSettings, enableNotifications: !alertSettings.enableNotifications })}
+              variant={
+                alertSettings.enableNotifications ? 'contained' : 'outlined'
+              }
+              startIcon={
+                alertSettings.enableNotifications ? (
+                  <Notifications />
+                ) : (
+                  <NotificationsOff />
+                )
+              }
+              onClick={() =>
+                saveAlertSettings({
+                  ...alertSettings,
+                  enableNotifications: !alertSettings.enableNotifications,
+                })
+              }
             >
               {alertSettings.enableNotifications ? 'Enabled' : 'Disabled'}
             </Button>
@@ -358,7 +408,9 @@ const GeofenceAlertPanel: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Schedule color="warning" />
                 <Box>
-                  <Typography variant="h6">{getUnacknowledgedCount()}</Typography>
+                  <Typography variant="h6">
+                    {getUnacknowledgedCount()}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Unacknowledged
                   </Typography>
@@ -373,7 +425,9 @@ const GeofenceAlertPanel: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircle color="success" />
                 <Box>
-                  <Typography variant="h6">{alerts.filter(a => a.acknowledged).length}</Typography>
+                  <Typography variant="h6">
+                    {alerts.filter(a => a.acknowledged).length}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Resolved
                   </Typography>
@@ -393,13 +447,13 @@ const GeofenceAlertPanel: React.FC = () => {
                 <InputLabel>Select Trip</InputLabel>
                 <Select
                   value={selectedTrip || ''}
-                  onChange={(e) => {
+                  onChange={e => {
                     const tripId = Number(e.target.value);
                     setSelectedTrip(tripId);
                     loadAlertsForTrip(tripId);
                   }}
                 >
-                  {trips.map((trip) => (
+                  {trips.map(trip => (
                     <MenuItem key={trip.id} value={trip.id}>
                       {trip.routeName} - {trip.vehicleName} ({trip.driverName})
                     </MenuItem>
@@ -412,7 +466,9 @@ const GeofenceAlertPanel: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<Refresh />}
-                  onClick={() => selectedTrip && loadAlertsForTrip(selectedTrip)}
+                  onClick={() =>
+                    selectedTrip && loadAlertsForTrip(selectedTrip)
+                  }
                   disabled={loading}
                 >
                   Refresh
@@ -445,7 +501,14 @@ const GeofenceAlertPanel: React.FC = () => {
             Active Alerts ({getFilteredAlerts().length})
           </Typography>
           {getFilteredAlerts().length === 0 ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 4,
+              }}
+            >
               <CheckCircle color="success" sx={{ mr: 1 }} />
               <Typography color="text.secondary">
                 No active alerts for selected trip
@@ -456,12 +519,12 @@ const GeofenceAlertPanel: React.FC = () => {
               {getFilteredAlerts().map((alert, index) => (
                 <React.Fragment key={alert.id}>
                   <ListItem>
-                    <ListItemIcon>
-                      {getAlertIcon(alert.alertType)}
-                    </ListItemIcon>
+                    <ListItemIcon>{getAlertIcon(alert.alertType)}</ListItemIcon>
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
                           <Typography variant="subtitle1">
                             {alert.alertType}
                           </Typography>
@@ -471,7 +534,11 @@ const GeofenceAlertPanel: React.FC = () => {
                             size="small"
                           />
                           {alert.acknowledged && (
-                            <Chip label="Acknowledged" color="success" size="small" />
+                            <Chip
+                              label="Acknowledged"
+                              color="success"
+                              size="small"
+                            />
                           )}
                         </Box>
                       }
@@ -481,8 +548,9 @@ const GeofenceAlertPanel: React.FC = () => {
                             {alert.message}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Student: {alert.studentName} • Stop: {alert.stopName} • 
-                            Distance: {alert.distance.toFixed(0)}m • 
+                            Student: {alert.studentName} • Stop:{' '}
+                            {alert.stopName} • Distance:{' '}
+                            {alert.distance.toFixed(0)}m •
                             {new Date(alert.timestamp).toLocaleString()}
                           </Typography>
                         </Box>
@@ -540,22 +608,21 @@ const GeofenceAlertPanel: React.FC = () => {
       </Card>
 
       {/* Alert Details Dialog */}
-      <Dialog open={alertDialog} onClose={() => setAlertDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Alert Details
-        </DialogTitle>
+      <Dialog
+        open={alertDialog}
+        onClose={() => setAlertDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Alert Details</DialogTitle>
         <DialogContent>
           {selectedAlert && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Alert severity={getSeverityColor(selectedAlert.severity) as any}>
-                <Typography variant="h6">
-                  {selectedAlert.alertType}
-                </Typography>
-                <Typography variant="body1">
-                  {selectedAlert.message}
-                </Typography>
+                <Typography variant="h6">{selectedAlert.alertType}</Typography>
+                <Typography variant="body1">{selectedAlert.message}</Typography>
               </Alert>
-              
+
               <Paper sx={{ p: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Student Information
@@ -606,7 +673,8 @@ const GeofenceAlertPanel: React.FC = () => {
                       Coordinates
                     </Typography>
                     <Typography variant="body1">
-                      {selectedAlert.latitude.toFixed(6)}, {selectedAlert.longitude.toFixed(6)}
+                      {selectedAlert.latitude.toFixed(6)},{' '}
+                      {selectedAlert.longitude.toFixed(6)}
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
@@ -631,7 +699,9 @@ const GeofenceAlertPanel: React.FC = () => {
                     size="small"
                   />
                   <Chip
-                    label={selectedAlert.acknowledged ? 'Acknowledged' : 'Pending'}
+                    label={
+                      selectedAlert.acknowledged ? 'Acknowledged' : 'Pending'
+                    }
                     color={selectedAlert.acknowledged ? 'success' : 'warning'}
                     size="small"
                   />
@@ -651,12 +721,10 @@ const GeofenceAlertPanel: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAlertDialog(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setAlertDialog(false)}>Close</Button>
           {selectedAlert && !selectedAlert.acknowledged && (
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="primary"
               onClick={() => {
                 acknowledgeAlert(selectedAlert.id);
@@ -667,8 +735,8 @@ const GeofenceAlertPanel: React.FC = () => {
             </Button>
           )}
           {selectedAlert && (
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="secondary"
               startIcon={<Phone />}
               onClick={() => {
@@ -683,37 +751,55 @@ const GeofenceAlertPanel: React.FC = () => {
       </Dialog>
 
       {/* Settings Dialog */}
-      <Dialog open={settingsDialog} onClose={() => setSettingsDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Alert Settings
-        </DialogTitle>
+      <Dialog
+        open={settingsDialog}
+        onClose={() => setSettingsDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Alert Settings</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
             <FormControlLabel
               control={
                 <Switch
                   checked={alertSettings.enableNotifications}
-                  onChange={(e) => setAlertSettings(prev => ({ ...prev, enableNotifications: e.target.checked }))}
+                  onChange={e =>
+                    setAlertSettings(prev => ({
+                      ...prev,
+                      enableNotifications: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="Enable Notifications"
             />
-            
+
             <FormControlLabel
               control={
                 <Switch
                   checked={alertSettings.soundEnabled}
-                  onChange={(e) => setAlertSettings(prev => ({ ...prev, soundEnabled: e.target.checked }))}
+                  onChange={e =>
+                    setAlertSettings(prev => ({
+                      ...prev,
+                      soundEnabled: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="Sound Alerts"
             />
-            
+
             <FormControlLabel
               control={
                 <Switch
                   checked={alertSettings.autoAcknowledge}
-                  onChange={(e) => setAlertSettings(prev => ({ ...prev, autoAcknowledge: e.target.checked }))}
+                  onChange={e =>
+                    setAlertSettings(prev => ({
+                      ...prev,
+                      autoAcknowledge: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="Auto-acknowledge Low Priority Alerts"
@@ -723,7 +809,12 @@ const GeofenceAlertPanel: React.FC = () => {
               <InputLabel>Alert Radius (meters)</InputLabel>
               <Select
                 value={alertSettings.alertRadius}
-                onChange={(e) => setAlertSettings(prev => ({ ...prev, alertRadius: Number(e.target.value) }))}
+                onChange={e =>
+                  setAlertSettings(prev => ({
+                    ...prev,
+                    alertRadius: Number(e.target.value),
+                  }))
+                }
               >
                 <MenuItem value={200}>200m</MenuItem>
                 <MenuItem value={500}>500m</MenuItem>
@@ -736,7 +827,12 @@ const GeofenceAlertPanel: React.FC = () => {
               <InputLabel>Severity Filter</InputLabel>
               <Select
                 value={alertSettings.severityFilter}
-                onChange={(e) => setAlertSettings(prev => ({ ...prev, severityFilter: e.target.value as any }))}
+                onChange={e =>
+                  setAlertSettings(prev => ({
+                    ...prev,
+                    severityFilter: e.target.value as any,
+                  }))
+                }
               >
                 <MenuItem value="All">All Alerts</MenuItem>
                 <MenuItem value="High">High Priority Only</MenuItem>
@@ -747,11 +843,9 @@ const GeofenceAlertPanel: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSettingsDialog(false)}>
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
+          <Button onClick={() => setSettingsDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
             onClick={() => {
               saveAlertSettings(alertSettings);
               setSettingsDialog(false);
@@ -769,7 +863,11 @@ const GeofenceAlertPanel: React.FC = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mt: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
