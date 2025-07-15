@@ -231,7 +231,6 @@ const GeofenceAlertPanel: React.FC = () => {
     }
   };
 
-
   const loadAlertSettings = () => {
     const saved = localStorage.getItem('geofenceAlertSettings');
     if (saved) {
@@ -247,8 +246,7 @@ const GeofenceAlertPanel: React.FC = () => {
 
   const playAlertSound = () => {
     const audio = new Audio('/alert-sound.mp3');
-    audio.play().catch(() => {
-    });
+    audio.play().catch(() => {});
   };
 
   const getFilteredAlerts = () => {
