@@ -27,7 +27,6 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
-  Divider,
   Switch,
   FormControlLabel,
   LinearProgress,
@@ -40,21 +39,15 @@ import {
   Send as SendIcon,
   Download as DownloadIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
   Schedule as ScheduleIcon,
   Payment as PaymentIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Email as EmailIcon,
-  Print as PrintIcon,
   Settings as SettingsIcon,
   ExpandMore as ExpandMoreIcon,
-  AttachMoney as MoneyIcon,
-  CalendarToday as CalendarIcon,
-  Person as PersonIcon,
-  Business as BusinessIcon
+  AttachMoney as MoneyIcon
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
 
@@ -142,8 +135,6 @@ const AutomatedBillingDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -160,10 +151,9 @@ const AutomatedBillingDashboard: React.FC = () => {
       setLoading(true);
       const response = await apiClient.get('/api/billing/invoices') as { data: Invoice[] };
       setInvoices(response.data || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load invoices');
-      console.error('Error loading invoices:', err);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -174,8 +164,8 @@ const AutomatedBillingDashboard: React.FC = () => {
       if (response.data) {
         setBillingSettings(response.data);
       }
-    } catch (err) {
-      console.error('Error loading billing settings:', err);
+    } catch {
+      setError('Failed to load billing settings');
     }
   };
 
@@ -185,8 +175,8 @@ const AutomatedBillingDashboard: React.FC = () => {
       if (response.data) {
         setBillingStats(response.data);
       }
-    } catch (err) {
-      console.error('Error loading billing stats:', err);
+    } catch {
+      setError('Failed to load billing stats');
     }
   };
 
@@ -206,10 +196,9 @@ const AutomatedBillingDashboard: React.FC = () => {
         loadInvoices();
         loadBillingStats();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to generate automated invoices');
-      console.error('Error generating invoices:', err);
-    } finally {
+    }finally {
       setGeneratingInvoices(false);
     }
   };
@@ -223,10 +212,9 @@ const AutomatedBillingDashboard: React.FC = () => {
         setSuccess('Invoice sent successfully');
         loadInvoices();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to send invoice');
-      console.error('Error sending invoice:', err);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -243,31 +231,11 @@ const AutomatedBillingDashboard: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setError('Failed to download invoice');
-      console.error('Error downloading invoice:', err);
     }
   };
 
-  const updateInvoiceStatus = async (invoiceId: number, status: string) => {
-    try {
-      setLoading(true);
-      const response = await apiClient.put(`/api/billing/invoices/${invoiceId}/status`, {
-        status
-      }) as { data: { success: boolean } };
-      
-      if (response.data.success) {
-        setSuccess('Invoice status updated successfully');
-        loadInvoices();
-        loadBillingStats();
-      }
-    } catch (err) {
-      setError('Failed to update invoice status');
-      console.error('Error updating invoice status:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const saveBillingSettings = async () => {
     try {
@@ -278,10 +246,9 @@ const AutomatedBillingDashboard: React.FC = () => {
         setSuccess('Billing settings saved successfully');
         setSettingsDialogOpen(false);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to save billing settings');
-      console.error('Error saving billing settings:', err);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -328,8 +295,6 @@ const AutomatedBillingDashboard: React.FC = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => {
-              setSelectedInvoice(null);
-              setInvoiceDialogOpen(true);
             }}
           >
             Create Invoice
@@ -520,8 +485,6 @@ const AutomatedBillingDashboard: React.FC = () => {
                             <IconButton
                               size="small"
                               onClick={() => {
-                                setSelectedInvoice(invoice);
-                                setInvoiceDialogOpen(true);
                               }}
                             >
                               <EditIcon />

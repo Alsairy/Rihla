@@ -36,7 +36,7 @@ import {
   School as SchoolIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/apiClient';
 import { DashboardStats, Student, Driver, Vehicle } from '../types';
 import NotificationCenter from '../components/NotificationCenter';

@@ -29,7 +29,7 @@ import {
   Delete as DeleteIcon,
   Description as DocumentIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { apiClient } from '../../services/apiClient';
 
 interface VehicleRegistrationFormProps {
