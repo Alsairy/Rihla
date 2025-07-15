@@ -133,12 +133,12 @@ const MultiMethodAttendanceTracker: React.FC = () => {
         apiClient.get('/api/trips/active')
       ]);
       
-      setStudents(studentsResponse.data.items || []);
-      setTrips(tripsResponse.data.items || []);
+      setStudents((studentsResponse as any).data?.items || []);
+      setTrips((tripsResponse as any).data?.items || []);
       
-      if (tripsResponse.data.items?.length > 0) {
-        setSelectedTrip(tripsResponse.data.items[0].id);
-        loadAttendanceRecords(tripsResponse.data.items[0].id);
+      if ((tripsResponse as any).data?.items?.length > 0) {
+        setSelectedTrip((tripsResponse as any).data.items[0].id);
+        loadAttendanceRecords((tripsResponse as any).data.items[0].id);
       }
     } catch (err) {
       setError('Failed to load initial data');
@@ -151,7 +151,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
   const loadAttendanceRecords = async (tripId: number) => {
     try {
       const response = await apiClient.get(`/api/attendance/trip/${tripId}`);
-      setAttendanceRecords(response.data || []);
+      setAttendanceRecords((response as any).data || []);
     } catch (err) {
       console.error('Error loading attendance records:', err);
     }
@@ -170,11 +170,11 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           timestamp: new Date().toISOString()
         });
         
-        if (response.data.success) {
+        if ((response as any).data.success) {
           setSuccess('RFID attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError(response.data.message || 'Failed to record RFID attendance');
+          setError((response as any).data.message || 'Failed to record RFID attendance');
         }
       } else {
         const student = students.find(s => s.rfidTag === rfidInput.trim());
@@ -251,11 +251,11 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           timestamp: new Date().toISOString()
         });
         
-        if (response.data.success) {
+        if ((response as any).data.success) {
           setSuccess('Photo attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError(response.data.message || 'Failed to record photo attendance');
+          setError((response as any).data.message || 'Failed to record photo attendance');
         }
       } else {
         const offlineRecord: OfflineRecord = {
@@ -306,11 +306,11 @@ const MultiMethodAttendanceTracker: React.FC = () => {
           boardingTime: manualStatus === 'Present' ? new Date().toISOString() : null
         });
         
-        if (response.data.success) {
+        if ((response as any).data.success) {
           setSuccess('Manual attendance recorded successfully');
           loadAttendanceRecords(selectedTrip);
         } else {
-          setError(response.data.message || 'Failed to record manual attendance');
+          setError((response as any).data.message || 'Failed to record manual attendance');
         }
       } else {
         const offlineRecord: OfflineRecord = {
@@ -346,7 +346,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
         offlineRecords
       });
       
-      if (response.data.success) {
+      if ((response as any).data.success) {
         setOfflineRecords([]);
         setSuccess(`Synced ${offlineRecords.length} offline records`);
         if (selectedTrip) {
