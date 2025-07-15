@@ -111,7 +111,7 @@ const GeofenceAlertPanel: React.FC = () => {
     }, 10000); // Check every 10 seconds
 
     return () => window.clearInterval(interval);
-  }, [selectedTrip, alertSettings.enableNotifications, checkGeofenceAlerts, loadInitialData]);
+  }, [selectedTrip, alertSettings.enableNotifications]);
 
   const loadInitialData = async () => {
     setLoading(true);
