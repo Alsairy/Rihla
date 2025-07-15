@@ -160,9 +160,8 @@ const FamilyDiscountCalculator: React.FC = () => {
         data: FamilyDiscountCalculation[];
       };
       setFamilies(response.data || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load family discounts');
-      console.error('Error loading family discounts:', err);
     } finally {
       setLoading(false);
     }
@@ -174,7 +173,7 @@ const FamilyDiscountCalculator: React.FC = () => {
         data: DiscountRule[];
       };
       setDiscountRules(response.data || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load discount rules');
     }
   };
@@ -195,7 +194,7 @@ const FamilyDiscountCalculator: React.FC = () => {
           )
         );
       }
-    } catch (err) {
+    } catch {
       setError('Failed to calculate family discount');
     } finally {
       setLoading(false);
@@ -222,7 +221,7 @@ const FamilyDiscountCalculator: React.FC = () => {
         setRuleDialogOpen(false);
         resetRuleForm();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to save discount rule');
     } finally {
       setLoading(false);
@@ -240,7 +239,7 @@ const FamilyDiscountCalculator: React.FC = () => {
         setSuccess('Discount rule deleted successfully');
         loadDiscountRules();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to delete discount rule');
     } finally {
       setLoading(false);
@@ -256,7 +255,7 @@ const FamilyDiscountCalculator: React.FC = () => {
 
       setSimulationResults(response.data || []);
       setSimulationDialogOpen(true);
-    } catch (err) {
+    } catch {
       setError('Failed to run discount simulation');
     } finally {
       setLoading(false);
@@ -276,7 +275,7 @@ const FamilyDiscountCalculator: React.FC = () => {
         );
         loadFamilyDiscounts();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to apply bulk discounts');
     } finally {
       setLoading(false);
