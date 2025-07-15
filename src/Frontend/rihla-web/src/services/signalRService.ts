@@ -58,7 +58,7 @@ class SignalRService {
     }
   }
 
-  onNotificationReceived(callback: () => void): void {
+  onNotificationReceived(callback: (_notification: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('ReceiveNotification', callback);
@@ -67,7 +67,7 @@ class SignalRService {
     }
   }
 
-  onTripStatusUpdated(callback: () => void): void {
+  onTripStatusUpdated(callback: (_tripUpdate: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
@@ -76,7 +76,7 @@ class SignalRService {
     }
   }
 
-  onEmergencyAlert(callback: () => void): void {
+  onEmergencyAlert(callback: (_alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('EmergencyAlert', callback);
@@ -85,7 +85,7 @@ class SignalRService {
     }
   }
 
-  onDriverCertificationUpdated(callback: () => void): void {
+  onDriverCertificationUpdated(callback: (_update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverCertificationUpdated', callback);
@@ -94,7 +94,7 @@ class SignalRService {
     }
   }
 
-  onVehicleMaintenanceUpdated(callback: () => void): void {
+  onVehicleMaintenanceUpdated(callback: (_update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleMaintenanceUpdated', callback);
@@ -103,7 +103,7 @@ class SignalRService {
     }
   }
 
-  onVehicleStatusChanged(callback: () => void): void {
+  onVehicleStatusChanged(callback: (_update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleStatusChanged', callback);
@@ -112,7 +112,7 @@ class SignalRService {
     }
   }
 
-  onDriverStatusChanged(callback: () => void): void {
+  onDriverStatusChanged(callback: (_update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverStatusChanged', callback);
@@ -121,7 +121,7 @@ class SignalRService {
     }
   }
 
-  onMaintenanceAlertCreated(callback: () => void): void {
+  onMaintenanceAlertCreated(callback: (_alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('MaintenanceAlertCreated', callback);
@@ -130,7 +130,7 @@ class SignalRService {
     }
   }
 
-  onInsuranceExpirationAlert(callback: () => void): void {
+  onInsuranceExpirationAlert(callback: (_alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('InsuranceExpirationAlert', callback);
