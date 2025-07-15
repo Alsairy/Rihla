@@ -95,7 +95,7 @@ const AdminDashboard: React.FC = () => {
           setExpiringCertifications(
             Array.isArray(certificationsResponse) ? certificationsResponse : []
           );
-        } catch (certError) {
+        } catch {
           setExpiringCertifications([]);
         }
       } catch {
@@ -713,8 +713,8 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                } catch (error) {
-                }
+                  // eslint-disable-next-line no-empty
+                } catch {}
               };
               fetchDashboardData();
             }}
@@ -763,8 +763,8 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                } catch (error) {
-                }
+                  // eslint-disable-next-line no-empty
+                } catch {}
               };
               fetchDashboardData();
             }}

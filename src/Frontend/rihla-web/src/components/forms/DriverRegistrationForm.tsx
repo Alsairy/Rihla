@@ -28,7 +28,7 @@ import {
 import { apiClient } from '../../services/apiClient';
 
 interface DriverRegistrationFormProps {
-  onSuccess?: (driver: any) => void;
+  onSuccess?: () => void;
   onCancel?: () => void;
 }
 
@@ -150,7 +150,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
           return newProgress;
         });
       }, 2000);
-    } catch (error) {
+    } catch {
       setError(`Failed to upload ${documentType} document`);
       setUploadProgress(prev => {
         const newProgress = { ...prev };
@@ -286,7 +286,7 @@ const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       setSuccess('Driver registered successfully!');
 
       if (onSuccess) {
-        onSuccess(createdDriver);
+        onSuccess();
       }
 
       setFormData({

@@ -75,6 +75,7 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/start`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
+      // eslint-disable-next-line no-empty
     } catch {}
   };
 
@@ -83,6 +84,7 @@ const DriverInterface: React.FC = () => {
       await apiClient.post(`/api/trips/${tripId}/complete`);
       const tripsResponse = await apiClient.get<Trip[]>('/api/trips/my-trips');
       setTrips(Array.isArray(tripsResponse) ? tripsResponse : []);
+      // eslint-disable-next-line no-empty
     } catch {}
   };
 

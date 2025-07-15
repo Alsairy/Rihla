@@ -60,7 +60,7 @@ interface AlertItem {
 }
 
 interface AlertsPanelProps {
-  onAlertClick?: (alert?: AlertItem) => void;
+  onAlertClick?: () => void;
   maxItems?: number;
   showCategories?: boolean;
   autoRefresh?: boolean;
@@ -382,7 +382,7 @@ const AlertsPanel: React.FC<AlertsPanelProps> = ({
                 }
               : {},
           }}
-          onClick={() => onAlertClick?.(alert)}
+          onClick={() => onAlertClick?.()}
         >
           <ListItemIcon>{getAlertIcon(alert)}</ListItemIcon>
           <ListItemText

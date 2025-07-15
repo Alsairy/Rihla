@@ -131,6 +131,7 @@ const MapPage: React.FC = () => {
       signalRService.onEmergencyAlert(() => {
         loadMapData();
       });
+      // eslint-disable-next-line no-empty
     } catch {}
   }, [realTimeEnabled, loadMapData]);
 

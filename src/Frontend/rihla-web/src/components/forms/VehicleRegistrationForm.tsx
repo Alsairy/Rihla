@@ -129,7 +129,7 @@ const VehicleRegistrationForm: React.FC<VehicleRegistrationFormProps> = ({
           doc.file === file ? { ...doc, uploaded: true, progress: 100 } : doc
         )
       );
-    } catch (error) {
+    } catch {
       setDocuments(prev => prev.filter(doc => doc.file !== file));
       setError('Failed to upload document. Please try again.');
     }
