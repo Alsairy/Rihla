@@ -22,8 +22,14 @@ import {
   Route as RouteIcon,
   People as PeopleIcon,
   Refresh as RefreshIcon,
+  Settings as OptimizeIcon,
+  Timeline as AnalyticsIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import MapComponent from '../components/MapComponent';
+import RouteOptimizationWizard from '../components/RouteOptimizationWizard';
+import RouteEfficiencyAnalytics from '../components/RouteEfficiencyAnalytics';
+import TripSchedulingDashboard from '../components/TripSchedulingDashboard';
 import { apiClient } from '../services/apiClient';
 import { signalRService } from '../services/signalRService';
 
@@ -73,6 +79,10 @@ const MapPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [showOptimizationWizard, setShowOptimizationWizard] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showScheduling, setShowScheduling] = useState(false);
+  const [optimizedRoutes, setOptimizedRoutes] = useState<any[]>([]);
 
   const loadMapData = React.useCallback(async () => {
     try {
@@ -172,6 +182,12 @@ const MapPage: React.FC = () => {
 
   const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
   const selectedRoute = routes.find(r => r.id === selectedRouteId);
+
+  const handleRouteOptimized = (optimizedRoute: any) => {
+    setOptimizedRoutes(prev => [...prev, optimizedRoute]);
+    setShowOptimizationWizard(false);
+    loadMapData(); // Refresh data to show optimized route
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -391,6 +407,36 @@ const MapPage: React.FC = () => {
               Refresh
             </Button>
           </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="contained"
+              startIcon={<OptimizeIcon />}
+              onClick={() => setShowOptimizationWizard(true)}
+              color="primary"
+            >
+              Optimize Routes
+            </Button>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              startIcon={<AnalyticsIcon />}
+              onClick={() => setShowAnalytics(true)}
+              color="info"
+            >
+              Analytics
+            </Button>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              startIcon={<ScheduleIcon />}
+              onClick={() => setShowScheduling(true)}
+              color="secondary"
+            >
+              Scheduling
+            </Button>
+          </Grid>
         </Grid>
       </Paper>
 
@@ -459,6 +505,39 @@ const MapPage: React.FC = () => {
           selectedRouteId={selectedRouteId}
         />
       </Paper>
+
+      {/* Route Optimization Wizard */}
+      <RouteOptimizationWizard
+        open={showOptimizationWizard}
+        onClose={() => setShowOptimizationWizard(false)}
+        onRouteCreated={handleRouteOptimized}
+        existingRouteId={selectedRouteId ? parseInt(selectedRouteId) : undefined}
+      />
+
+      {/* Route Efficiency Analytics */}
+      {showAnalytics && (
+        <Paper sx={{ mt: 3, p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Route Efficiency Analytics</Typography>
+            <Button onClick={() => setShowAnalytics(false)}>Close</Button>
+          </Box>
+          <RouteEfficiencyAnalytics
+            selectedRouteId={selectedRouteId ? parseInt(selectedRouteId) : undefined}
+            onRouteSelect={(routeId) => setSelectedRouteId(routeId.toString())}
+          />
+        </Paper>
+      )}
+
+      {/* Trip Scheduling Dashboard */}
+      {showScheduling && (
+        <Paper sx={{ mt: 3, p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Trip Scheduling Dashboard</Typography>
+            <Button onClick={() => setShowScheduling(false)}>Close</Button>
+          </Box>
+          <TripSchedulingDashboard />
+        </Paper>
+      )}
     </Box>
   );
 };
