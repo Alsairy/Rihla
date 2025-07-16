@@ -58,7 +58,7 @@ class SignalRService {
     }
   }
 
-  onNotificationReceived(callback: (_notification: any) => void): void {
+  onNotificationReceived(callback: (notification: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('ReceiveNotification', callback);
@@ -67,7 +67,7 @@ class SignalRService {
     }
   }
 
-  onTripStatusUpdated(callback: (_tripUpdate: any) => void): void {
+  onTripStatusUpdated(callback: (tripUpdate: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('TripStatusUpdated', callback);
@@ -76,7 +76,7 @@ class SignalRService {
     }
   }
 
-  onEmergencyAlert(callback: (_alert: any) => void): void {
+  onEmergencyAlert(callback: (alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('EmergencyAlert', callback);
@@ -85,7 +85,7 @@ class SignalRService {
     }
   }
 
-  onDriverCertificationUpdated(callback: (_update: any) => void): void {
+  onDriverCertificationUpdated(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverCertificationUpdated', callback);
@@ -94,7 +94,7 @@ class SignalRService {
     }
   }
 
-  onVehicleMaintenanceUpdated(callback: (_update: any) => void): void {
+  onVehicleMaintenanceUpdated(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleMaintenanceUpdated', callback);
@@ -103,7 +103,7 @@ class SignalRService {
     }
   }
 
-  onVehicleStatusChanged(callback: (_update: any) => void): void {
+  onVehicleStatusChanged(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('VehicleStatusChanged', callback);
@@ -112,7 +112,7 @@ class SignalRService {
     }
   }
 
-  onDriverStatusChanged(callback: (_update: any) => void): void {
+  onDriverStatusChanged(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('DriverStatusChanged', callback);
@@ -121,7 +121,7 @@ class SignalRService {
     }
   }
 
-  onMaintenanceAlertCreated(callback: (_alert: any) => void): void {
+  onMaintenanceAlertCreated(callback: (alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('MaintenanceAlertCreated', callback);
@@ -130,7 +130,7 @@ class SignalRService {
     }
   }
 
-  onInsuranceExpirationAlert(callback: (_alert: any) => void): void {
+  onInsuranceExpirationAlert(callback: (alert: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('InsuranceExpirationAlert', callback);
@@ -139,7 +139,7 @@ class SignalRService {
     }
   }
 
-  onRouteOptimizationUpdate(callback: (_update: any) => void): void {
+  onRouteOptimizationUpdate(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('RouteOptimizationUpdate', callback);
@@ -148,7 +148,7 @@ class SignalRService {
     }
   }
 
-  onGPSLocationUpdate(callback: (_update: any) => void): void {
+  onGPSLocationUpdate(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('GPSLocationUpdate', callback);
@@ -157,7 +157,7 @@ class SignalRService {
     }
   }
 
-  onAttendanceMethodUpdate(callback: (_update: any) => void): void {
+  onAttendanceMethodUpdate(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('AttendanceMethodUpdate', callback);
@@ -166,7 +166,7 @@ class SignalRService {
     }
   }
 
-  onPaymentStatusUpdate(callback: (_update: any) => void): void {
+  onPaymentStatusUpdate(callback: (update: any) => void): void {
     if (this.connection && this.isConnected) {
       try {
         this.connection.on('PaymentStatusUpdate', callback);
