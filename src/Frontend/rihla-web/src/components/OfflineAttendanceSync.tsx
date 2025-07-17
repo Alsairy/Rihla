@@ -125,7 +125,6 @@ const OfflineAttendanceSync: React.FC = () => {
         updateSyncStatus(records);
       }
     } catch (err) {
-      console.error('Error loading offline records:', err);
       setError('Failed to load offline records from storage');
     }
   };
@@ -136,7 +135,6 @@ const OfflineAttendanceSync: React.FC = () => {
       setOfflineRecords(records);
       updateSyncStatus(records);
     } catch (err) {
-      console.error('Error saving offline records:', err);
       setError('Failed to save offline records to storage');
     }
   };

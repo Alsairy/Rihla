@@ -190,7 +190,9 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    }
   };
 
   const loadAlerts = async () => {
@@ -329,7 +331,9 @@ const NotificationCenter: React.FC = () => {
           alert => alert.severity === 'error' || alert.actionRequired
         ).length
       );
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load alerts:', error);
+    }
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -347,7 +351,9 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch {}
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
   const markAllAsRead = async () => {
@@ -355,7 +361,9 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch {}
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   };
 
   const getNotificationIcon = (type: string) => {

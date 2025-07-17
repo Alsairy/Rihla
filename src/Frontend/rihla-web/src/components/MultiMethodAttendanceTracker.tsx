@@ -105,25 +105,6 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     'Present' | 'Absent' | 'Late'
   >('Present');
 
-  useEffect(() => {
-    loadInitialData();
-
-    const handleOnline = () => {
-      setIsOnline(true);
-      syncOfflineRecords();
-    };
-
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   const loadInitialData = async () => {
     setLoading(true);
     try {
@@ -145,6 +126,50 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const syncOfflineRecords = async () => {
+    if (offlineRecords.length === 0) return;
+
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/api/attendance/sync-offline', {
+        offlineRecords,
+      });
+
+      if ((response as any).data.success) {
+        setOfflineRecords([]);
+        setSuccess(`Synced ${offlineRecords.length} offline records`);
+        if (selectedTrip) {
+          loadAttendanceRecords(selectedTrip);
+        }
+      } else {
+        setError('Failed to sync offline records');
+      }
+    } catch {
+      setError('Failed to sync offline records');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadInitialData();
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncOfflineRecords();
+    };
+
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const loadAttendanceRecords = async (tripId: number) => {
     try {
@@ -336,31 +361,6 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       setManualStatus('Present');
     } catch {
       setError('Failed to record manual attendance');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const syncOfflineRecords = async () => {
-    if (offlineRecords.length === 0) return;
-
-    setLoading(true);
-    try {
-      const response = await apiClient.post('/api/attendance/sync-offline', {
-        offlineRecords,
-      });
-
-      if ((response as any).data.success) {
-        setOfflineRecords([]);
-        setSuccess(`Synced ${offlineRecords.length} offline records`);
-        if (selectedTrip) {
-          loadAttendanceRecords(selectedTrip);
-        }
-      } else {
-        setError('Failed to sync offline records');
-      }
-    } catch {
-      setError('Failed to sync offline records');
     } finally {
       setLoading(false);
     }

@@ -100,19 +100,6 @@ const GeofenceAlertPanel: React.FC = () => {
     severityFilter: 'All',
   });
 
-  useEffect(() => {
-    loadInitialData();
-    loadAlertSettings();
-
-    const interval = window.setInterval(() => {
-      if (selectedTrip && alertSettings.enableNotifications) {
-        checkGeofenceAlerts();
-      }
-    }, 10000); // Check every 10 seconds
-
-    return () => window.clearInterval(interval);
-  }, [selectedTrip, alertSettings.enableNotifications]);
-
   const loadInitialData = async () => {
     setLoading(true);
     try {
@@ -127,15 +114,6 @@ const GeofenceAlertPanel: React.FC = () => {
       setError('Failed to load initial data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadAlertsForTrip = async (tripId: number) => {
-    try {
-      const response = await apiClient.get(`/api/geofence/alerts/${tripId}`);
-      setAlerts((response as any).data || []);
-    } catch {
-      setError('Failed to load alerts');
     }
   };
 
@@ -186,6 +164,28 @@ const GeofenceAlertPanel: React.FC = () => {
       }
     } catch {
       setError('Failed to check geofence alerts');
+    }
+  };
+
+  useEffect(() => {
+    loadInitialData();
+    loadAlertSettings();
+
+    const interval = window.setInterval(() => {
+      if (selectedTrip && alertSettings.enableNotifications) {
+        checkGeofenceAlerts();
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => window.clearInterval(interval);
+  }, [selectedTrip, alertSettings.enableNotifications]);
+
+  const loadAlertsForTrip = async (tripId: number) => {
+    try {
+      const response = await apiClient.get(`/api/geofence/alerts/${tripId}`);
+      setAlerts((response as any).data || []);
+    } catch {
+      setError('Failed to load alerts');
     }
   };
 
