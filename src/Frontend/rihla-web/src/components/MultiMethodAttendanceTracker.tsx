@@ -169,7 +169,7 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [loadInitialData, syncOfflineRecords]);
 
   const loadAttendanceRecords = async (tripId: number) => {
     try {
