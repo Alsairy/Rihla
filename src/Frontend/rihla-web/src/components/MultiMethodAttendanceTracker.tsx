@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -105,17 +105,17 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     'Present' | 'Absent' | 'Late'
   >('Present');
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     setLoading(true);
     try {
       const [studentsResponse, tripsResponse] = await Promise.all([
         apiClient.get('/api/students'),
         apiClient.get('/api/trips/active'),
       ]);
-
+ 
       setStudents((studentsResponse as any).data?.items || []);
       setTrips((tripsResponse as any).data?.items || []);
-
+ 
       if ((tripsResponse as any).data?.items?.length > 0) {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         loadAttendanceRecords((tripsResponse as any).data.items[0].id);
@@ -125,17 +125,18 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const syncOfflineRecords = async () => {
+
+  const syncOfflineRecords = useCallback(async () => {
     if (offlineRecords.length === 0) return;
-
+ 
     setLoading(true);
     try {
       const response = await apiClient.post('/api/attendance/sync-offline', {
         offlineRecords,
       });
-
+ 
       if ((response as any).data.success) {
         setOfflineRecords([]);
         setSuccess(`Synced ${offlineRecords.length} offline records`);
@@ -150,7 +151,8 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [offlineRecords, selectedTrip]);
+
 
   useEffect(() => {
     loadInitialData();

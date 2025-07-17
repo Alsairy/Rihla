@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -85,6 +85,69 @@ const OfflineAttendanceSync: React.FC = () => {
   const [detailDialog, setDetailDialog] = useState(false);
   const [autoSync] = useState(true);
 
+  const loadOfflineRecords = useCallback(() => {
+    try {
+      const stored = localStorage.getItem('offlineAttendanceRecords');
+      if (stored) {
+        const records: OfflineRecord[] = JSON.parse(stored);
+        setOfflineRecords(records);
+        updateSyncStatus(records);
+      }
+    } catch {
+      setError('Failed to load offline records from storage');
+    }
+  }, []);
+
+  const syncAllRecords = useCallback(async () => {
+    if (!isOnline || syncStatus.inProgress) return;
+
+    const unsyncedRecords = offlineRecords.filter(r => !r.synced);
+    if (unsyncedRecords.length === 0) return;
+
+    setSyncStatus(prev => ({ ...prev, inProgress: true }));
+
+    const updatedRecords = [...offlineRecords];
+    const syncPromises = unsyncedRecords.map(async record => {
+      try {
+        const response = await apiClient.post('/api/attendance/sync', record);
+        if ((response as any).data.success) {
+          const recordIndex = updatedRecords.findIndex(r => r.id === record.id);
+          if (recordIndex !== -1) {
+            updatedRecords[recordIndex] = {
+              ...updatedRecords[recordIndex],
+              synced: true,
+              lastError: undefined,
+              retryCount: 0,
+            };
+          }
+        } else {
+          const recordIndex = updatedRecords.findIndex(r => r.id === record.id);
+          if (recordIndex !== -1) {
+            updatedRecords[recordIndex] = {
+              ...updatedRecords[recordIndex],
+              lastError: 'Sync failed',
+              retryCount: (updatedRecords[recordIndex].retryCount || 0) + 1,
+            };
+          }
+        }
+      } catch (error) {
+        const recordIndex = updatedRecords.findIndex(r => r.id === record.id);
+        if (recordIndex !== -1) {
+          updatedRecords[recordIndex] = {
+            ...updatedRecords[recordIndex],
+            lastError: (error as Error).message ?? 'Unknown error',
+            retryCount: (updatedRecords[recordIndex].retryCount || 0) + 1,
+          };
+        }
+      }
+    });
+
+    await Promise.all(syncPromises);
+    setOfflineRecords(updatedRecords);
+    updateSyncStatus(updatedRecords);
+    setSyncStatus(prev => ({ ...prev, inProgress: false }));
+  }, [isOnline, offlineRecords, syncStatus.inProgress]);
+
   useEffect(() => {
     loadOfflineRecords();
 
@@ -104,7 +167,7 @@ const OfflineAttendanceSync: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [autoSync]);
+  }, [autoSync, loadOfflineRecords, syncAllRecords]);
 
   useEffect(() => {
     if (isOnline && autoSync) {
@@ -114,20 +177,8 @@ const OfflineAttendanceSync: React.FC = () => {
 
       return () => clearInterval(interval);
     }
-  }, [isOnline, autoSync]);
+  }, [isOnline, autoSync, syncAllRecords]);
 
-  const loadOfflineRecords = () => {
-    try {
-      const stored = localStorage.getItem('offlineAttendanceRecords');
-      if (stored) {
-        const records: OfflineRecord[] = JSON.parse(stored);
-        setOfflineRecords(records);
-        updateSyncStatus(records);
-      }
-    } catch {
-      setError('Failed to load offline records from storage');
-    }
-  };
 
   const saveOfflineRecords = (records: OfflineRecord[]) => {
     try {
@@ -160,69 +211,6 @@ const OfflineAttendanceSync: React.FC = () => {
     });
   };
 
-  const syncAllRecords = async () => {
-    if (!isOnline || syncStatus.inProgress) return;
-
-    const unsyncedRecords = offlineRecords.filter(r => !r.synced);
-    if (unsyncedRecords.length === 0) return;
-
-    setSyncStatus(prev => ({ ...prev, inProgress: true }));
-    setLoading(true);
-
-    try {
-      const syncPromises = unsyncedRecords.map(record =>
-        syncSingleRecord(record)
-      );
-      const results = await Promise.allSettled(syncPromises);
-
-      const updatedRecords = [...offlineRecords];
-      let successCount = 0;
-      let errorCount = 0;
-
-      results.forEach((result, index) => {
-        const recordIndex = offlineRecords.findIndex(
-          r => r.id === unsyncedRecords[index].id
-        );
-        if (recordIndex !== -1) {
-          if (result.status === 'fulfilled' && result.value.success) {
-            updatedRecords[recordIndex] = {
-              ...updatedRecords[recordIndex],
-              synced: true,
-              lastError: undefined,
-            };
-            successCount++;
-          } else {
-            const errorMessage =
-              result.status === 'rejected'
-                ? result.reason?.message || 'Unknown error'
-                : result.value.error || 'Sync failed';
-
-            updatedRecords[recordIndex] = {
-              ...updatedRecords[recordIndex],
-              retryCount: updatedRecords[recordIndex].retryCount + 1,
-              lastError: errorMessage,
-            };
-            errorCount++;
-          }
-        }
-      });
-
-      saveOfflineRecords(updatedRecords);
-
-      if (successCount > 0) {
-        setSuccess(`Successfully synced ${successCount} records`);
-      }
-      if (errorCount > 0) {
-        setError(`Failed to sync ${errorCount} records`);
-      }
-    } catch (err) {
-      setError('Failed to sync offline records');
-      console.error('Sync error:', err);
-    } finally {
-      setLoading(false);
-      setSyncStatus(prev => ({ ...prev, inProgress: false }));
-    }
-  };
 
   const syncSingleRecord = async (
     record: OfflineRecord

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -100,12 +100,12 @@ const GeofenceAlertPanel: React.FC = () => {
     severityFilter: 'All',
   });
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     setLoading(true);
     try {
       const tripsResponse = await apiClient.get('/api/trips/active');
       setTrips((tripsResponse as any).data?.items || []);
-
+ 
       if ((tripsResponse as any).data?.items?.length > 0) {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         await loadAlertsForTrip((tripsResponse as any).data.items[0].id);
@@ -115,17 +115,18 @@ const GeofenceAlertPanel: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const checkGeofenceAlerts = async () => {
+
+  const checkGeofenceAlerts = useCallback(async () => {
     if (!selectedTrip) return;
-
+ 
     try {
       const locationResponse = await apiClient.get(
         `/api/trips/${selectedTrip}/current-location`
       );
       const location = (locationResponse as any).data;
-
+ 
       if (location) {
         const response = await apiClient.post(
           '/api/attendance/geofence-alerts',
@@ -135,7 +136,7 @@ const GeofenceAlertPanel: React.FC = () => {
             longitude: location.longitude,
           }
         );
-
+ 
         const newAlerts = (response as any).data || [];
         if (newAlerts.length > 0) {
           setAlerts(prev => {
@@ -145,7 +146,7 @@ const GeofenceAlertPanel: React.FC = () => {
             );
             return [...prev, ...uniqueNewAlerts];
           });
-
+ 
           if (alertSettings.soundEnabled) {
             const highSeverityAlerts = newAlerts.filter(
               (alert: GeofenceAlert) => alert.severity === 'High'
@@ -154,7 +155,7 @@ const GeofenceAlertPanel: React.FC = () => {
               playAlertSound();
             }
           }
-
+ 
           if (alertSettings.autoAcknowledge) {
             newAlerts.forEach((alert: GeofenceAlert) => {
               acknowledgeAlert(alert.id);
@@ -165,7 +166,8 @@ const GeofenceAlertPanel: React.FC = () => {
     } catch {
       setError('Failed to check geofence alerts');
     }
-  };
+  }, [selectedTrip, alertSettings.soundEnabled, alertSettings.autoAcknowledge]);
+
 
   useEffect(() => {
     loadInitialData();
