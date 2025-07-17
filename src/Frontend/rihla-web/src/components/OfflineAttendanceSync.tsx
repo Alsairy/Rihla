@@ -179,7 +179,6 @@ const OfflineAttendanceSync: React.FC = () => {
     }
   }, [isOnline, autoSync, syncAllRecords]);
 
-
   const saveOfflineRecords = (records: OfflineRecord[]) => {
     try {
       localStorage.setItem('offlineAttendanceRecords', JSON.stringify(records));
@@ -210,7 +209,6 @@ const OfflineAttendanceSync: React.FC = () => {
       errors,
     });
   };
-
 
   const syncSingleRecord = async (
     record: OfflineRecord

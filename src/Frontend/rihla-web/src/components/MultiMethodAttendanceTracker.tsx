@@ -112,10 +112,10 @@ const MultiMethodAttendanceTracker: React.FC = () => {
         apiClient.get('/api/students'),
         apiClient.get('/api/trips/active'),
       ]);
- 
+
       setStudents((studentsResponse as any).data?.items || []);
       setTrips((tripsResponse as any).data?.items || []);
- 
+
       if ((tripsResponse as any).data?.items?.length > 0) {
         setSelectedTrip((tripsResponse as any).data.items[0].id);
         loadAttendanceRecords((tripsResponse as any).data.items[0].id);
@@ -127,16 +127,15 @@ const MultiMethodAttendanceTracker: React.FC = () => {
     }
   }, []);
 
-
   const syncOfflineRecords = useCallback(async () => {
     if (offlineRecords.length === 0) return;
- 
+
     setLoading(true);
     try {
       const response = await apiClient.post('/api/attendance/sync-offline', {
         offlineRecords,
       });
- 
+
       if ((response as any).data.success) {
         setOfflineRecords([]);
         setSuccess(`Synced ${offlineRecords.length} offline records`);
@@ -152,7 +151,6 @@ const MultiMethodAttendanceTracker: React.FC = () => {
       setLoading(false);
     }
   }, [offlineRecords, selectedTrip]);
-
 
   useEffect(() => {
     loadInitialData();
