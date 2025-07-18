@@ -122,7 +122,7 @@ const RealTimeGPSTracker: React.FC = () => {
     try {
       const response = await apiClient.get('/api/gps/active-locations');
       setVehicleLocations((response as any).data || []);
-    } catch (err) {
+    } catch (_) {
       setError('Failed to load active vehicle locations');
     }
   }, []);
@@ -143,9 +143,9 @@ const RealTimeGPSTracker: React.FC = () => {
       }
 
       await loadActiveVehicleLocations();
-    } catch (err) {
+    } catch (_) {
       setError('Failed to load initial data');
-    } finally {
+    }finally {
       setLoading(false);
     }
   }, [loadActiveVehicleLocations]);
@@ -171,9 +171,9 @@ const RealTimeGPSTracker: React.FC = () => {
       } else {
         setError((response as any).data?.message || 'Failed to start tracking');
       }
-    } catch (err) {
+    } catch (_) {
       setError('Failed to start tracking');
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -195,9 +195,9 @@ const RealTimeGPSTracker: React.FC = () => {
       } else {
         setError((response as any).data?.message || 'Failed to stop tracking');
       }
-    } catch (err) {
+    } catch (_) {
       setError('Failed to stop tracking');
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -205,7 +205,7 @@ const RealTimeGPSTracker: React.FC = () => {
   const updateVehicleLocations = useCallback(async () => {
     try {
       await loadActiveVehicleLocations();
-    } catch (err) {
+    } catch (_) {
       setError('Failed to update vehicle locations');
     }
   }, [loadActiveVehicleLocations]);
@@ -236,7 +236,7 @@ const RealTimeGPSTracker: React.FC = () => {
           setViolationDialog(true);
         }
       }
-    } catch (err) {
+    } catch (_) {
       setError('Failed to check geofence violations');
     }
   }, [selectedVehicle, vehicleLocations]);
@@ -269,41 +269,6 @@ const RealTimeGPSTracker: React.FC = () => {
     };
   }, [autoRefresh, trackingActive, updateVehicleLocations, checkGeofenceViolations]);
 
-  const getEstimatedArrival = async (tripId: number, stopId: number) => {
-    try {
-      const response = await apiClient.get(`/api/gps/eta/${tripId}/${stopId}`);
-
-      if ((response as any).data) {
-        setEstimatedArrivals(prev => {
-          const filtered = prev.filter(
-            eta => !(eta.tripId === tripId && eta.stopId === stopId)
-          );
-          return [...filtered, (response as any).data];
-        });
-      }
-    } catch (err) {
-      setError('Failed to get estimated arrival time');
-    }
-  };
-
-  const getVehicleLocationHistory = async (
-    vehicleId: number,
-    hours: number = 24
-  ) => {
-    const endTime = new Date();
-    const startTime = new Date(endTime.getTime() - hours * 60 * 60 * 1000);
-
-    try {
-      const response = await apiClient.get(
-        `/api/gps/history/${vehicleId}?startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}`
-      );
-
-      return (response as any).data || [];
-    } catch (err) {
-      setError('Failed to get location history');
-      return [];
-    }
-  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
