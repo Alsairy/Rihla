@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -7,7 +7,6 @@ import {
   Button,
   Grid,
   Alert,
-  CircularProgress,
   List,
   ListItem,
   ListItemText,
@@ -24,7 +23,6 @@ import {
   Switch,
   FormControlLabel,
   Paper,
-  Divider,
 } from '@mui/material';
 import {
   LocationOn,
@@ -33,12 +31,9 @@ import {
   Warning,
   CheckCircle,
   Error,
-  Navigation,
-  Timeline,
   Refresh,
   PlayArrow,
   Stop,
-  Map as MapIcon,
   Schedule,
   Route,
 } from '@mui/icons-material';
@@ -122,37 +117,17 @@ const RealTimeGPSTracker: React.FC = () => {
     useState<GeofenceViolation | null>(null);
 
   const intervalRef = useRef<number | null>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadInitialData();
-
-    return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-      }
-    };
+  const loadActiveVehicleLocations = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/api/gps/active-locations');
+      setVehicleLocations((response as any).data || []);
+    } catch (err) {
+      setError('Failed to load active vehicle locations');
+    }
   }, []);
 
-  useEffect(() => {
-    if (autoRefresh && trackingActive) {
-      intervalRef.current = window.setInterval(() => {
-        updateVehicleLocations();
-        checkGeofenceViolations();
-      }, 5000); // Update every 5 seconds
-    } else if (intervalRef.current) {
-      window.clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-      }
-    };
-  }, [autoRefresh, trackingActive]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     setLoading(true);
     try {
       const [vehiclesResponse, tripsResponse] = await Promise.all([
@@ -170,20 +145,10 @@ const RealTimeGPSTracker: React.FC = () => {
       await loadActiveVehicleLocations();
     } catch (err) {
       setError('Failed to load initial data');
-      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const loadActiveVehicleLocations = async () => {
-    try {
-      const response = await apiClient.get('/api/gps/active-locations');
-      setVehicleLocations((response as any).data || []);
-    } catch (err) {
-      console.error('Error loading active locations:', err);
-    }
-  };
+  }, [loadActiveVehicleLocations]);
 
   const startTracking = async (vehicleId: number) => {
     const trip = activeTrips.find(t => t.vehicleId === vehicleId);
@@ -208,7 +173,6 @@ const RealTimeGPSTracker: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to start tracking');
-      console.error('Start tracking error:', err);
     } finally {
       setLoading(false);
     }
@@ -233,21 +197,20 @@ const RealTimeGPSTracker: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to stop tracking');
-      console.error('Stop tracking error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateVehicleLocations = async () => {
+  const updateVehicleLocations = useCallback(async () => {
     try {
       await loadActiveVehicleLocations();
     } catch (err) {
-      console.error('Error updating locations:', err);
+      setError('Failed to update vehicle locations');
     }
-  };
+  }, [loadActiveVehicleLocations]);
 
-  const checkGeofenceViolations = async () => {
+  const checkGeofenceViolations = useCallback(async () => {
     if (!selectedVehicle) return;
 
     const location = vehicleLocations.find(
@@ -274,9 +237,37 @@ const RealTimeGPSTracker: React.FC = () => {
         }
       }
     } catch (err) {
-      console.error('Error checking violations:', err);
+      setError('Failed to check geofence violations');
     }
-  };
+  }, [selectedVehicle, vehicleLocations]);
+
+  useEffect(() => {
+    loadInitialData();
+
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, [loadInitialData]);
+
+  useEffect(() => {
+    if (autoRefresh && trackingActive) {
+      intervalRef.current = window.setInterval(() => {
+        updateVehicleLocations();
+        checkGeofenceViolations();
+      }, 5000);
+    } else if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+      }
+    };
+  }, [autoRefresh, trackingActive, updateVehicleLocations, checkGeofenceViolations]);
 
   const getEstimatedArrival = async (tripId: number, stopId: number) => {
     try {
@@ -291,7 +282,7 @@ const RealTimeGPSTracker: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Error getting ETA:', err);
+      setError('Failed to get estimated arrival time');
     }
   };
 
@@ -309,7 +300,7 @@ const RealTimeGPSTracker: React.FC = () => {
 
       return (response as any).data || [];
     } catch (err) {
-      console.error('Error getting location history:', err);
+      setError('Failed to get location history');
       return [];
     }
   };
