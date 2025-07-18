@@ -257,7 +257,7 @@ const OfflineAttendanceSync: React.FC = () => {
 
         saveOfflineRecords(mergedRecords);
         setSuccess(`Imported ${importedRecords.length} records`);
-      } catch (err) {
+      } catch {
         setError('Failed to import records. Invalid file format.');
       }
     };

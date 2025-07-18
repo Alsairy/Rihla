@@ -53,13 +53,8 @@ import {
   Error as ErrorIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
-  Business as BusinessIcon,
-  ExpandMore as ExpandMoreIcon,
   Visibility as ViewIcon,
-  Print as PrintIcon,
-  Email as EmailIcon,
   AttachMoney as MoneyIcon,
-  CalendarToday as CalendarIcon,
   Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { apiClient } from '../services/apiClient';
@@ -158,10 +153,10 @@ const PaymentHistoryTracker: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [filterMethod, setFilterMethod] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate] = useState<Date | null>(null);
+  const [endDate] = useState<Date | null>(null);
   const [currentTab, setCurrentTab] = useState(0);
-  const [page, setPage] = useState(0);
+  const [page] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
