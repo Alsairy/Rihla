@@ -31,7 +31,7 @@ import {
   ContactPhone as ContactPhoneIcon,
   Edit as EditIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/apiClient';
 import { Student, Trip } from '../types';
 import NotificationCenter from '../components/NotificationCenter';

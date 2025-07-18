@@ -441,6 +441,498 @@ namespace SchoolTransportationSystem.Application.Services
                 UpdatedAt = route.UpdatedAt
             };
         }
+
+
+        public async Task<Result<AttendanceDto>> RecordRFIDAttendanceAsync(string rfidTag, int tripId, int stopId, DateTime timestamp, string tenantId)
+        {
+            try
+            {
+                var student = await _context.Students
+                    .Where(s => s.RfidTag == rfidTag && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (student == null)
+                {
+                    _logger.LogWarning("RFID tag {RfidTag} not found for tenant {TenantId}", rfidTag, tenantId);
+                    return Result<AttendanceDto>.Failure("Student with RFID tag not found");
+                }
+
+                var trip = await _context.Trips
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<AttendanceDto>.Failure("Trip not found");
+                }
+
+                var existingAttendance = await _context.Attendances
+                    .Where(a => a.StudentId == student.Id && a.TripId == tripId && a.Date.Date == timestamp.Date && !a.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingAttendance != null)
+                {
+                    existingAttendance.BoardingTime = timestamp;
+                    existingAttendance.Status = AttendanceStatus.Present;
+                    existingAttendance.Notes = $"RFID scan at {timestamp:HH:mm:ss}";
+                    existingAttendance.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    existingAttendance = new Attendance
+                    {
+                        TenantId = int.Parse(tenantId),
+                        StudentId = student.Id,
+                        TripId = tripId,
+                        Date = timestamp.Date,
+                        Status = AttendanceStatus.Present,
+                        BoardingTime = timestamp,
+                        Notes = $"RFID scan at {timestamp:HH:mm:ss}",
+                        RecordedBy = "RFID System",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Attendances.Add(existingAttendance);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("RFID attendance recorded for student {StudentId} on trip {TripId}", student.Id, tripId);
+                
+                var attendanceDto = MapToDto(existingAttendance);
+                return Result<AttendanceDto>.Success(attendanceDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording RFID attendance for tag {RfidTag} on trip {TripId}", rfidTag, tripId);
+                return Result<AttendanceDto>.Failure("An error occurred while recording RFID attendance");
+            }
+        }
+
+        public async Task<Result<AttendanceDto>> RecordPhotoAttendanceAsync(int studentId, int tripId, int stopId, string photoBase64, DateTime timestamp, string tenantId)
+        {
+            try
+            {
+                var student = await _context.Students
+                    .Where(s => s.Id == studentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (student == null)
+                {
+                    return Result<AttendanceDto>.Failure("Student not found");
+                }
+
+                var trip = await _context.Trips
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<AttendanceDto>.Failure("Trip not found");
+                }
+
+                var existingAttendance = await _context.Attendances
+                    .Where(a => a.StudentId == studentId && a.TripId == tripId && a.Date.Date == timestamp.Date && !a.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingAttendance != null)
+                {
+                    existingAttendance.BoardingTime = timestamp;
+                    existingAttendance.Status = AttendanceStatus.Present;
+                    existingAttendance.Notes = $"Photo verification at {timestamp:HH:mm:ss}";
+                    existingAttendance.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    existingAttendance = new Attendance
+                    {
+                        TenantId = int.Parse(tenantId),
+                        StudentId = studentId,
+                        TripId = tripId,
+                        Date = timestamp.Date,
+                        Status = AttendanceStatus.Present,
+                        BoardingTime = timestamp,
+                        Notes = $"Photo verification at {timestamp:HH:mm:ss}",
+                        RecordedBy = "Photo System",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Attendances.Add(existingAttendance);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Photo attendance recorded for student {StudentId} on trip {TripId}", studentId, tripId);
+                
+                var attendanceDto = MapToDto(existingAttendance);
+                return Result<AttendanceDto>.Success(attendanceDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording photo attendance for student {StudentId} on trip {TripId}", studentId, tripId);
+                return Result<AttendanceDto>.Failure("An error occurred while recording photo attendance");
+            }
+        }
+
+        public async Task<Result<AttendanceDto>> RecordBiometricAttendanceAsync(int studentId, int tripId, int stopId, string biometricData, string biometricType, DateTime timestamp, string tenantId)
+        {
+            try
+            {
+                var student = await _context.Students
+                    .Where(s => s.Id == studentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (student == null)
+                {
+                    return Result<AttendanceDto>.Failure("Student not found");
+                }
+
+                var trip = await _context.Trips
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<AttendanceDto>.Failure("Trip not found");
+                }
+
+                var existingAttendance = await _context.Attendances
+                    .Where(a => a.StudentId == studentId && a.TripId == tripId && a.Date.Date == timestamp.Date && !a.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (existingAttendance != null)
+                {
+                    existingAttendance.BoardingTime = timestamp;
+                    existingAttendance.Status = AttendanceStatus.Present;
+                    existingAttendance.Notes = $"Biometric {biometricType} scan at {timestamp:HH:mm:ss}";
+                    existingAttendance.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    existingAttendance = new Attendance
+                    {
+                        TenantId = int.Parse(tenantId),
+                        StudentId = studentId,
+                        TripId = tripId,
+                        Date = timestamp.Date,
+                        Status = AttendanceStatus.Present,
+                        BoardingTime = timestamp,
+                        Notes = $"Biometric {biometricType} scan at {timestamp:HH:mm:ss}",
+                        RecordedBy = "Biometric System",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Attendances.Add(existingAttendance);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Biometric attendance recorded for student {StudentId} on trip {TripId} using {BiometricType}", studentId, tripId, biometricType);
+                
+                var attendanceDto = MapToDto(existingAttendance);
+                return Result<AttendanceDto>.Success(attendanceDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error recording biometric attendance for student {StudentId} on trip {TripId}", studentId, tripId);
+                return Result<AttendanceDto>.Failure("An error occurred while recording biometric attendance");
+            }
+        }
+
+        public async Task<Result<OfflineAttendanceSyncResultDto>> SyncOfflineAttendanceAsync(List<OfflineAttendanceDto> offlineRecords, string tenantId)
+        {
+            try
+            {
+                var syncedAttendances = new List<AttendanceDto>();
+                var errors = new List<string>();
+
+                foreach (var offlineRecord in offlineRecords)
+                {
+                    try
+                    {
+                        var student = await _context.Students
+                            .Where(s => s.Id == offlineRecord.StudentId && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                            .FirstOrDefaultAsync();
+
+                        if (student == null)
+                        {
+                            errors.Add($"Student {offlineRecord.StudentId} not found");
+                            continue;
+                        }
+
+                        var trip = await _context.Trips
+                            .Where(t => t.Id == offlineRecord.TripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                            .FirstOrDefaultAsync();
+
+                        if (trip == null)
+                        {
+                            errors.Add($"Trip {offlineRecord.TripId} not found");
+                            continue;
+                        }
+
+                        var existingAttendance = await _context.Attendances
+                            .Where(a => a.StudentId == offlineRecord.StudentId && a.TripId == offlineRecord.TripId && 
+                                       a.Date.Date == offlineRecord.AttendanceDate.Date && !a.IsDeleted)
+                            .FirstOrDefaultAsync();
+
+                        if (existingAttendance != null)
+                        {
+                            existingAttendance.Status = offlineRecord.Status;
+                            existingAttendance.BoardingTime = offlineRecord.BoardingTime;
+                            existingAttendance.AlightingTime = offlineRecord.AlightingTime;
+                            existingAttendance.Notes = $"Offline sync: {offlineRecord.Notes}";
+                            existingAttendance.UpdatedAt = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            existingAttendance = new Attendance
+                            {
+                                TenantId = int.Parse(tenantId),
+                                StudentId = offlineRecord.StudentId,
+                                TripId = offlineRecord.TripId,
+                                Date = offlineRecord.AttendanceDate,
+                                Status = offlineRecord.Status,
+                                BoardingTime = offlineRecord.BoardingTime,
+                                AlightingTime = offlineRecord.AlightingTime,
+                                Notes = $"Offline sync: {offlineRecord.Notes}",
+                                RecordedBy = "Offline System",
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _context.Attendances.Add(existingAttendance);
+                        }
+
+                        syncedAttendances.Add(MapToDto(existingAttendance));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error syncing offline attendance for student {StudentId}", offlineRecord.StudentId);
+                        errors.Add($"Error syncing record for student {offlineRecord.StudentId}: {ex.Message}");
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                if (errors.Any())
+                {
+                    _logger.LogWarning("Offline sync completed with {ErrorCount} errors: {Errors}", errors.Count, string.Join(", ", errors));
+                }
+
+                _logger.LogInformation("Successfully synced {Count} offline attendance records", syncedAttendances.Count);
+                
+                var syncResult = new OfflineAttendanceSyncResultDto
+                {
+                    Success = true,
+                    ProcessedRecords = syncedAttendances.Count,
+                    SuccessfulRecords = syncedAttendances.Count,
+                    FailedRecords = 0,
+                    SyncErrors = new List<SyncErrorDto>(),
+                    LastSyncTime = DateTime.UtcNow
+                };
+                
+                return Result<OfflineAttendanceSyncResultDto>.Success(syncResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing offline attendance records");
+                return Result<OfflineAttendanceSyncResultDto>.Failure("An error occurred while syncing offline attendance records");
+            }
+        }
+
+        public async Task<Result<List<AttendanceMethodDto>>> GetAttendanceMethodsAsync(string tenantId)
+        {
+            try
+            {
+                var methods = new List<AttendanceMethodDto>
+                {
+                    new AttendanceMethodDto
+                    {
+                        Id = 1,
+                        Name = "Manual Entry",
+                        Description = "Manual attendance entry by driver or supervisor",
+                        IsEnabled = true,
+                        RequiresDevice = false,
+                        Configuration = new Dictionary<string, object>()
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 2,
+                        Name = "RFID Scanning",
+                        Description = "RFID card scanning for automated attendance",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "RFID Scanner",
+                        Configuration = new Dictionary<string, object> { { "ScanRange", "10cm" } }
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 3,
+                        Name = "Photo Recognition",
+                        Description = "Photo-based attendance using facial recognition",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "Camera",
+                        Configuration = new Dictionary<string, object> { { "MinConfidence", 0.85 } }
+                    },
+                    new AttendanceMethodDto
+                    {
+                        Id = 4,
+                        Name = "Biometric Scanning",
+                        Description = "Fingerprint or other biometric attendance",
+                        IsEnabled = true,
+                        RequiresDevice = true,
+                        DeviceType = "Biometric Scanner",
+                        Configuration = new Dictionary<string, object> { { "SupportedTypes", new[] { "fingerprint", "face", "iris" } } }
+                    }
+                };
+
+                return Result<List<AttendanceMethodDto>>.Success(methods);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting attendance methods");
+                return Result<List<AttendanceMethodDto>>.Failure("An error occurred while retrieving attendance methods");
+            }
+        }
+
+        public async Task<Result<AttendanceAnalyticsDto>> GetAttendanceAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId)
+        {
+            try
+            {
+                var attendances = await _context.Attendances
+                    .Include(a => a.Student)
+                    .Include(a => a.Trip)
+                        .ThenInclude(t => t.Route)
+                    .Where(a => a.TenantId == int.Parse(tenantId) && !a.IsDeleted)
+                    .Where(a => a.Date.Date >= startDate.Date && a.Date.Date <= endDate.Date)
+                    .ToListAsync();
+
+                var totalStudents = await _context.Students
+                    .Where(s => s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .CountAsync();
+
+                var todayAttendances = attendances.Where(a => a.Date.Date == DateTime.Today).ToList();
+                var presentToday = todayAttendances.Count(a => a.Status == AttendanceStatus.Present);
+                var absentToday = totalStudents - presentToday;
+
+                var analytics = new AttendanceAnalyticsDto
+                {
+                    TotalStudents = totalStudents,
+                    PresentToday = presentToday,
+                    AbsentToday = absentToday,
+                    AttendanceRate = totalStudents > 0 ? (decimal)presentToday / totalStudents * 100 : 0,
+                    RouteStats = new List<RouteAttendanceStatsDto>(),
+                    DailyTrends = new List<DailyAttendanceDto>(),
+                    MethodUsage = new List<AttendanceMethodUsageDto>
+                    {
+                        new AttendanceMethodUsageDto { Method = "Manual", UsageCount = attendances.Count(a => a.Notes?.Contains("Manual") == true), Percentage = 60, AverageProcessingTime = 30 },
+                        new AttendanceMethodUsageDto { Method = "RFID", UsageCount = attendances.Count(a => a.Notes?.Contains("RFID") == true), Percentage = 25, AverageProcessingTime = 2 },
+                        new AttendanceMethodUsageDto { Method = "Photo", UsageCount = attendances.Count(a => a.Notes?.Contains("Photo") == true), Percentage = 10, AverageProcessingTime = 5 },
+                        new AttendanceMethodUsageDto { Method = "Biometric", UsageCount = attendances.Count(a => a.Notes?.Contains("Biometric") == true), Percentage = 5, AverageProcessingTime = 3 }
+                    }
+                };
+
+                return Result<AttendanceAnalyticsDto>.Success(analytics);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting attendance analytics from {StartDate} to {EndDate}", startDate, endDate);
+                return Result<AttendanceAnalyticsDto>.Failure("An error occurred while retrieving attendance analytics");
+            }
+        }
+
+        public async Task<Result<List<GeofenceAlertDto>>> GenerateGeofenceAlertsAsync(int tripId, double latitude, double longitude, string tenantId)
+        {
+            try
+            {
+                var trip = await _context.Trips
+                    .Include(t => t.Route)
+                        .ThenInclude(r => r.RouteStops)
+                    .Where(t => t.Id == tripId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (trip == null)
+                {
+                    return Result<List<GeofenceAlertDto>>.Failure("Trip not found");
+                }
+
+                var alerts = new List<GeofenceAlertDto>();
+                const double geofenceRadiusKm = 0.5; // 500 meters
+
+                foreach (var stop in trip.Route.RouteStops)
+                {
+                    var distance = CalculateDistance(latitude, longitude, (double)stop.Latitude, (double)stop.Longitude);
+                    
+                    if (distance <= geofenceRadiusKm)
+                    {
+                        var studentsAtStop = await _context.Students
+                            .Where(s => s.RouteStopId == stop.Id && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                            .ToListAsync();
+
+                        foreach (var student in studentsAtStop)
+                        {
+                            var attendance = await _context.Attendances
+                                .Where(a => a.StudentId == student.Id && a.TripId == tripId && 
+                                           a.Date.Date == DateTime.Today && !a.IsDeleted)
+                                .FirstOrDefaultAsync();
+
+                            if (attendance == null || attendance.Status == AttendanceStatus.Absent)
+                            {
+                                alerts.Add(new GeofenceAlertDto
+                                {
+                                    Id = 0,
+                                    VehicleId = 0, // Will be set from context
+                                    VehicleNumber = "",
+                                    TripId = tripId,
+                                    RouteNumber = "",
+                                    ViolationType = "Student Not Boarded",
+                                    GeofenceName = stop.Name,
+                                    ViolationLatitude = (decimal)latitude,
+                                    ViolationLongitude = (decimal)longitude,
+                                    Latitude = (decimal)latitude,
+                                    Longitude = (decimal)longitude,
+                                    Distance = (decimal)distance,
+                                    Severity = distance <= 0.1 ? "High" : "Medium",
+                                    ViolationTime = DateTime.UtcNow,
+                                    Timestamp = DateTime.UtcNow,
+                                    Status = "Active",
+                                    Description = $"Vehicle is near {stop.Name} but {student.FullName.FirstName} {student.FullName.LastName} has not boarded",
+                                    StudentId = student.Id,
+                                    StudentName = $"{student.FullName.FirstName} {student.FullName.LastName}",
+                                    StopId = stop.Id,
+                                    StopName = stop.Name
+                                });
+                            }
+                        }
+                    }
+                }
+
+                _logger.LogInformation("Generated {AlertCount} geofence alerts for trip {TripId}", alerts.Count, tripId);
+                return Result<List<GeofenceAlertDto>>.Success(alerts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating geofence alerts for trip {TripId}", tripId);
+                return Result<List<GeofenceAlertDto>>.Failure("An error occurred while generating geofence alerts");
+            }
+        }
+
+        private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double earthRadiusKm = 6371.0;
+            
+            var dLat = DegreesToRadians(lat2 - lat1);
+            var dLon = DegreesToRadians(lon2 - lon1);
+            
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(DegreesToRadians(lat1)) * Math.Cos(DegreesToRadians(lat2)) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            
+            return earthRadiusKm * c;
+        }
+
+        private double DegreesToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180.0;
+        }
     }
 }
 

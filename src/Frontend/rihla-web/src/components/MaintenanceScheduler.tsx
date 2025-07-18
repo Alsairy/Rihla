@@ -44,7 +44,7 @@ import {
   LocalGasStation as OilIcon,
   Security as SecurityIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/apiClient';
 
 interface MaintenanceSchedulerProps {

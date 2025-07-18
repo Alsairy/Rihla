@@ -347,6 +347,586 @@ namespace SchoolTransportationSystem.Application.Services
                 } : null
             };
         }
+
+        public async Task<Result<RouteDto>> GenerateOptimalRouteAsync(OptimalRouteRequestDto requestDto, string tenantId)
+        {
+            try
+            {
+                var stops = requestDto.Stops ?? new List<RouteStopDto>();
+                if (!stops.Any())
+                {
+                    return Result<RouteDto>.Failure("At least one stop is required for route optimization");
+                }
+
+                var optimizedStops = await OptimizeStopSequenceAsync(stops, requestDto.VehicleCapacity);
+                var totalDistance = CalculateTotalDistance(optimizedStops);
+                var estimatedDuration = CalculateEstimatedDuration(optimizedStops, totalDistance);
+
+                var routeNumber = await GenerateRouteNumberAsync(tenantId);
+                var route = new Route
+                {
+                    RouteNumber = routeNumber,
+                    Name = requestDto.RouteName ?? $"Optimized Route {routeNumber}",
+                    Description = "Auto-generated optimized route",
+                    Status = RouteStatus.Draft,
+                    StartTime = requestDto.StartTime,
+                    EndTime = requestDto.StartTime.Add(estimatedDuration),
+                    Distance = totalDistance,
+                    EstimatedDuration = (int)estimatedDuration.TotalMinutes,
+                    StartLocation = optimizedStops.First().Address,
+                    EndLocation = optimizedStops.Last().Address,
+                    TenantId = int.Parse(tenantId),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Routes.Add(route);
+                await _context.SaveChangesAsync();
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating optimal route");
+                return Result<RouteDto>.Failure("An error occurred while generating the optimal route");
+            }
+        }
+
+        public async Task<Result<RouteDto>> OptimizeExistingRouteAsync(int routeId, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.RouteStops)
+                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteDto>.Failure("Route not found");
+                }
+
+                if (!route.RouteStops.Any())
+                {
+                    return Result<RouteDto>.Failure("Route has no stops to optimize");
+                }
+
+                var stopDtos = route.RouteStops.Select(s => new RouteStopDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Address = s.Address?.ToString() ?? string.Empty,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude,
+                    SequenceNumber = s.SequenceNumber,
+                    EstimatedArrivalTime = s.EstimatedArrivalTime?.TimeOfDay ?? TimeSpan.Zero
+                }).ToList();
+
+                var optimizedStops = await OptimizeStopSequenceAsync(stopDtos, 50);
+                var totalDistance = CalculateTotalDistance(optimizedStops);
+                var estimatedDuration = CalculateEstimatedDuration(optimizedStops, totalDistance);
+
+                route.Distance = totalDistance;
+                route.EstimatedDuration = (int)estimatedDuration.TotalMinutes;
+                route.EndTime = route.StartTime.Add(estimatedDuration);
+                route.UpdatedAt = DateTime.UtcNow;
+
+                for (int i = 0; i < optimizedStops.Count(); i++)
+                {
+                    var stop = route.RouteStops.First(s => s.Id == optimizedStops[i].Id);
+                    stop.SequenceNumber = i + 1;
+                    stop.EstimatedArrivalTime = DateTime.Today.Add(optimizedStops[i].EstimatedArrivalTime);
+                }
+
+                await _context.SaveChangesAsync();
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error optimizing existing route {RouteId}", routeId);
+                return Result<RouteDto>.Failure("An error occurred while optimizing the route");
+            }
+        }
+
+        public async Task<Result<RouteEfficiencyMetricsDto>> CalculateRouteEfficiencyMetricsAsync(int routeId, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.RouteStops)
+                    .Include(r => r.Students)
+                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteEfficiencyMetricsDto>.Failure("Route not found");
+                }
+
+                var trips = await _context.Trips
+                    .Where(t => t.RouteId == routeId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ActualStartTime.HasValue && t.ActualEndTime.HasValue)
+                    .ToListAsync();
+
+                var metrics = new RouteEfficiencyMetricsDto
+                {
+                    RouteId = routeId,
+                    RouteName = route.Name,
+                    TotalDistance = route.Distance,
+                    EstimatedDuration = TimeSpan.FromMinutes(route.EstimatedDuration),
+                    NumberOfStops = route.RouteStops.Count,
+                    StudentCapacity = route.Students.Count,
+                    AverageActualDuration = trips.Any() ? 
+                        TimeSpan.FromMinutes(trips.Average(t => (t.ActualEndTime.Value - t.ActualStartTime.Value).TotalMinutes)) : 
+                        TimeSpan.Zero,
+                    OnTimePerformance = CalculateOnTimePerformance(trips),
+                    FuelEfficiency = CalculateFuelEfficiency(route.Distance, trips.Count),
+                    CostPerStudent = CalculateCostPerStudent(route.Distance, route.Students.Count),
+                    OptimizationScore = CalculateOptimizationScore(route, trips),
+                    LastCalculated = DateTime.UtcNow
+                };
+
+                return Result<RouteEfficiencyMetricsDto>.Success(metrics);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating route efficiency metrics for route {RouteId}", routeId);
+                return Result<RouteEfficiencyMetricsDto>.Failure("An error occurred while calculating route efficiency metrics");
+            }
+        }
+
+        public async Task<Result<bool>> ValidateRouteCapacityAsync(int routeId, int vehicleId, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.Students)
+                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<bool>.Failure("Route not found");
+                }
+
+                var vehicle = await _context.Vehicles
+                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (vehicle == null)
+                {
+                    return Result<bool>.Failure("Vehicle not found");
+                }
+
+                var activeStudents = route.Students.Count(s => !s.IsDeleted);
+                var isValid = activeStudents <= vehicle.Capacity;
+
+                if (!isValid)
+                {
+                    _logger.LogWarning("Route {RouteId} capacity validation failed: {StudentCount} students exceed vehicle capacity of {VehicleCapacity}", 
+                        routeId, activeStudents, vehicle.Capacity);
+                }
+
+                return Result<bool>.Success(isValid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating route capacity for route {RouteId} and vehicle {VehicleId}", routeId, vehicleId);
+                return Result<bool>.Failure("An error occurred while validating route capacity");
+            }
+        }
+
+        private async Task<List<RouteStopDto>> OptimizeStopSequenceAsync(List<RouteStopDto> stops, int vehicleCapacity)
+        {
+            if (stops.Count <= 2) return stops;
+
+            var optimizedStops = new List<RouteStopDto>();
+            var remainingStops = new List<RouteStopDto>(stops);
+
+            if (remainingStops.Any())
+            {
+                var startStop = remainingStops.First();
+                optimizedStops.Add(startStop);
+                remainingStops.Remove(startStop);
+            }
+
+            while (remainingStops.Any())
+            {
+                var currentStop = optimizedStops.Last();
+                var nearestStop = FindNearestStop(currentStop, remainingStops);
+                
+                optimizedStops.Add(nearestStop);
+                remainingStops.Remove(nearestStop);
+            }
+
+            for (int i = 0; i < optimizedStops.Count; i++)
+            {
+                optimizedStops[i].SequenceNumber = i + 1;
+                optimizedStops[i].EstimatedArrivalTime = CalculateEstimatedArrivalTime(optimizedStops, i);
+            }
+
+            return optimizedStops;
+        }
+
+        private RouteStopDto FindNearestStop(RouteStopDto currentStop, List<RouteStopDto> remainingStops)
+        {
+            var nearestStop = remainingStops.First();
+            var shortestDistance = CalculateDistance(currentStop.Latitude, currentStop.Longitude, 
+                nearestStop.Latitude, nearestStop.Longitude);
+
+            foreach (var stop in remainingStops.Skip(1))
+            {
+                var distance = CalculateDistance(currentStop.Latitude, currentStop.Longitude, 
+                    stop.Latitude, stop.Longitude);
+                
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    nearestStop = stop;
+                }
+            }
+
+            return nearestStop;
+        }
+
+        private decimal CalculateTotalDistance(List<RouteStopDto> stops)
+        {
+            if (stops.Count < 2) return 0;
+
+            decimal totalDistance = 0;
+            for (int i = 0; i < stops.Count - 1; i++)
+            {
+                totalDistance += CalculateDistance(
+                    stops[i].Latitude, stops[i].Longitude,
+                    stops[i + 1].Latitude, stops[i + 1].Longitude);
+            }
+
+            return totalDistance;
+        }
+
+        private decimal CalculateDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
+        {
+            const decimal earthRadius = 6371;
+            var dLat = DegreesToRadians((double)(lat2 - lat1));
+            var dLon = DegreesToRadians((double)(lon2 - lon1));
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(DegreesToRadians((double)lat1)) * Math.Cos(DegreesToRadians((double)lat2)) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return earthRadius * (decimal)c;
+        }
+
+        private double DegreesToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180;
+        }
+
+        private TimeSpan CalculateEstimatedDuration(List<RouteStopDto> stops, decimal totalDistance)
+        {
+            const decimal averageSpeedKmh = 30;
+            const int stopTimeMinutes = 3;
+            
+            var travelTimeMinutes = (double)(totalDistance / averageSpeedKmh * 60);
+            var stopTimeTotal = stops.Count * stopTimeMinutes;
+            
+            return TimeSpan.FromMinutes(travelTimeMinutes + stopTimeTotal);
+        }
+
+        private TimeSpan CalculateEstimatedArrivalTime(List<RouteStopDto> stops, int stopIndex)
+        {
+            if (stopIndex == 0) return TimeSpan.FromHours(7);
+
+            var baseTime = TimeSpan.FromHours(7);
+            var travelTime = TimeSpan.FromMinutes(stopIndex * 5);
+            
+            return baseTime.Add(travelTime);
+        }
+
+        private async Task<string> GenerateRouteNumberAsync(string tenantId)
+        {
+            var count = await _context.Routes
+                .Where(r => r.TenantId == int.Parse(tenantId))
+                .CountAsync();
+
+            return $"RT-{DateTime.UtcNow:yyyyMM}-{(count + 1):D3}";
+        }
+
+        private decimal CalculateOnTimePerformance(List<Trip> trips)
+        {
+            if (!trips.Any()) return 0;
+
+            var onTimeTrips = trips.Count(t => 
+                t.ActualStartTime.HasValue && 
+                Math.Abs((t.ActualStartTime.Value - t.ScheduledStartTime).TotalMinutes) <= 5);
+
+            return (decimal)onTimeTrips / trips.Count * 100;
+        }
+
+        private decimal CalculateFuelEfficiency(decimal distance, int tripCount)
+        {
+            if (tripCount == 0 || distance == 0) return 0;
+            
+            const decimal averageFuelConsumption = 0.08m;
+            return distance * averageFuelConsumption / tripCount;
+        }
+
+        private decimal CalculateCostPerStudent(decimal distance, int studentCount)
+        {
+            if (studentCount == 0) return 0;
+            
+            const decimal costPerKm = 2.5m;
+            return distance * costPerKm / studentCount;
+        }
+
+        private decimal CalculateOptimizationScore(Route route, List<Trip> trips)
+        {
+            var distanceScore = Math.Min(100, (50 / Math.Max(1, route.Distance)) * 100);
+            var timeScore = Math.Min(100, (60 / Math.Max(1, route.EstimatedDuration)) * 100);
+            var performanceScore = CalculateOnTimePerformance(trips);
+            
+            return (distanceScore + timeScore + performanceScore) / 3;
+        }
+
+        public async Task<Result<RouteDto>> GenerateOptimalRouteAsync(List<int> studentIds, int vehicleId, string tenantId)
+        {
+            try
+            {
+                var students = await _context.Students
+                    .Where(s => studentIds.Contains(s.Id) && s.TenantId == int.Parse(tenantId) && !s.IsDeleted)
+                    .ToListAsync();
+
+                if (!students.Any())
+                {
+                    return Result<RouteDto>.Failure("No valid students found");
+                }
+
+                var vehicle = await _context.Vehicles
+                    .Where(v => v.Id == vehicleId && v.TenantId == int.Parse(tenantId) && !v.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (vehicle == null)
+                {
+                    return Result<RouteDto>.Failure("Vehicle not found");
+                }
+
+                if (students.Count > vehicle.Capacity)
+                {
+                    return Result<RouteDto>.Failure($"Too many students ({students.Count}) for vehicle capacity ({vehicle.Capacity})");
+                }
+
+                var routeNumber = await GenerateRouteNumberAsync(tenantId);
+                var route = new Route
+                {
+                    TenantId = int.Parse(tenantId),
+                    Name = $"Optimized Route {routeNumber}",
+                    RouteNumber = routeNumber,
+                    StartTime = TimeSpan.FromHours(7),
+                    EndTime = TimeSpan.FromHours(8),
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Routes.Add(route);
+                await _context.SaveChangesAsync();
+
+                var stops = new List<RouteStop>();
+                for (int i = 0; i < students.Count; i++)
+                {
+                    var student = students[i];
+                    var stop = new RouteStop
+                    {
+                        TenantId = int.Parse(tenantId),
+                        RouteId = route.Id,
+                        Name = $"Stop for {student.FullName.FirstName} {student.FullName.LastName}",
+                        Address = student.Address,
+                        Latitude = 24.7136m + (decimal)(i * 0.001), // Mock coordinates
+                        Longitude = 46.6753m + (decimal)(i * 0.001),
+                        SequenceNumber = i + 1,
+                        EstimatedArrivalTime = DateTime.Today.Add(TimeSpan.FromHours(7).Add(TimeSpan.FromMinutes(i * 5))),
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    stops.Add(stop);
+                }
+
+                _context.RouteStops.AddRange(stops);
+                await _context.SaveChangesAsync();
+
+                var routeDto = await GetByIdAsync(route.Id, tenantId);
+                return routeDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating optimal route for students {StudentIds}", string.Join(",", studentIds));
+                return Result<RouteDto>.Failure("An error occurred while generating the optimal route");
+            }
+        }
+
+        public async Task<Result<RouteDto>> OptimizeExistingRouteAsync(RouteOptimizationRequestDto request, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.RouteStops)
+                    .Where(r => r.Id == request.RouteId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RouteDto>.Failure("Route not found");
+                }
+
+                if (!route.RouteStops.Any())
+                {
+                    return Result<RouteDto>.Failure("Route has no stops to optimize");
+                }
+
+                var stopDtos = route.RouteStops.Select(s => new RouteStopDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Address = s.Address?.ToString() ?? string.Empty,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude,
+                    SequenceNumber = s.SequenceNumber,
+                    EstimatedArrivalTime = s.EstimatedArrivalTime?.TimeOfDay ?? TimeSpan.Zero
+                }).ToList();
+
+                var optimizedStops = await OptimizeStopSequenceAsync(stopDtos, request.VehicleCapacity ?? 50);
+                var totalDistance = CalculateTotalDistance(optimizedStops);
+                var estimatedDuration = CalculateEstimatedDuration(optimizedStops, totalDistance);
+
+                route.Distance = totalDistance;
+                route.EstimatedDuration = (int)estimatedDuration.TotalMinutes;
+                route.EndTime = route.StartTime.Add(estimatedDuration);
+                route.UpdatedAt = DateTime.UtcNow;
+
+                for (int i = 0; i < optimizedStops.Count && i < route.RouteStops.Count; i++)
+                {
+                    var stop = route.RouteStops.FirstOrDefault(s => s.Id == optimizedStops[i].Id);
+                    if (stop != null)
+                    {
+                        stop.SequenceNumber = i + 1;
+                        stop.EstimatedArrivalTime = DateTime.Today.Add(optimizedStops[i].EstimatedArrivalTime);
+                    }
+                }
+
+                var optimizationRecord = new RouteOptimization
+                {
+                    TenantId = tenantId,
+                    RouteId = route.Id,
+                    OptimizationType = request.OptimizationType.ToString(),
+                    OriginalDistance = request.OriginalDistance ?? 0m,
+                    OptimizedDistance = totalDistance,
+                    OriginalDuration = request.OriginalDuration.HasValue ? (decimal)request.OriginalDuration.Value.TotalMinutes : 0m,
+                    OptimizedDuration = (decimal)estimatedDuration.TotalMinutes,
+                    FuelSavings = Math.Max(0, (request.OriginalDistance ?? 0m) - totalDistance) * 0.1m,
+                    TimeSavings = (decimal)Math.Max(0, (request.OriginalDuration?.TotalMinutes ?? 0) - estimatedDuration.TotalMinutes),
+                    OptimizedAt = DateTime.UtcNow,
+                    OptimizedBy = "System"
+                };
+
+                _context.RouteOptimizations.Add(optimizationRecord);
+                await _context.SaveChangesAsync();
+
+                var routeDto = MapToDto(route);
+                return Result<RouteDto>.Success(routeDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error optimizing existing route {RouteId}", request.RouteId);
+                return Result<RouteDto>.Failure("An error occurred while optimizing the route");
+            }
+        }
+
+        public async Task<Result<RoutePerformanceDto>> CalculateRouteEfficiencyMetricsAsync(int routeId, DateTime startDate, DateTime endDate, string tenantId)
+        {
+            try
+            {
+                var route = await _context.Routes
+                    .Include(r => r.RouteStops)
+                    .Include(r => r.Students)
+                    .Where(r => r.Id == routeId && r.TenantId == int.Parse(tenantId) && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
+
+                if (route == null)
+                {
+                    return Result<RoutePerformanceDto>.Failure("Route not found");
+                }
+
+                var trips = await _context.Trips
+                    .Where(t => t.RouteId == routeId && t.TenantId == int.Parse(tenantId) && !t.IsDeleted)
+                    .Where(t => t.ScheduledStartTime.Date >= startDate.Date && t.ScheduledStartTime.Date <= endDate.Date)
+                    .Where(t => t.ActualStartTime.HasValue && t.ActualEndTime.HasValue)
+                    .ToListAsync();
+
+                var performance = new RoutePerformanceDto
+                {
+                    RouteId = routeId,
+                    RouteName = route.Name,
+                    RouteNumber = route.RouteNumber,
+                    TotalTrips = trips.Count,
+                    OnTimeTrips = trips.Count(t => Math.Abs((t.ActualStartTime!.Value - t.ScheduledStartTime).TotalMinutes) <= 5),
+                    DelayedTrips = trips.Count(t => t.ActualStartTime!.Value > t.ScheduledStartTime.AddMinutes(5)),
+                    OnTimePercentage = trips.Count > 0 ? (decimal)trips.Count(t => Math.Abs((t.ActualStartTime!.Value - t.ScheduledStartTime).TotalMinutes) <= 5) / trips.Count * 100 : 0,
+                    AverageDelay = trips.Where(t => t.ActualStartTime!.Value > t.ScheduledStartTime)
+                                       .Select(t => (decimal)(t.ActualStartTime!.Value - t.ScheduledStartTime).TotalMinutes)
+                                       .DefaultIfEmpty(0)
+                                       .Average(),
+                    TotalDistance = route.Distance,
+                    AverageSpeed = trips.Count > 0 && route.Distance > 0 ? 
+                        route.Distance / (decimal)trips.Average(t => (t.ActualEndTime!.Value - t.ActualStartTime!.Value).TotalHours) : 0,
+                    FuelConsumption = route.Distance * 0.08m * trips.Count, // Mock calculation
+                    StudentCount = route.Students.Count,
+                    EfficiencyScore = CalculateOptimizationScore(route, trips)
+                };
+
+                return Result<RoutePerformanceDto>.Success(performance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating route efficiency metrics for route {RouteId}", routeId);
+                return Result<RoutePerformanceDto>.Failure("An error occurred while calculating route efficiency metrics");
+            }
+        }
+
+        public async Task<Result<List<RouteOptimizationDto>>> GetOptimizationHistoryAsync(int routeId, string tenantId)
+        {
+            try
+            {
+                var optimizations = await _context.RouteOptimizations
+                    .Where(ro => ro.RouteId == routeId && ro.TenantId == tenantId && !ro.IsDeleted)
+                    .OrderByDescending(ro => ro.OptimizedAt)
+                    .ToListAsync();
+
+                var optimizationDtos = optimizations.Select(o => new RouteOptimizationDto
+                {
+                    Id = o.Id,
+                    RouteId = o.RouteId,
+                    OptimizationType = o.OptimizationType,
+                    OriginalDistance = o.OriginalDistance,
+                    OptimizedDistance = o.OptimizedDistance,
+                    OriginalDuration = TimeSpan.FromMinutes((double)o.OriginalDuration),
+                    OptimizedDuration = TimeSpan.FromMinutes((double)o.OptimizedDuration),
+                    FuelSavings = o.FuelSavings,
+                    TimeSavings = TimeSpan.FromMinutes((double)o.TimeSavings),
+                    OptimizedAt = o.OptimizedAt,
+                    OptimizedBy = o.OptimizedBy,
+                    Notes = o.Notes
+                }).ToList();
+
+                return Result<List<RouteOptimizationDto>>.Success(optimizationDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting optimization history for route {RouteId}", routeId);
+                return Result<List<RouteOptimizationDto>>.Failure("An error occurred while retrieving optimization history");
+            }
+        }
     }
 }
 

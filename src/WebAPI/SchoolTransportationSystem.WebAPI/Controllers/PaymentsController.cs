@@ -139,6 +139,151 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
                 return StatusCode(500, new { message = "Error retrieving payment statistics", error = ex.Message });
             }
         }
+
+        [HttpPost("secure-payment")]
+        public async Task<ActionResult<SecurePaymentResultDto>> ProcessSecurePayment([FromBody] SecurePaymentRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _paymentService.ProcessSecurePaymentAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error processing secure payment", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error processing secure payment", error = ex.Message });
+            }
+        }
+
+        [HttpPost("generate-invoices")]
+        public async Task<ActionResult<IEnumerable<InvoiceDto>>> GenerateAutomatedInvoices([FromBody] InvoiceGenerationRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _paymentService.GenerateAutomatedInvoicesAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error generating automated invoices", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating automated invoices", error = ex.Message });
+            }
+        }
+
+        [HttpPost("apply-family-discounts")]
+        public async Task<ActionResult<FamilyDiscountResultDto>> ApplyFamilyDiscounts([FromBody] FamilyDiscountRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _paymentService.ApplyFamilyDiscountsAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error applying family discounts", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error applying family discounts", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/refund")]
+        public async Task<ActionResult<RefundResultDto>> ProcessRefund(int id, [FromBody] RefundRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var tenantId = "1";
+                var result = await _paymentService.ProcessRefundsAsync(request, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error processing refund", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error processing refund", error = ex.Message });
+            }
+        }
+
+        [HttpGet("gateway-status")]
+        public async Task<ActionResult<PaymentGatewayStatusDto>> GetPaymentGatewayStatus()
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _paymentService.GetPaymentGatewayStatusAsync(tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving payment gateway status", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving payment gateway status", error = ex.Message });
+            }
+        }
+
+        [HttpGet("fraud-detection/{transactionId}")]
+        public async Task<ActionResult<FraudDetectionResultDto>> GetFraudDetectionResults(string transactionId)
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _paymentService.GetFraudDetectionResultsAsync(transactionId, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving fraud detection results", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving fraud detection results", error = ex.Message });
+            }
+        }
+
+        [HttpGet("payment-analytics")]
+        public async Task<ActionResult<PaymentAnalyticsDto>> GetPaymentAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                var tenantId = "1";
+                var result = await _paymentService.GetPaymentAnalyticsAsync(startDate, endDate, tenantId);
+                
+                if (!result.IsSuccess)
+                    return StatusCode(500, new { message = "Error retrieving payment analytics", error = result.Error });
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving payment analytics", error = ex.Message });
+            }
+        }
     }
 }
 

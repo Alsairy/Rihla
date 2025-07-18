@@ -34,7 +34,7 @@ import {
   LocationOn as LocationIcon,
   Speed as SpeedIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/apiClient';
 import { Trip, Vehicle } from '../types';
 import NotificationCenter from '../components/NotificationCenter';

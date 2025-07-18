@@ -121,6 +121,61 @@ namespace SchoolTransportationSystem.WebAPI.Controllers
             return Ok(result.Value);
         }
 
+        [HttpPost("{id}/optimize")]
+        public async Task<ActionResult<RouteOptimizationDto>> OptimizeRoute(int id, [FromBody] RouteOptimizationRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var tenantId = _userContext.GetTenantId().ToString();
+            var result = await _routeService.GenerateOptimalRouteAsync(request.StudentIds, request.VehicleId, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error optimizing route", error = result.Error });
+                
+            return Ok(result.Value);
+        }
+
+        [HttpPut("{id}/optimize")]
+        public async Task<ActionResult<RouteOptimizationDto>> OptimizeExistingRoute(int id, [FromBody] RouteOptimizationRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var tenantId = _userContext.GetTenantId().ToString();
+            request.RouteId = id;
+            var result = await _routeService.OptimizeExistingRouteAsync(request, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error optimizing existing route", error = result.Error });
+                
+            return Ok(result.Value);
+        }
+
+        [HttpGet("{id}/efficiency-metrics")]
+        public async Task<ActionResult<RouteEfficiencyMetricsDto>> GetRouteEfficiencyMetrics(int id)
+        {
+            var tenantId = _userContext.GetTenantId().ToString();
+            var result = await _routeService.CalculateRouteEfficiencyMetricsAsync(id, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error calculating route efficiency metrics", error = result.Error });
+                
+            return Ok(result.Value);
+        }
+
+        [HttpGet("{id}/optimization-history")]
+        public async Task<ActionResult<IEnumerable<RouteOptimizationDto>>> GetOptimizationHistory(int id)
+        {
+            var tenantId = _userContext.GetTenantId().ToString();
+            var result = await _routeService.GetOptimizationHistoryAsync(id, tenantId);
+            
+            if (!result.IsSuccess)
+                return StatusCode(500, new { message = "Error retrieving optimization history", error = result.Error });
+                
+            return Ok(result.Value);
+        }
+
     }
 }
 

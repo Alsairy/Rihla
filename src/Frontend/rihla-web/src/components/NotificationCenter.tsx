@@ -71,31 +71,12 @@ const NotificationCenter: React.FC = () => {
 
     signalRService.startConnection();
 
-    signalRService.onNotificationReceived((notification: any) => {
-      setNotifications(prev => [notification, ...prev]);
-      if (!notification.isRead) {
-        setUnreadCount(prev => prev + 1);
-      }
-
-      if (Notification.permission === 'granted') {
-        new Notification(notification.title, {
-          body: notification.message,
-          icon: '/favicon.ico',
-        });
-      }
+    signalRService.onNotificationReceived(() => {
+      loadNotifications();
     });
 
-    signalRService.onEmergencyAlert((alert: any) => {
-      setNotifications(prev => [alert, ...prev]);
-      setUnreadCount(prev => prev + 1);
-
-      if (Notification.permission === 'granted') {
-        new Notification('🚨 EMERGENCY ALERT', {
-          body: alert.message,
-          icon: '/favicon.ico',
-          requireInteraction: true,
-        });
-      }
+    signalRService.onEmergencyAlert(() => {
+      loadNotifications();
     });
 
     signalRService.onDriverCertificationUpdated(() => {
@@ -112,6 +93,81 @@ const NotificationCenter: React.FC = () => {
 
     signalRService.onInsuranceExpirationAlert(() => {
       loadAlerts(); // Refresh alerts when insurance expiration alerts are created
+    });
+
+    signalRService.onRouteOptimizationUpdate((update: any) => {
+      setNotifications(prev => [
+        {
+          id: `route-${Date.now()}`,
+          type: 'Info',
+          title: 'Route Optimization Update',
+          message: `Route ${update.routeId} has been optimized. New efficiency: ${update.efficiency}%`,
+          priority: 'Medium',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+      setUnreadCount(prev => prev + 1);
+    });
+
+    signalRService.onGPSLocationUpdate((update: any) => {
+      if (
+        update.alertType === 'geofence_violation' ||
+        update.alertType === 'emergency'
+      ) {
+        setNotifications(prev => [
+          {
+            id: `gps-${Date.now()}`,
+            type: update.alertType === 'emergency' ? 'Error' : 'Warning',
+            title:
+              update.alertType === 'emergency'
+                ? 'Emergency GPS Alert'
+                : 'Geofence Violation',
+            message:
+              update.message || `Vehicle ${update.vehicleId} location alert`,
+            priority: update.alertType === 'emergency' ? 'Critical' : 'High',
+            isRead: false,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+        setUnreadCount(prev => prev + 1);
+      }
+    });
+
+    signalRService.onAttendanceMethodUpdate((update: any) => {
+      setNotifications(prev => [
+        {
+          id: `attendance-${Date.now()}`,
+          type: 'Info',
+          title: 'Attendance Update',
+          message: `Student attendance recorded via ${update.method}. Status: ${update.status}`,
+          priority: 'Low',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+      setUnreadCount(prev => prev + 1);
+    });
+
+    signalRService.onPaymentStatusUpdate((update: any) => {
+      const isError =
+        update.status === 'failed' || update.status === 'declined';
+      setNotifications(prev => [
+        {
+          id: `payment-${Date.now()}`,
+          type: isError ? 'Error' : 'Success',
+          title: `Payment ${update.status}`,
+          message: `Payment of $${update.amount} ${update.status}${update.reason ? `: ${update.reason}` : ''}`,
+          priority: isError ? 'High' : 'Medium',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+      setUnreadCount(prev => prev + 1);
     });
 
     if (Notification.permission === 'default') {
@@ -134,8 +190,10 @@ const NotificationCenter: React.FC = () => {
       setUnreadCount(
         notifications.filter((n: Notification) => !n.isRead).length
       );
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
   };
 
   const loadAlerts = async () => {
@@ -274,8 +332,10 @@ const NotificationCenter: React.FC = () => {
           alert => alert.severity === 'error' || alert.actionRequired
         ).length
       );
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -293,8 +353,10 @@ const NotificationCenter: React.FC = () => {
         prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
   };
 
   const markAllAsRead = async () => {
@@ -302,8 +364,10 @@ const NotificationCenter: React.FC = () => {
       await apiClient.put('/api/notifications/mark-all-read');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
   };
 
   const getNotificationIcon = (type: string) => {

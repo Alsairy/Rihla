@@ -25,6 +25,12 @@ namespace SchoolTransportationSystem.Infrastructure.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<RouteOptimization> RouteOptimizations { get; set; }
+        public DbSet<GPSTracking> GPSTrackings { get; set; }
+        public DbSet<AttendanceMethod> AttendanceMethods { get; set; }
+        public DbSet<PaymentGateway> PaymentGateways { get; set; }
+        public DbSet<GeofenceAlert> GeofenceAlerts { get; set; }
+        public DbSet<VehicleLocation> VehicleLocations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,6 +54,11 @@ namespace SchoolTransportationSystem.Infrastructure.Data
             ConfigureRolePermission(modelBuilder);
             ConfigureNotification(modelBuilder);
             ConfigureAuditLog(modelBuilder);
+            ConfigureRouteOptimization(modelBuilder);
+            ConfigureGPSTracking(modelBuilder);
+            ConfigureAttendanceMethod(modelBuilder);
+            ConfigurePaymentGateway(modelBuilder);
+            ConfigureGeofenceAlert(modelBuilder);
 
             // Configure relationships
             ConfigureRelationships(modelBuilder);
@@ -356,6 +367,134 @@ namespace SchoolTransportationSystem.Infrastructure.Data
             });
         }
 
+        private void ConfigureRouteOptimization(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RouteOptimization>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.OptimizationType).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Parameters).HasMaxLength(2000);
+                entity.Property(e => e.Results).HasMaxLength(5000);
+                entity.Property(e => e.OriginalDistance).HasPrecision(10, 2);
+                entity.Property(e => e.OptimizedDistance).HasPrecision(10, 2);
+                entity.Property(e => e.OriginalDuration).HasPrecision(10, 2);
+                entity.Property(e => e.OptimizedDuration).HasPrecision(10, 2);
+                entity.Property(e => e.FuelSavings).HasPrecision(10, 2);
+                entity.Property(e => e.CostSavings).HasPrecision(18, 2);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Notes).HasMaxLength(1000);
+
+                entity.HasIndex(e => new { e.RouteId, e.CreatedAt });
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.OptimizationType);
+            });
+        }
+
+        private void ConfigureGPSTracking(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GPSTracking>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Latitude).HasPrecision(18, 6).IsRequired();
+                entity.Property(e => e.Longitude).HasPrecision(18, 6).IsRequired();
+                entity.Property(e => e.Altitude).HasPrecision(10, 2);
+                entity.Property(e => e.Speed).HasPrecision(10, 2);
+                entity.Property(e => e.Heading).HasPrecision(10, 2);
+                entity.Property(e => e.Accuracy).HasPrecision(10, 2);
+                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.BatteryLevel).HasPrecision(5, 2);
+                entity.Property(e => e.SignalStrength).HasPrecision(5, 2);
+                entity.Property(e => e.DeviceId).HasMaxLength(100);
+                entity.Property(e => e.Notes).HasMaxLength(500);
+
+                entity.HasIndex(e => new { e.VehicleId, e.Timestamp });
+                entity.HasIndex(e => new { e.TripId, e.Timestamp });
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Timestamp);
+            });
+        }
+
+        private void ConfigureAttendanceMethod(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AttendanceMethod>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.MethodType).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.DeviceId).HasMaxLength(100);
+                entity.Property(e => e.RFIDTag).HasMaxLength(50);
+                entity.Property(e => e.PhotoPath).HasMaxLength(500);
+                entity.Property(e => e.BiometricData).HasMaxLength(2000);
+                entity.Property(e => e.QRCode).HasMaxLength(200);
+                entity.Property(e => e.Confidence).HasPrecision(5, 2);
+                entity.Property(e => e.ProcessingTime).HasPrecision(10, 3);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.ErrorMessage).HasMaxLength(500);
+                entity.Property(e => e.Metadata).HasMaxLength(1000);
+
+                entity.HasIndex(e => new { e.AttendanceId, e.MethodType });
+                entity.HasIndex(e => e.RFIDTag);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Timestamp);
+            });
+        }
+
+        private void ConfigurePaymentGateway(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PaymentGateway>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.GatewayName).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.GatewayType).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.TransactionId).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ExternalTransactionId).HasMaxLength(200);
+                entity.Property(e => e.Amount).HasPrecision(18, 2).IsRequired();
+                entity.Property(e => e.Currency).HasMaxLength(10).IsRequired();
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+                entity.Property(e => e.CardLast4).HasMaxLength(4);
+                entity.Property(e => e.CardType).HasMaxLength(50);
+                entity.Property(e => e.ProcessorResponse).HasMaxLength(1000);
+                entity.Property(e => e.SecurityToken).HasMaxLength(500);
+                entity.Property(e => e.FraudScore).HasPrecision(5, 2);
+                entity.Property(e => e.ProcessingFee).HasPrecision(18, 2);
+                entity.Property(e => e.RefundAmount).HasPrecision(18, 2);
+                entity.Property(e => e.Notes).HasMaxLength(1000);
+
+                entity.HasIndex(e => e.TransactionId).IsUnique();
+                entity.HasIndex(e => e.ExternalTransactionId);
+                entity.HasIndex(e => new { e.PaymentId, e.Status });
+                entity.HasIndex(e => e.ProcessedAt);
+            });
+        }
+
+        private void ConfigureGeofenceAlert(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GeofenceAlert>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.AlertType).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.GeofenceName).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.CenterLatitude).HasPrecision(18, 6).IsRequired();
+                entity.Property(e => e.CenterLongitude).HasPrecision(18, 6).IsRequired();
+                entity.Property(e => e.Radius).HasPrecision(10, 2).IsRequired();
+                entity.Property(e => e.ViolationLatitude).HasPrecision(18, 6);
+                entity.Property(e => e.ViolationLongitude).HasPrecision(18, 6);
+                entity.Property(e => e.Distance).HasPrecision(10, 2);
+                entity.Property(e => e.Severity).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Message).HasMaxLength(1000).IsRequired();
+                entity.Property(e => e.ActionTaken).HasMaxLength(500);
+                entity.Property(e => e.ResolvedBy).HasMaxLength(100);
+                entity.Property(e => e.Notes).HasMaxLength(1000);
+
+                entity.HasIndex(e => new { e.VehicleId, e.AlertType, e.Timestamp });
+                entity.HasIndex(e => new { e.TripId, e.Severity });
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Timestamp);
+            });
+        }
+
         private void ConfigureRelationships(ModelBuilder modelBuilder)
         {
             // Student -> Route (Many-to-One)
@@ -455,6 +594,55 @@ namespace SchoolTransportationSystem.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // RouteOptimization -> Route (Many-to-One)
+            modelBuilder.Entity<RouteOptimization>()
+                .HasOne<Route>()
+                .WithMany()
+                .HasForeignKey(ro => ro.RouteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // GPSTracking -> Vehicle (Many-to-One)
+            modelBuilder.Entity<GPSTracking>()
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(gt => gt.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // GPSTracking -> Trip (Many-to-One)
+            modelBuilder.Entity<GPSTracking>()
+                .HasOne<Trip>()
+                .WithMany()
+                .HasForeignKey(gt => gt.TripId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AttendanceMethod -> Attendance (Many-to-One)
+            modelBuilder.Entity<AttendanceMethod>()
+                .HasOne<Attendance>()
+                .WithMany()
+                .HasForeignKey(am => am.AttendanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PaymentGateway -> Payment (Many-to-One)
+            modelBuilder.Entity<PaymentGateway>()
+                .HasOne<Payment>()
+                .WithMany()
+                .HasForeignKey(pg => pg.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // GeofenceAlert -> Vehicle (Many-to-One)
+            modelBuilder.Entity<GeofenceAlert>()
+                .HasOne<Vehicle>()
+                .WithMany()
+                .HasForeignKey(ga => ga.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // GeofenceAlert -> Trip (Many-to-One)
+            modelBuilder.Entity<GeofenceAlert>()
+                .HasOne<Trip>()
+                .WithMany()
+                .HasForeignKey(ga => ga.TripId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

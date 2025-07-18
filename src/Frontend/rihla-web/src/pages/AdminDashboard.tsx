@@ -36,7 +36,7 @@ import {
   School as SchoolIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/apiClient';
 import { DashboardStats, Student, Driver, Vehicle } from '../types';
 import NotificationCenter from '../components/NotificationCenter';
@@ -713,8 +713,7 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                  // eslint-disable-next-line no-empty
-                } catch {}
+                } catch (error) {}
               };
               fetchDashboardData();
             }}
@@ -763,8 +762,7 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                  // eslint-disable-next-line no-empty
-                } catch {}
+                } catch (error) {}
               };
               fetchDashboardData();
             }}

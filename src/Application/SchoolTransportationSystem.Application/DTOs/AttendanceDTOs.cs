@@ -330,3 +330,24 @@ namespace SchoolTransportationSystem.Application.DTOs
         public List<object> AttendanceRecords { get; set; } = new();
     }
 
+    public class OfflineAttendanceDto
+    {
+        public int Id { get; set; }
+        public int StudentId { get; set; }
+        public int TripId { get; set; }
+        public int RouteStopId { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public AttendanceStatus Status { get; set; }
+        public DateTime? BoardingTime { get; set; }
+        public DateTime? AlightingTime { get; set; }
+        public decimal? BoardingLatitude { get; set; }
+        public decimal? BoardingLongitude { get; set; }
+        public decimal? AlightingLatitude { get; set; }
+        public decimal? AlightingLongitude { get; set; }
+        public string? Notes { get; set; }
+        public bool IsSynced { get; set; } = false;
+        public DateTime CreatedOffline { get; set; }
+        public string DeviceId { get; set; } = string.Empty;
+        public string? SyncError { get; set; }
+    }
+

@@ -13,6 +13,13 @@ namespace SchoolTransportationSystem.Application.Interfaces
         Task<Result<List<PaymentDto>>> GetPaymentsByStudentAsync(int studentId, DateTime startDate, DateTime endDate, string tenantId);
         Task<Result<List<PaymentDto>>> GetOverduePaymentsAsync(string tenantId);
         Task<Result<bool>> ProcessPaymentAsync(int paymentId, string paymentMethod, string tenantId);
+        Task<Result<SecurePaymentResultDto>> ProcessSecurePaymentAsync(SecurePaymentRequestDto request, string tenantId);
+        Task<Result<List<PaymentDto>>> GenerateAutomatedInvoicesAsync(InvoiceGenerationRequestDto request, string tenantId);
+        Task<Result<FamilyDiscountResultDto>> ApplyFamilyDiscountsAsync(FamilyDiscountRequestDto request, string tenantId);
+        Task<Result<RefundResultDto>> ProcessRefundsAsync(RefundRequestDto request, string tenantId);
+        Task<Result<List<PaymentGatewayStatusDto>>> GetPaymentGatewayStatusAsync(string tenantId);
+        Task<Result<FraudDetectionResultDto>> GetFraudDetectionResultsAsync(string transactionId, string tenantId);
+        Task<Result<PaymentAnalyticsDto>> GetPaymentAnalyticsAsync(DateTime startDate, DateTime endDate, string tenantId);
     }
 }
 
