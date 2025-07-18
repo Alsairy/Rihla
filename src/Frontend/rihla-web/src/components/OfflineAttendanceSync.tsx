@@ -76,7 +76,7 @@ const OfflineAttendanceSync: React.FC = () => {
     errors: [],
   });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<OfflineRecord | null>(
@@ -210,37 +210,6 @@ const OfflineAttendanceSync: React.FC = () => {
     });
   };
 
-  const syncSingleRecord = async (
-    record: OfflineRecord
-  ): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const response = await apiClient.post('/api/attendance/sync-offline', {
-        offlineRecords: [
-          {
-            studentId: record.studentId,
-            tripId: record.tripId,
-            status: record.status,
-            boardingTime: record.boardingTime,
-            alightingTime: record.alightingTime,
-            notes: record.notes,
-            attendanceDate: record.attendanceDate,
-            method: record.method,
-          },
-        ],
-      });
-
-      if ((response as any).data?.success) {
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: (response as any).data?.message || 'Sync failed',
-        };
-      }
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
-    }
-  };
 
   const deleteRecord = (recordId: string) => {
     const updatedRecords = offlineRecords.filter(r => r.id !== recordId);
