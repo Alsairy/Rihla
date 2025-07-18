@@ -44,7 +44,6 @@ import {
   Refresh as RefreshIcon,
   Search as SearchIcon,
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
   AccountBalance as BankIcon,
   CreditCard as CardIcon,
   Money as CashIcon,
@@ -157,17 +156,7 @@ const PaymentHistoryTracker: React.FC = () => {
   const [endDate] = useState<Date | null>(null);
   const [currentTab, setCurrentTab] = useState(0);
   const [page] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  useEffect(() => {
-    loadPaymentHistory();
-    loadPaymentSummary();
-    loadPaymentAnalytics();
-  }, []);
-
-  useEffect(() => {
-    loadPaymentHistory();
-  }, [filterStatus, filterMethod, searchTerm, startDate, endDate]);
+  const [rowsPerPage] = useState(10);
 
   const loadPaymentHistory = async () => {
     try {
@@ -186,7 +175,6 @@ const PaymentHistoryTracker: React.FC = () => {
       setTransactions(response.data || []);
     } catch (err) {
       setError('Failed to load payment history');
-      console.error('Error loading payment history:', err);
     } finally {
       setLoading(false);
     }
@@ -201,7 +189,6 @@ const PaymentHistoryTracker: React.FC = () => {
         setPaymentSummary(response.data);
       }
     } catch (err) {
-      console.error('Error loading payment summary:', err);
     }
   };
 
@@ -214,9 +201,18 @@ const PaymentHistoryTracker: React.FC = () => {
         setPaymentAnalytics(response.data);
       }
     } catch (err) {
-      console.error('Error loading payment analytics:', err);
     }
   };
+
+  useEffect(() => {
+    loadPaymentHistory();
+    loadPaymentSummary();
+    loadPaymentAnalytics();
+  }, [loadPaymentHistory]);
+
+  useEffect(() => {
+    loadPaymentHistory();
+  }, [filterStatus, filterMethod, searchTerm, startDate, endDate, loadPaymentHistory]);
 
   const downloadReceipt = async (transactionId: number) => {
     try {
@@ -234,38 +230,9 @@ const PaymentHistoryTracker: React.FC = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       setError('Failed to download receipt');
-      console.error('Error downloading receipt:', err);
     }
   };
 
-  const processRefund = async (
-    transactionId: number,
-    refundAmount: number,
-    reason: string
-  ) => {
-    try {
-      setLoading(true);
-      const response = (await apiClient.post(
-        `/api/payments/${transactionId}/refund`,
-        {
-          amount: refundAmount,
-          reason,
-        }
-      )) as { data: { success: boolean } };
-
-      if (response.data.success) {
-        setSuccess('Refund processed successfully');
-        loadPaymentHistory();
-        loadPaymentSummary();
-        setTransactionDialogOpen(false);
-      }
-    } catch (err) {
-      setError('Failed to process refund');
-      console.error('Error processing refund:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const exportPaymentHistory = async () => {
     try {
