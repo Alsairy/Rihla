@@ -714,7 +714,6 @@ const AdminDashboard: React.FC = () => {
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
                 } catch (error) {
-                  console.error('Failed to refresh data:', error);
                 }
               };
               fetchDashboardData();
@@ -765,7 +764,6 @@ const AdminDashboard: React.FC = () => {
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
                 } catch (error) {
-                  console.error('Failed to refresh data:', error);
                 }
               };
               fetchDashboardData();
