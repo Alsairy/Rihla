@@ -713,8 +713,7 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                } catch (error) {
-                }
+                } catch (error) {}
               };
               fetchDashboardData();
             }}
@@ -763,8 +762,7 @@ const AdminDashboard: React.FC = () => {
                   setStudents(studentsResponse as Student[]);
                   setDrivers(driversResponse as Driver[]);
                   setVehicles(vehiclesResponse as Vehicle[]);
-                } catch (error) {
-                }
+                } catch (error) {}
               };
               fetchDashboardData();
             }}

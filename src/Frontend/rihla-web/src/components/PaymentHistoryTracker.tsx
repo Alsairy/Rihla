@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -158,7 +158,7 @@ const PaymentHistoryTracker: React.FC = () => {
   const [page] = useState(0);
   const [rowsPerPage] = useState(10);
 
-  const loadPaymentHistory = async () => {
+  const loadPaymentHistory = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -173,12 +173,12 @@ const PaymentHistoryTracker: React.FC = () => {
         `/api/payments/history?${params.toString()}`
       )) as { data: PaymentTransaction[] };
       setTransactions(response.data || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load payment history');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterMethod, searchTerm, startDate, endDate]);
 
   const loadPaymentSummary = async () => {
     try {
@@ -188,7 +188,8 @@ const PaymentHistoryTracker: React.FC = () => {
       if (response.data) {
         setPaymentSummary(response.data);
       }
-    } catch (err) {
+    } catch {
+      setError('Failed to load payment summary');
     }
   };
 
@@ -200,7 +201,8 @@ const PaymentHistoryTracker: React.FC = () => {
       if (response.data) {
         setPaymentAnalytics(response.data);
       }
-    } catch (err) {
+    } catch {
+      setError('Failed to load payment analytics');
     }
   };
 
@@ -228,7 +230,7 @@ const PaymentHistoryTracker: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setError('Failed to download receipt');
     }
   };
@@ -258,9 +260,8 @@ const PaymentHistoryTracker: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setError('Failed to export payment history');
-      console.error('Error exporting payment history:', err);
     }
   };
 
@@ -319,9 +320,6 @@ const PaymentHistoryTracker: React.FC = () => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString();
