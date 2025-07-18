@@ -133,7 +133,7 @@ export const RouteOptimizationWizard: React.FC<
       const response = (await apiClient.get('/api/vehicles')) as any;
       setVehicles(response.items || []);
     } catch (err) {
-      console.error('Failed to load vehicles:', err);
+      setError('Failed to load vehicles');
     }
   };
 
@@ -246,7 +246,7 @@ export const RouteOptimizationWizard: React.FC<
         }));
       }
     } catch (err) {
-      console.error('Geocoding failed:', err);
+      setError('Geocoding failed');
     }
   };
 

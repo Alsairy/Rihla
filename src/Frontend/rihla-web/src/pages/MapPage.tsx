@@ -82,7 +82,8 @@ const MapPage: React.FC = () => {
   const [showOptimizationWizard, setShowOptimizationWizard] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showScheduling, setShowScheduling] = useState(false);
-  const [optimizedRoutes, setOptimizedRoutes] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [, setOptimizedRoutes] = useState<any[]>([]);
 
   const loadMapData = React.useCallback(async () => {
     try {
